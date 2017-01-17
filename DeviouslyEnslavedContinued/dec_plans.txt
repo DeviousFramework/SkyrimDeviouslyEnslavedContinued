@@ -1,0 +1,1251 @@
+; verstort 12/2016
+; this is more notes at this point than just plans
+; the top is really old, from early 2015, the bottom is the most up-to-date
+; search for "todo", above it is the newest todo list, below are some notes on follower dialogue and other stuff
+
+known bugs:
+  bug where the player's inventory is not checked at the start of a fresh load
+  approach isn't reset after an approach is finished
+    doesn't really matter, since it's on a timer anyway
+  partial chastity is always on because you set chastity bra to always true if the toggle is off
+    I think we fixed this?
+  ;fix bug where the mod doesn't recheck vulnerability without gear change, which means quests aren't checked without a gear change
+    ; for now: will check every time if the player is not busy
+  10.0: guard dialogue overrides arrest dialogue, stuck in loop
+    Pretty sure this was fixed with a lower priority
+  bug: naked with items doesn't go away when you turn naked off, (nvm, clears once you reset your vulnerability)
+    need to rebuild loop to look for MCM changes, bleh, not worth it to detect that kind of stuff
+    I mean you can get away with setting a "changes made" bool with those items I guess, just a very minor problem
+  NPC walks away after enslavement, should stand still, possibly animate
+  slaverun local doesn't work with slaverun reloaded
+    issue: not sure if I can just set the quest stage to start it, previously assumed player was being attacked by certain enemies right?
+
+  
+general: (old)
+add gagged attack? (gagged slaves can still aproach you, new dialogue)
+add gag attack? (npc can gag player, context?)
+add furniture attack? (out of my league, maybe)?
+add spanking attack? (really, this should be implemented from the slave mods)
+
+
+  get array of random npcs, that don't overlap? (all at once instead, one one function call?)
+    never found, switched to alias loading anyway
+
+  add quest cancellation for damsel in distress in cursed loot if playe gets enslaved, or cancel enslave option
+    maybe just add a block to prevent added items; currently, protected with general zazBlocking check
+  add extra second (minute) delay if the player is detected as busy in certain situations (to help stop gap attacks)
+  partial chastity enslave event (vulnerable for wearing certain chastity items)
+  finish implementing the timeout
+  pet collar application and separate dialogue?
+    wish there was a mod that used pet collar as a slavery mechanic
+    there doesn't seem to be an easy way to start Maria's Eden or SD+ with pet collar, put this on backburner
+  add mcm menu for aggressive animations
+  add mcm menu for zaz restraints
+  add intimidation/persuasion/illusion dialogue options for the general dialogue (really low priority)
+  add furniture attack? (out of my league) (maybe)
+; also zaz and xaz is back and working on stuff, might want to wait and see what the can cook up
+	if nearbyFurniture != None && vulnerability > 1 (maybe 2)
+	; maybe add a way to spawn furniture if the player gives a really bad response, or random but small?
+	; could also make it random chance with gag?
+		< wait for bad response from player to enslaver>
+		Either event first or text, 
+		teleporation to Zaz furniture
+			replace with walking animation? Can we add bondage first (out of thin air?)
+		disable player control in bondage # need debug disable in mcm, won't we, for if stuck
+		wait for another member of society to pass by and want you
+	@can't refuse, gag?
+		sex rape brings you out of furniture, 
+		re-enable player controls: natural exit, back to where you were
+  add maria sex restriction
+  add whore restriction? not sure if this would break some stuff 
+  group fragments together into one script ; at LEAST 2 hours of very monotonous work, guarentees 100% save clean will be necessary
+  higher than normal chance if thalmor?
+  check if the gear has certain tags before setting gearchanged to true
+    zbfworn, zadsomething, cursedloot? cd?
+    the chest area for nudity
+      bad idea, could crash the system if too many items are equipped/unequipped instantly
+  figure out how to use a library of code, since I now have three debug functions spread out when I only need one
+  mods detection only happens on first load right?
+      
+new mod idea: add the option for other slaves to walk up to you and ask for freedom if you have a slave and keys
+      this fits more with paradise halls than other slave mods
+
+Unanswered Modding questions:
+  Is there an easier way to batch compile scripts? dos sucks, I want my bash back
+  is there a way to turn on/off all lighting effects (reset)
+  Is there a way to quiet papyrus errors or warnings that are of no consequence?
+  Is there a way to detect if quest states have advanced?
+    would mean we don't need to check if enslaved as often
+  Is there a way to view the current factions an actor has in-game?
+    for debugging
+  Is there an event for entering a scene?
+    no, but you can test if in scene, works for now
+  At what moment does a pre-script for dialogue actually run?s
+	how to build a quest, dialogue from scratch, ect
+  can we use vm variables in dialogue faction condition
+  can we offload "is player busy" into conditional engine?
+    or any other part of the heavy papyrus
+  how do we get NPCs to cast spells during dialogue
+  how do we detect wizard robes?
+  how do we detect if the player commits a crime (must be fast, instant is idea, req < 2 seconds)
+
+Debug report form:
+  DE Mod version being tested
+  Does the problem persist up to two versions back?
+  previous DE version before problem started
+  New game, clean save, old save (previous DE version installed)
+  Versions of the following: SKSE, Maria's Eden, 
+  Memory patch?
+  
+plans:
+  new dialogue:
+    Intimidation and persuasion options 
+      Intimidate: if the player has a weapon and a speech skill above 40 req
+                  if the player has clothes and a skill above 60 req
+                  otherwise naked = 80 req
+                  what about weapon skills or strength?
+                    nvm this got really complicated, users actually have opinions about this one :/
+      persuasion: similar to above, but the low levels still require something (mostly enslavement protection?)
+                        
+    Being arrested by guards because you're tied up already
+      obscenity in high moral cities, solitude, windhelm
+      weakness in corrupt cities, markarth and riften
+      slaverun specific encounter
+      nudity + piercings + stain + collar without a master + 
+    different behavior for wearing a plugged chastity belt, or wearing CD piercings (naked requirement)
+    Attackers for sex remarking on having a key to get you out of chastity or other items, 
+      friendly: will offer aid for sex, not always honest
+      what happens if the approacher has a key? do we have to unlock the items in code first?
+    Approachers walking up and talking to your master if you're maria's eden slave, instead of talking to you
+      similarly, can we make the player walk up to the master in SD and pay them for your use?
+    Dialogue for Animals taking advantage of player while player is gagged, nude, with no belt
+      dog, horse, what other animals are normally non-aggressive? wolves/trolls are almost always agressive
+      bestiality is touchy with some folk, needs to be handled carefully.
+    being enslaved by high disposition friends/allies, deserves different dialogue
+      half the chance of being approached by thugs?
+      sex is not limited to aggressive?
+      less likely to be sold, more likely to be given/taken directly
+      good use of petcollar compared to the other slavey types, needs full implementation though
+      will need two lists of NPCs to send in the world, one aggressive, one softer
+        too bad we don't have a way to make Maria's eden enslavement more aggressive/relaxed, same for SD+
+      if the NPC thinks you have bahavior issues or need training, more likely to send you to "training" mods
+        introduced to new dom? There aren't enough of these mods currently.
+        aggressive: sent to slaverun, slaves of tamriel, CD as working slave
+        softer training: sent to CD through other means, maria's eden to some Dom in the city, mistaken idenity
+      
+  Finish chasity key detection (new dialog too?)
+    need to make sure player is just wearing normally removable DD items, not quest items
+    increase chances of enslave/sex if NPC has key
+    increases chances if player is plugged
+    if user has key, and player is gagged, user references how he has a key
+    
+			
+  integrate maria's eden pimp start? ; need more information
+    Need to figure out when the best time to use this is
+    bad end to getting asked for sex? how does post-sex even get triggered by DE?
+
+
+  can we detect if the NPC was recently a user? if so we can eliminate them from the roll
+    could probably just use a storageutil variable, key is the same but there's a gametime for start or exit
+  
+  cunundrum: want to use new dasha items, but don't have a valid place to use them
+    can't use on intro to maria eden, new owner might be rich but maria eden doesn't work well with devious devices
+    can't use with CD, they use their own custom items
+
+  scene (sold to maria eden): ; mothballed, maria eden is changing too much to know what will be available in the future
+    Add items, fade to black
+    fade from black ...
+    
+    NPC followed you, forcegreet, starts talking to you
+      condition: standing in one place, tied to zaz furniture, animating
+      ...
+      remove items, ... (maybe), start()
+    
+
+
+  add arousal for player as vulnerability, and naked requirement
+  add code to remove followers from player when enslaved (low priority, because the followers aren't local right?)
+  if player has a follower, and sex attack fails +> add device, and pet collar installed, pet collar should have a higher than regular chance
+    maybe only if the follower is not nude, and has no slave devices
+  if high arousal with follower, and wearing SOMETHING, will get approached by follower for relief
+  arousal modifier here to speed it up?
+  check gender here too
+    if follower convinces player 1-4 times, can lead to pet collar or maria eden
+
+  add enslavement mod variable for static masters
+    master's who are static, in the distance, never present to protect their slave in the world
+    angrim, CD, Mia's lair, cidhna, ect
+  double check DD slave detection settings, make MCM options?
+  double check on the devious cidhna quests stages, still haven't played through thei lesser quests
+  
+  what if user is locked, can ask user with key for release at some cost, like being lola slave for awhile
+  
+  make sure that the player is vulnerable 2 or higher, and not enslaved, before sexhook
+  
+  add spells and spell option in MCM menu
+  add andrew to detection during mia?
+  
+  enslave after sex lacks dialogue, just one tiny little notifications, bleh
+  look up mcm variable condition use in cursed loot?
+    if global, that would be easy
+
+  add more mcm variety for debug (so not all debug is triggered all the time
+  attempt to move NPC detection to quests  
+    how many of the conditions cannot be moved? factions cannot be used unless hard dependency, otherwise done
+    can we even catch MCM options as condition? use globals
+    can we even get faction property as condition? so far, haven't found solution
+    
+  add MCM menu pop up for debug 
+    and for intimidation if it doesn't work
+    turning on mods that aren't installed?
+  look into isle of mara, male on male mod for enslavement and when to not interfere
+    no immediately obvious slave status to look for, stuck, postponed
+  
+  remove cursedloot item detection, replace with keywords?
+    leave for now, can't confirm armor detection is any faster/slower than keyword detection, and kimy han't put in more than one in most cases
+      rubber exception
+   
+  add -1 to weapon max, and check if there are any other min/maxes I forgot to include
+  Add enslave only option to menu so users can use Dcur sex attacks instead
+  re-evaluate mcm init
+  deprecate mcm "default value" in mcm, doesn't work anyway just wasting 20-50 lines of code
+  
+  
+  
+  stack trace to find the part that calls maintaince more than once
+  
+  add more SD masters distance
+  add gender check for ranged masters (oops)
+    
+  player more likely to get raped while alone with deviant
+    hard to detect number of nearby NPC
+    
+  rewrite canRun to be less useless, more compartimentalized
+    wish I could know if papyrus inlined properly, so I can use more functional programming
+    not as important on the code that runs so late in the check
+    
+  extra items that can be equipped:
+    dasha's items
+      cursed loot rubber stuff
+    angeli's stuff
+    aradia might come back?? who knows
+    vel's DD infused zaz items, locking, interesting no?
+    CD colored items
+    Regular colored DD gear (currently only black ebonite right?)
+    
+  add Maria eden version detection  
+  send slave to SD cage instead of just to master
+  maria eden, whoring, while dancing, doesn't count as whore (because not wearing whore stuff)
+    add exception to being owned (quest)
+    or location? nobody would try to steal a whore/slave from a house, the bouncer would kick his ass
+  
+  make outfits for application instead of lists of items
+  rename masterRef to something that makes more sense, since its actually attacker
+  
+  QAYL quest two stop mod > play through it first
+  add enslave outcomes to sex:no if enslave chance > 0
+
+  Stuff that should wait until 11.0
+    add zaz furniture check to ref conditions
+    
+  Extra enslavement ideas (and event ideas)
+    put player in zaz furniture/tie up (old idea)
+      use spell to teleport player, more in line with lore
+        user needs to be mage I think
+        or we need a way to walk the player to the device
+      cages work too, in the case of something like SD cages?
+        force greet often unlocks locked doors
+        safety, summon some demon to mess with you instead?
+        or an NPC (nearby even)
+    (pet collar)
+    scene with maria, PO bounty hunter, 
+      maria eden is deprecated
+    entrance with Slaves of Tamriel?
+    custom scenes with certain items, like toys
+
+  added risk: 
+    if owner, higher chance
+    if trader, can see through clothing
+    if alone (might not be easy to find)
+    if player orgasmed during sex
+
+  Separate dialogue for carriages:
+    if SLUTS is installed, ignore?
+
+  force stripping
+    whiterun: if slaverun
+      slaves must be naked
+      naked or arrested
+    immoral cities: if slave
+    old people specific?
+  for stealing/pickpocketing
+    need a way to detect if caught, currently not seeing a condition function
+      ; haven't found one yet, oh well
+    cursed loot invisible suit counts as nude (maybe already happens? on it's own?)
+    new SD version needs testing
+      has pickpocket detection? hmm...
+
+  consider tying up the player before sex if walk away
+    if we could magic force player into rope, followed by wiggle into armbinder, that might be cool
+        needs testing
+  add animations to vulnerability, kneeling, arms bound, ect  
+    done, untested
+  add vel's DD enabled zaz items  
+    soft dependancy slow form list load, bleh
+    maybe we can import the formlists or the outfits instead?
+  break items added to player into "you're a bitch and you need slave items" 
+    and "You should lighten up, this collar would look good on you and tell others about your tendencies"
+
+  if actor is maria, higher chance to be enslaved by her specifically
+  sexlab solutions check for busy
+  wizards/warlocks can send you to meet with sanguine (SD)
+    quest doesn't work, giving up for now
+  make it so that slavers can enter dialogue if not being approached and not enslaved, and high enough level vulnerable
+    meaning, always dialogue
+  slavers never enslave locally? heavy sold/given?
+    MCM trigger for this maybe... who knows, maybe users don't think this is good enough, SD can work with slavers who move from place to places
+
+  remove DDi textures, trainingplug? shiney thing?
+  add wardrobe detection for weapon protection purposes.
+    done, MCM option to set vulnerability level and add the other robes too
+  
+  add for testing:
+    slaverun quest forcing, to change the city
+    test slavetats some more too
+      testbutton3 might give me a better hint
+    look at devious surrender again for detection, he's working on it again
+         
+  add different player response dialogue if the player is super aroused or approached while masturbating
+  
+  plans to optimise isPlayerEnslaved()
+    split into two sections, one that uses item detection, one that doesn't
+    move faction checks lower than quest stage checks
+    mods that use faction detection, that might have a better option:
+      FTD
+      Darkwind (dead mod)
+      TIR
+      ForswornStory
+      you know... none of these are commonly used by the average user, so they won't see see a performance hit..
+  
+  change mod enabled to be a global toggle
+    that way, users can still turn it off even if the MCM isn't showing up
+    mods can shut it off too
+
+  force stripping
+  whiterun: if slaverun
+    slaves must be naked
+    naked or arrested
+      if uncomplient, and wearing softclothing, can strip instead of arrest   
+        low armor amount?
+  immoral cities: if slave
+  old people specific?
+    
+  add master is not within range protection system
+    sex only, unless I have a way to stop those quests
+  can we display the source of DHLP?
+  
+  Return to check out Devious Fame when 1.0 comes out, use fame to lower confidence requirement, and other things
+  
+  ;Check SD for pickpocket code
+  Master wizards can still approach player?
+   add BDoD circlet detection
+    currently: forhead is always ignored, clearly expression issue
+  
+  change NPC checking to array instead of single, sorted NPC array with confidence sorting is probably best given conf is last checked
+  ; change the NPC count to greyed out, and default 7
+  itemtheme watcher/checker needs to be made
+  Fight dialogue
+    "I'd rather die than be your slave!" <- can we exit out into combat? Might be interesting
+    # needs knowledge on how to make the attack you
+      console in game, can use "setaggressiveness and setrelationship"
+  
+  Add debug output for when the fragment fires off for the approach start
+  Reduce time in the loop
+  Remove random stormcloak guy from the SD thing
+  
+    add random boots, balerina/slave
+  Better detection for slave gear, now that kimy has put every NPC in the world in slave gear
+   
+  Better interaction with adding items?
+    Scene for Multiple devices?
+    Fix Cursed collar start, too poorly made
+    add stripping animation before outfits
+      If adding armbinder, struggle animation as it's being added?  
+        Actually doable, since the armbinder itself will cancel out the animation when walking, suposidly
+
+  Rich detection:
+    add CD items, gold/silver I mean
+    cuffs, belt, percings, plugs?
+    Captured dreams random NPCs that buy CDx stuff, can I use that somehow?
+      Meaning the dynamic quest NPCs, they buy stuff so they should have his stuff
+      Is there an easy way to detect if NPC is in CDx's list of buyers? need to search
+  
+    
+  Add arousal animations # delayed, can't do without a lot more effort
+
+  add slaverun reloaded for slaverun normal turn on
+    since slaverun local doesn't work anymore   
+
+  #Change some of the NPC search MCM variables to globals so we can use them in NPC conditions
+    # not much to change, the range it the #1 reason they don't still count, followed by arousal *which I can't change* and confidence
+
+  Change/add dialogue for slave to slave interaction
+  Naked plus harness doesn't count as slave NPC, or it gets canceled some other way (the girl in SSR long house)
+
+  How would stipping work as an animation anyway?
+    
+  Add persuasion dialogue
+  Add fame to lower confidence requirement
+    
+  test player animation adding
+  seriously, slaverun reloaded integration needs work
+  if you're standing near other slaves wearing similar stuff?
+    not as easy as I wish it was
+
+  attacker useing user keys doesn't exist yet, for chasitity alone there are few enough key/belt compinations to probably get away with custom function
+    gags too
+  option to use second leon instead
+    nah, we can use the original and just fix it for ourselves, change it back
+  +kimy keys for items too
+  need to store items we remove, then add them again after, or add ANYthing after
+
+  Black out for leon enslave, animation too  
+  Add imperial/stormcloak restrictions to belts
+    test belts while we're add it
+  add dcur keys to list for detection      
+
+  Remove follower protection if they too are bound? (armbinder + gag)
+  figure out how to stop the NPC from walking away while they are busy getting ready to sex you
+  
+  Find a way to print out current dialogue trees for writers
+  Could we add Tattoos during multi-blackout? Need to kang kimy's code I think
+  Suddenly fade is probably better   
+  
+  Turn off ME Defeat warning for > 2.0
+  finish making the slaverun dialogue enslave
+    write dialogue for slaverun specifically?
+  Make exception for mindcontrolled NPCS
+  cd plugs
+  
+    Double check this still isn't a thing
+  DEC approach while player is busy with sexlab, can we move this to conditions too?
+
+  Add devious attributes support
+    A few mod events should do it
+  Add random Item support
+    without blocking keyword, and other items turned to zero
+  Check how long sex function takes to run
+  Can we fix SD so we can sleep in their house without issues?
+    ; seems like no
+  Test CD amulate on protection belt
+
+  ;Better sd master selection (how about we refresh right after we toggle, and it opens a messagebox?)
+  
+  Combat dialogue
+    Toggle on/off for certain situations (armbinder, gag, whatelse)
+    Make sure leg shackles are included? What if DDi no it's open source they can fix if they want
+    More options (slave training? running away, level detection)
+    
+  Remove isSlaver from vulnerability, means we can move vulnerability above NPC search <- big, will take time to separate those parts
+  check how much of DEC filter can dissapear to help with the speed
+  NPC with bed and cage in fort sunguard annor?
+  protect against PAH slaves that are bound on the floor?
+    They are already bound though...
+  
+  Follower do this later needs to trigger a cooldown too, at least until I lower the rate
+   
+    Regular plug works by scripted object that has enchantment which has magic effect which has script
+    trying to detect when player attacks master:
+      What I can do is put the master in a quest with a onhit clause
+        that fires a mod event that the plug can detect
+      might want something better suited
+  
+    - needs a delay option, lets find a bed/thing
+    *** Really need a response after bed is setup
+      lock player out of more CRDE inputs, reset if something comes up, with cooldown 2 in-game hours?
+      choose sex on bed if available
+      
+      
+    could be a great way to sex animation on a throne or something too
+    
+  Items follower can find and add:
+    Rubber suit collection, 
+      Follower can put on the rubber collar afterward
+    
+  Different dialogue for if the player is already wearing stuff like this 
+     
+  Measure doplayersex, and compare with the rest of the stuff too
+  Test if the crime quest is working better now that it has a higher priority
+    ; nope
+  ;put belt on afterwards
+  
+  
+  NPCs can approach other NPC?
+    Can piggyback on what we already have: if NPC is not confident enough to attack player
+    can still attack other nearby slaves?
+    we can probably create a list of nearby slaves while checking the nearby NPC list, 
+    but also one slave slot might work well enough
+
+  Not enough post aggressive add possible reactions
+  Option for follower to suggest putting the item on slave/pet/ect
+  Items -> leads to sex from NPC side
+  Location in dungeon detect? and/or detect if looted something recently
+  Add harness text, along with an item function to add harness and stuff, not just belt and stuff
+  
+
+  Slave and follower frustration
+  We finally have a use for spanking... maybe.
+  Also, new animations for zaz bondage stuff? How to use...
+  If other wearing certain collars or gag or... faction?
+  Player/follower can't say some things if they are trained and/or levels
+  Rubber suit wearing, maybe transparent too?
+  
+  Random starting positions for followers, if BOTH are set to zero and no previous knowledge (all zero) 
+  Rebuild code such that it can return items as well as equip them
+  ;MCM options for rate of change
+  
+  NPC asks if player has ever considered slave training?
+  Need a way to keep track of items each follower has put on the player
+    Maybe a slot based system where each slot
+    No, multislot items are bad
+    we need a way to look up per-item, not other way around
+    If we could do a keyword -> actor data structure that would be cool
+  
+  Master hit counts for healing too
+  
+more recent (not mothballed either):
+  
+  if player orgasms, nearby followers notice?
+    If player is enjoying sex while wearing bondage too
+      Certain inprovments based on gear, gag/armbinder/belt/collar/blindfold/buttplug?
+  if master, and punishing player, might allow sex attacks?
+    Maybe advertising of some kind? Gagged with paint or yoke or something?
+  Detect other follower types?
+  Write a scene for multiple item adding
+
+  
+  If gag and belt, we should check for key so we can remove belt and if already wearing plug, replace
+  add sex with follower cooldown? maybe not needed at this point
+  Dom for sex with slaves without slave gear
+  Base value could be a float
+  ;Min containers? Can probably just set to negative right?
+  Can we detect where a DD item was equipped from? I mean we can if we're the one's putting them on at least.
+  
+  Instead of just player location, would be better with player bed actually
+  Need code that can detect nearby bed, teleport player to it, with animation
+  Maybe we can detect exact location, and then re-use that if the player has sex there it must be a decent spot
+  Make sure "at least I can hide it under my armor" doesn't count for armbinder or boots, bood, blindfold? gag should already be immune
+  Asks for sex quietly if belted, sub, with player dom
+  Find out why followers can just fallout of dialogue for unknown reasons
+  If follower dom, can use drip spells on you for disobeying?
+  
+  Need to test giving rather than equipping
+  Need to test devious framework
+  Need to make sure SD distant is still working after that last clean
+  Need to test milkmod animation detecting with sexlab furniture ; milktest might be causing issues
+  
+  ;If slave is sub or slave, "your SLAVE wants to talk to you" instead
+    ; name trumps this 
+  If leaving as slave, dismiss all followers to last home? Can we set that?
+  extend want to sell -> no way!
+  Follower wants to craft something, you are to be tied up
+  If slave is open, follower is horny, and has been let use slave before, might use on their own without asking you.
+  
+  ;Cuffs count as armbinder on force, probably because there is no fallback for unknown types
+  ;libs.DeviousCuffs comes back None???? Need more details about this
+    hasn't shown up in awhile
+  master takes weapons from slave?
+    Especially if submissive AND keeps hitting follower with weapon/spell
+  Test all available spanking animations
+    Specifically, grab them all
+  Notice if player is bound and struggling
+  Either add a follower cooldown on sex or make female + female orgasm 
+  Follower remembers if the items you are wearing were put on by them, if so no birthday dialogue
+    complicated...
+  Need more non-equip outcomes
+  
+  CDx items don't work in dialogue
+  "We should sell these" give items to player or follower
+  Give to player "working" plugs and some stuff only
+  "earring" dialogue never shows up because > 20 is never used
+  ;CD items need special rolling?
+  ;CDx items roll is based if wearing belt
+  if we find special items remove previous?
+  
+  Gagged follower can still beg
+  Follower can beg to be put in bondage
+  - less than begging too
+  
+  Fix horse followers?
+  
+  If Follower(master) puts items on the player, don't remove for sex in the same fasion
+  Test master items manually by added and removing manually
+  Give items to player -> equipping messages in notifications and stuff
+  
+  Follower sex attack needs a bdsm angle
+    More Follower Dom in general
+    Hey haven't seen you in awhile, needs to not happen with active followers
+  Need to retest multi-follower is working
+  Need to retest SlaveTats working
+  PAH following faction for detecting the difference between a slave that is following and a slave tied up on the floor
+  ;If Player is already <itemed>, and player cannot wear another, needs special outcomes
+    problem: we need to be able to tell he player what the item is and if they want to interact with it or not.
+    
+  ;fix captured dreams followerisbusy with the global
+  ;fix SD+ alicias in the thing
+  ;add the guy from the borken oar place
+  ; stopped current follower from commenting on player's birthday
+  
+  ; fix gagged non-follower is anyone?
+  check new CDx stuff
+  reset mods on main save
+    hope that's not a common thing
+  is gunzel already in the list?
+  *sl stories needs a dhlp lock
+  *several gaged dialogues don't exist
+    is this dd or zaz
+    healing spell on npc, goodbye
+    thank you
+    what do you want from us
+  *cannot train slaves from PAH home sweet home, huh?
+  *broken andrew
+  
+  ;enslave seems to be timing itself out somehow...?
+  ;nearby friends, who are not active followers, count as follower for preventing enslavement (leon)
+    ; there is a local protection though right?
+  test bed using sexlab framework instead of thread model
+  ;distnatenslave is missing itemscript (might be old save issue)
+  ;add colored items to random CD items
+  ;  just tedius is all
+  ;Change ss to "SSLV Entry"
+  
+  ;Only current followers should find stuff in the wild ?? I think I fixed?
+  DEC makes a new onupdate apparently if unclean update???
+  
+  Follower should unlock player if they have a key for new plug
+  PAHE if slave is angry, we can ignore respectful
+  Follower can find items locked on them...? Maybe kimy wouldn't like this one
+  ;Possibility to find pet collar
+    Also other items from other mods that are recognizable? Cursed loot colars for instance.
+  ;Possibility to find CD items that are colored too
+  ;  Also reduce activity while in certain quests
+  More options for non-toy, non-slave sex
+  ;If no follower,  <- no easy way to know, just because they aren't near doesn't meant the player isn't spelunking
+  
+  PAH slaves, even if dom, need to have restraint in their tendency to tie up the player
+    if player is not tied up, for now?
+  slave trainer
+    slave faction 05001D91 
+    on sale faction 05008F5C
+
+  Fix Dialogue not ending, just add fragment to the start of the tree, there are too many leafs otherwise
+  Fix Follower dialogue ignoring if mod is off and if follower toggle is off  
+
+  We need a variable for "previously had experience with follower"
+    But that alone is a waste of a slot, what else can we use such a variable for?
+  Punish for hitting follower?
+  Hey ...
+    maybe avoid if player is slave of certain individuals, or certain mods
+    like leon/sasha/maria?
+  
+  If player is attacked, and slave is attacked, maybe other NPC will rape your slave while you're busy?
+  We don't NEED to detect sasha as master I don't think, because probably DCUR lvl 2
+    ; ensl 2 vln 3
+  Can I detect when the player finds a thing in a thing? If I can, the follower can detect that and confront I think.
+  
+  Make sure playerhome in playermon is active
+  ;check if maybe one of teh look at follower dilaogues are broken
+  Sex approach needs a cancel and cooldown
+  Fuck my slave, one of the things is missing gag requirement
+  Detect the robot
+  Detect if follower isn't in a position to be dom (temporary)
+  What SD+ sitation do we get in the way of?
+  ;Try slavetats again
+  set max disposition for characters?
+  
+  Try out sold follower quest thing
+    Make sure that there's a failure option too
+    Need list of cages/places where follower can be found
+  If CD:
+    Follower on display
+    Can pay to free follower
+    Or can leave them alone... ?
+
+  Try out ME again and see if you can fix the auction?
+  Make sure the AI packages can detect in combat and stop themselves
+  Containers gets reset too often? might have been fixed.
+  
+  Reattempt hit detection, but what outcomes? Gag/Armbinder/Belt/
+    Can we detect shouts used against followers? I think we can -> gag
+  Fix ME becoming a whore, early, is not detected  
+  ;Fix men with belts can attack player, silly ( was both genders)
+  Search through ME code for fix, try to compile said fix
+
+    ;Run check with list comparison between names and actors to see if they are out of order
+  ;  check if int returned is wrong too.
+  ;change debug message for adding follower to make sure it has name and ID, if it doesn't already
+  complete no nearby NPC case
+    Specifically, it locks too many cases I think
+  Make sure follower isn't set or checked incorrectly after renaming
+  ;"Unlock me please, explode" and "note now, whatever your name is" both missing gag requirements
+  
+  make a function to check for items in followers inventory that might match what you want (keyword)
+  try again to find someone somewhere who knows of a way to assign a script to a quest through MO
+  make sure follower stops approaching after certain dialogue, not sure which one it was wouldn't stop, maybe belted + begging?
+  need more ways for frustration to manifest and dissipate
+    * sex
+    * adding items to them if sub, to player if dom
+    * frustration while belted and ignored
+      * but we also need to make some dialogue to go there
+      
+      
+  ;If SD is still acting weird, is there a way to turn off the follower acting that way?
+  Detection if the follower has been to CDx or Dollmakers house, where else...
+  We can detect if the follower took items off of the player, right?
+  
+  
+; old, needs cleaning ^
+  
+  SNAG: Cannot compile quest fragments, because the fragments are not being stored in the overwrite folder...?
+  
+  ;12
+  ;If player has orgasm event while in belt -> add sub to everyone nearby?
+  ;can we detect vampire lord and werewolf
+  ;MCM change SD Masters choice system
+  Maybe MCM to allow users to add extra SD+ masters..?
+  ;  for follower += add item count to their internal counts
+  ;  change their counts dropping to zero from fragments
+  ;add to mcm the abilit to change it too
+  ;move that button up/down
+  BUG: if you add a follower manually, one that would be detected normally, they will get twice the item count
+  
+  new followers system needs to be tested
+  
+  ** TODO / NOTES (bottom is most recent, older in ascending order)  --^ **
+  
+      +###############+
+      +###############+
+          Don't forget to change the version number!
+      +###############+
+      +###############+
+  
+  Changes made since 13.6 (* is esp)
+    Fix bug where follower wouldn't approach for sex unless NPC was approaching you? Maybe not if > 1
+    
+  Follower sold:
+    Need to know if we need more than one quest per follower
+    otherwise, need multiple locations where cages can be found
+    select location at random, move follower there, with AI package of "do nothing" and maybe "move to location again"
+    cover follower in certain gear?
+  
+  Follower takes you home for sex:
+    Record last player home we had sex in
+    bind player, teleport
+     > stuff
+    ends in sd enslave or just release?
+    can we detect if they have a home that counts as a house? if not, last player house? if not, backup location?
+  
+  Can you unlock my belt already:
+  
+  ItemAdding needs: CD belt + plug?
+    Full CD set?
+    Maybe the full set can replace everything else, so keep it open as an option even when currently locked up tight
+    Harness
+  
+    New Dialogue:
+   * Gagged -> "I love it when you look at me like that" alternatives
+   Yes master, yes fucktoy alternative, neutral
+   "Hey lets try some roleplay" -> Items with timer..?
+   "did being plugged in public make you hot" -> sex or something else
+     Belt option like gag.
+    If follower has punished the player before, thinks they aren't DOM and sub between 1 and 5, can we send them to enslavement?
+    Ask follower if items can be removed
+    Ask if better items can be bought
+    Ask for sex because bothered by items
+
+    
+  Bugs:
+    ;follower player items aren't considered
+      Needs more testing
+    Containers searched keeps going up regardless of if you have a follower
+      Doesn't reset on new followers either
+    player is dom not really considered, and not adding correctly
+    special followers aren't considered, dom/sub are always zero for starters
+    sex + follower leads to silliness
+    follower puts their chest back on immediately after putting on an item
+      Maybe swap how it happens? Naked after items added?
+      Maybe put chest on again after commenting armor can go on top of it
+    Milk pump for MME isn't being detected correctly  
+    Necromancer led to belt of shame? huh? ; plug dumbass
+    ;In Urn is cut short sometimes... huh  
+    
+    &$&$&&$&$&&$&$&&$&$&&$&$&&$&$&&$&$&&$&$&&$&$&&$&$&&$&$&&$&$&&$&$&&$&$&&$&$&&$&$&&$&$&
+    
+    Stalker idea:
+    if you say no to the same person more than once, 
+        they might show up in the night and rape you in your bed, assuming it's yours
+        ALT: rape cave/shack in the woods
+        ALT: take them back to their home/house, we need to know that they have one though, 
+          and that we can bypass tresspassing
+      might also take you home with them in chains?
+      or tie you up and be the master in your own house instead?
+      maybe also special plug and peircings and belt, can't remove?
+        they will show up and unlock you if you keep sleeping in owned beds, keeping you happy?
+    : wake up fade from black, bound on bed (hope this doesn't break stuff?)
+      custom house maybe if I can't get it to work for all beds
+      my home is your home?
+    
+    Follower dialogue bugs:
+    Can pop up in the middle of other stuff
+      Mia stuff for one
+    Need arousal minimum
+    Need slave appraoch, where player is slave and we're being used
+    Can get items and enslavement from this sex, bad, need safer sex for follower
+    Can we detect if an item was added through script or through player's action?
+    
+    &&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+    Write to MCM:
+      Chance of getting follower dialogue
+      Chance follower is dom/sub
+      Toggle follower can sell you up river?
+      
+    Creation kit access req:
+
+    TesVEdit req:
+      Can we change the form ID for the training plug?
+    
+    &&&&&&&&&&&&&&&&&&&&&&&&&&&&
+    next big release stuff:
+      rename fragment XXX to pf_crde_addDDregular01.psc
+      abstract attemptapproach so we can use the same logic for crime and follower
+        ; crime is dead
+      make nearestRefNPC return array instead of single, so we can know if there are more than one
+        good NPCs for confidence, other value checks after the first, and finally group scenes    
+    
+
+###############################################################################################################
+  
+Ideas for dialogue:
+  
+  Follower asks master for better gear at CD, start quest to go get gear?
+  Follower tells slave that you're going shopping at one of the two stores
+  Follower wants to try dom against your slave (as s+s)
+  Follower wants to try sub as D+D
+  Follower wants you to wear a special collar he found earlier.
+  Follower wants to punish you, wear gag and sit in bondage furniture for awhile
+  Follower wants you to fuck the dog, while wearing a pet collar (gag too?)
+  Can we bribe Vel into training our followers?
+  if frustrated, after sex send player to slave owner for slave training
+    Which mods?
+  Player is horny and needs to please men (SRR)
+  Player is punished by being put in yoke and other stuff, can be approached for sex, paraded or put into furniture
+  I bought this at one of the shops while you were gone
+
+  ;mothballed, too many other mods offer this kind of service already
+  player is bound, walks up to user with key for help, sometimes raped, sometimes released, sometimes enslaved
+    mmmph
+      Can I help you?
+      Oh did you need something?
+      Gagged? Good, don't bother me.
+    non-gagged
+      first two from above
+        Hey do you have a key for this item?
+      
+    would be a better idea if there were more enslavement ideas, other than just petcollar, lola and maria
+        
+  player is approached for sex, asks for money because is whore
+    would be great if I could link directly into certain dialogue
+    Slut, service me.
+      How much?
+      Sure thing, 50 septims.
+      < if arousal is high enough, this is replaced with do it for free>
+      That lump in your pants better have some coin.
+      
+  player is approached for sex, declines, is thrown into nearby zaz furniture    
+  
+other mod changes/requests (personal notes):
+  cursed loot:
+    slut/slave collars swapped
+      done without needing to talk to kimmy
+    player should be tied after waking up to sex attack
+    cursed loot attacks don't take other mods into account, like CDx shop
+  wolfclub:
+    better interface to start enslavement (event, rather than quest start)
+    
+  slaverun reloaded: the dialogue about slavery in whiterun can come out of the mouth of gagged slaves
+    
+**************************************************************************************************************************
+
+ASM Discovery:
+
+  DO NOT use "Mods.prop != None && Mods.prop == thing"
+    This shitty compiler will get the prop from the class TWICE, probably because it thinks the state can change
+
+    PROPGET [ID[temptressVixenRace], ID[QQZQQ010], ID[::temp35]]
+		CAST [ID[::temp41], NONE]
+		CMP_EQ [ID[::temp40], ID[::temp35], ID[::temp41]]
+		NOT [ID[::temp40], ID[::temp40]]
+		CAST [ID[::temp39], ID[::temp40]]
+		JMPF [ID[::temp39], 4]
+		PROPGET [ID[temptressVixenRace], ID[QQZQQ010], ID[::temp41]]
+		CMP_EQ [ID[::temp36], ID[QQZQQ029], ID[::temp41]]
+		CAST [ID[::temp39], ID[::temp36]]
+		JMPF [ID[::temp39], 3]
+		RETURN [false]
+		
+  You should MANUALLY reuse local variables, otherwise the compiler makes a new one every single time,
+    per place in code, new loop? new local for that loop unless you re-specify
+		See above where the same race we get is allocated to two different variables
+		Different booleans are used too, even if they aren't needed further in the function
+
+  What...
+    HOLY FUCKING BALLS the compiler can't rectify a double negative
+ 		NOT [ID[::temp22], ID[::temp22]] ; fucking pos -> neg toggle
+		JMPF [ID[::temp22], 7]           ; jump on neg
+    
+  This is weird, why the fuck does it need to cast from a string to an int instead of saving it as an int into the comparison?? Almost every modern CPU instruction set lets you add a constant inline within the instruction
+		CAST [ID[::temp391], 20]
+		CMP_GE [ID[::temp393], ID[QQZQQ083], ID[::temp391]]
+		CAST [ID[::temp393], ID[::temp393]]
+		JMPT [ID[::temp393], 4]
+		CAST [ID[::temp391], 5]
+		CMP_LT [ID[::temp394], ID[QQZQQ083], ID[::temp391]]
+		CAST [ID[::temp393], ID[::temp394]]
+		RETURN [ID[::temp393]]
+
+    
+    
+**************************************************************************************************************************
+    
+  Training plug idea:
+    Detects who master is
+      If player attacks, punishes player <- need testing
+      Player gets aroused from whiping
+      Player orgasms, only when master does too
+        Maybe only when going oral on master?
+        "You longlingly think of your master " <- or something like that, if they aren't nearby and player is aroused
+        "This <sex> just isn't the same as your master" <- sex with someone else, while not nearby to your master
+      If player is not near master, and master is horny, can teleport player to them for sex
+      distracts player if not in range of master
+    If you try to remove it while still enslaved
+      replaced with ghost plug
+       until you put it back
+       more consequences
+        Disappears if you go waaaay far away from your master
+          or if you put it back
+          or switch masters
+    Kinda want corisponding training collar
+    If player goes through all training, some effects linger?
+      if wearing plug, and/or after effects, cannot say no?
+    If master puts a belt on you, and no plug, add this? Can we even catch this?
+    
+  Snags:
+  Can't stop orgasm, can't allow orgasm when stopped by SLARUTIL
+  Of course the belt stops orgasms so long as they have sl aroused
+    but if collar or piercing...
+  Could maybe get away with lowering almost all relationship ranks and such at hte start of sex, and them putting them back later...
+
+***
+
+Princess punishment collar:
+ collar made by rich merchants and kings to punish daughters, might backfire
+  can teleport player to location as temporary slave
+  can bind them in shock gear
+  can tie them up in painful furniture
+  DM's posture pose furniture?
+  temporary tattoos
+ could be retrofit by the princess in later life for pleasure rather than pain
+  can tie them up in 
+
+
+&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+
+Follower Parts needed:
+
+; oooookay lets dial this back a bit, start slow with the first approach, work your way up if that's working out
+
+: new :
+at least 4 numbers:
+  willingness to:
+    dominate
+    submit
+    frustration
+  and of course the follower needs to remember this, since different followers have different memories
+
+need to remember when 
+  player has sex in restraints
+  player has sex with non-followers?
+  player buys hooker?
+  player has sex wearing restraints
+  player is raped and doesn't kill him
+    or resist
+    can we detect consent or submit?
+
+Can we detect which mod started sex?
+  we could use some context for sex
+
+Way to detect nearby followers:
+  On cell change:
+    If entering CD shop, save CDx variables for reference
+    If enter brothel (Maria eden, others)
+    Can we detect if the player is in the middle of nowhere?
+      Can we detect if nearby enemies?  
+
+Follower happiness:
+  Follower dislikes being told no sex multiple times in a row if arousal is above X (90 standard?)
+  Follower dislikes being hit in combat (not sure if I can detect this)
+  Follower dislikes sitting still too long in the cold (not sure if I can detect this)
+  Follower dislikes being given short sex
+  Follower likes being given long sex
+  Follower likes getting oral especially (user set happyiness based on type of sex: oral/anal/vag/boob)
+  Follower likes getting to use toys
+  Follower dislikes not getting his turn
+
+Follower submission:?
+  How could we guess this personality?
+  User assigned in the menu maybe?
+  characteristics for 
+    horny, submissive, aggressive,
+
+Player submission:
+  Based on choices
+  Willingness to have sex while bound (item selection)
+  would be cool if there was a reverse enslave option for having a slave, that wasn't bound, that turned on you by enslaving you instead
+
+MCM options:
+  Ceiling for follower happiness
+  Floor for follower annoyance
+
+Don't forget to add "Clementine will remember that"
+
+Dialogue: 
+Chance based on Follower arousal and player arousal, follower must be X aroused for over X seconds, or reach Y arousal
+Follower states he's really bothered.
+
+Extra feature: Follower can show disapointment if the user has short sex -> reactions depending on gender and available bondage gear
+
+# this is old, look at follower dialogue instead
+player is approached by friendly NPC, because NPC has noticed player likes it (()
+    
+    player started:
+      Hold my keys? 
+      Remove my items?
+      Wanna sex?
+      Hey check this out! I think it might look good on you!
+    
+    Hey, I know you like bondage, check this out! ; can we detect dead bodies and/or area with interesting treasure
+      <show item they found>
+      <talk about sex shop where you can buy stuff (CD,calypses?)>
+    Hey, <name> lets have sex <- needs alternative
+      passive answers high chance to say no, decreases with every no
+      Go fuck yourself
+      Or do you need a whore? Lets head to town (passive, can only use 2-3 times in a row before he grows impatient)
+        Sometimes agrees, sometimes wants something else
+      Yes, but lets move
+        Option for public or private, even furniture?      
+      No you need to calm down
+        Chastity option?
+        We're in bad area (excuse)
+        Gag them
+        Arm tie them
+      
+    Hey why don't we play a game?/?//
+    I've noticed how much you enjoy having sex while tied up, I know this great guy who would like to tie you up.
+      submissive option -> become slve
+        if there was a sex with this guy, then dialogue, that would be cool but needs more work
+      aggressive no if follower is slave (intimidate)
+      say no
+        double checked
+          ...yes: points back to above
+          no 
+            dropped
+            submissive training (needs available mods)
+            rape? needs to be rare
+            sex?
+              ?
+              
+    Want to join in?
+      Added actor to array, extra for sex
+  follower remarks about player while player is busy with sex tied up and/or rape orgasm    
+
+&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+
+need to test:
+  Slaverun Reworked
+  Mia's lair again?
+    fix Mia's lair start state problems, the end of the onthetrail quest should also probably be protected, since the player is busy with slaves
+      fixed?? needs testing
+  Retest the DEC enslavement entrances, checking for which ones are the slowest, longest
+  All items seem to work, only one I didn't test properly was rubber doll
+  cursed loot invis suit count as nude or do I have to put that in myself?
+    Which suit? Rubber byitself doesn't work
+  
+bleed out events:
+IdleForceDefaultState
+BleedOutStart <- locks movement
+BleedOutStop
+
+Save cleaning piority:
+  Inited variables in ESP
+  Dialogue
+  Fragments
+  ...
+  Scripts
+
+Changes to title:
+incompatible mods should get renamed to mod incompatibilities
+  
+Things I need to learn:
+  how to scene
+  slow get up
+    how to stagger from laying position
+  how to detect if a dungeon is cleared
+  
+???????????????????????????????????????
+
+The fucking quest fragment dance:
+Make quest, make objective, make fragment.
+Fragment must exist in skyrim/data
+you must use
+;BEGIN FRAGMENT Fragment_10
+Function Fragment_10()
+;BEGIN CODE
+; do something in frag 10
+;END CODE
+EndFunction
+;END FRAGMENT
+to write a fragment inthe file first after regeneration
+
+THEN IT STILL WONT WORK WHAT YOU THOUGHT THIS WAS LOGIC YOU FUCKING IDIOT 
+  
+  
+  
+(*)  (*)  (*)  (*)  (*)  working on the copy paste themer
+  
+  ;int ddChance            = MCM.iWeightSingleGlovesBoots * ((!PlayerMon.player.wornHasKeyword(libs.zad_DeviousGloves) && !PlayerMon.player.wornHasKeyword(libs.zad_DeviousBoots)) as int)
+  int ddEnabledZazChance  = MCM.iWeightSingleArmbinder * ((!PlayerMon.player.wornHasKeyword(libs.zad_DeviousArmbinder) && !PlayerMon.player.wornHasKeyword(libs.zad_DeviousYoke)) as int)
+  int zazChance           = MCM.iWeightSingleCollar * ((!PlayerMon.player.wornHasKeyword(libs.zad_DeviousCollar)) as int) ; could do harness too
+  
+  int redEboniteChance          = MCM.iWeightSingleGag * ((!PlayerMon.player.wornHasKeyword(libs.zad_DeviousGag)) as int)
+  int wtEboniteChance           = MCM.iWeightSingleHarness * ((!PlayerMon.player.wornHasKeyword(libs.zad_DeviousHarness) && !PlayerMon.player.wornHasKeyword(libs.zad_DeviousBelt)) as int) ; do I not need the keyword for corset
+  int blkEboniteChance          = MCM.iWeightSingleBelt * ((!PlayerMon.player.wornHasKeyword(libs.zad_DeviousBelt)) as int) 
+  int cuffsChance               = MCM.iWeightSingleCuffs * ((!PlayerMon.player.wornHasKeyword(libs.zad_DeviousLegCuffs) && !PlayerMon.player.wornHasKeyword(libs.zad_DeviousArmCuffs)) as int)
+
+  int subtype_total = iWeightDDRegular + iWeightDDZazVel + iWeightZazReg
+  int total = iWeightEboniteRegular + iWeightEboniteRed + iWeightEboniteWhite 
+            + iWeightZazMetalBrown  + iWeightZazMetalBlack + iWeightZazLeather + iWeightZazRope
+            + iWeightCDGold + iWeightCDSilver + iWeightCDGold 
+  if total == 0 || subtype_total == 0
+    PlayerMon.debugmsg("single: total is zero, no more items left to put on?")
+    return
+  endif
+  int roll  = Utility.RandomInt(1,total)
+  PlayerMon.debugmsg("single roll: gloveboot/armbind/collar/gag/harn/belt/cuffs (" +\
+
+           glovesbootsChance + "/" +\
+           armbinderChance + "/" +\
+           collarChance + "/" +\
+           gagChance + "/" +\
+           harnessChance + "/" +\
+           beltChance + "/" +\
+           cuffsChance + "/" +\
+           ") roll:" + roll)
+           
+  if roll <= glovesbootsChance
+    success = equipRandomDDxRGlovesBoots()
+    if success && actorRef != None && actorRef != PlayerMon.player
+      Debug.Notification(actorRef.GetDisplayName() + " gave you some lovely boots and gloves before leaving!")
+    endif 
+  elseif roll <= glovesbootsChance + armbinderChance
+    success = equipRandomDDArmbinders()
+    if success && actorRef != None && actorRef != PlayerMon.player
+      Debug.Notification(actorRef.GetDisplayName() + " locks a armbinder on you before leaving!")
+    endif
+
+Lola notes:
+Sex is unlikely to happen
+Too much pissing
+Bad spelling
+Master STOPS when he's interested
+Master WALKS AWAY INTO A BUILDING when he's interested
+
+  player.playidle <name not id>
+    is it possible this lingers after sex?
+
+DEBUG (18:40:06.0323): create directory: Data\Scripts\Source/temp/ -> G:\Games\Mod Organizer\overwrite\\Scripts\Source\temp\
+DEBUG (18:40:06.0323): createfile w: Data\Scripts\Source/QF_crdeRescueFollowers_08055B87.psc -> G:\Games\Mod Organizer\mods\Deviously Enslaved Unofficial (zeta)\Scripts\Source\QF_crdeRescueFollowers_08055B87.psc (80000000 - 3) = 00000CC4 (0)
+DEBUG (18:40:06.0323): add mod file G:\Games\Mod Organizer\overwrite\\Scripts\Source\temp\QF_crdeRescueFollowers_08055B87.psc (Scripts\Source\temp\QF_crdeRescueFollowers_08055B87.psc)
+DEBUG (18:40:06.0324): create process (a) null - "Papyrus Compiler\PapyrusCompiler.exe" QF_crdeRescueFollowers_08055B87 -f="TESV_Papyrus_Flags.flg" -i="Data/Scripts/Source/temp/;Data/Scripts/Source/" -o="Data/Scripts/" (in null) - hooking
+ERROR (18:40:06.0325): failed to inject into (null): failed to access thread context. Please note that Mod Organizer does not support 64bit binaries! (The parameter is incorrect. [87])
+DEBUG (18:40:06.0326): create process (w) null - "E:\Software\PC - Games\#$instaledDIR\Steam\bin\x64launcher.exe" -hproc cd0 -hthread cd4 -baseoverlayname E:\Software\PC - Games\#$instaledDIR\Steam\gameoverlayrenderer64.dll (in null) - hooking
+ERROR (18:40:06.0327): failed to inject into (null): failed to access thread context. Please note that Mod Organizer does not support 64bit binaries! (The parameter is incorrect. [87])
+DEBUG (18:40:06.0595): remove mod file Data\Scripts\Source/temp/QF_crdeRescueFollowers_08055B87.psc
+INFO (18:40:06.0595): deleting Data\Scripts\Source/temp/QF_crdeRescueFollowers_08055B87.psc -> G:\Games\Mod Organizer\overwrite\Scripts\Source\temp\QF_crdeRescueFollowers_08055B87.psc
+DEBUG (18:40:20.0006): create directory: Data\Scripts\Source/temp/ -> G:\Games\Mod Organizer\overwrite\\Scripts\Source\temp\
+    
+    
+    
+stack:
+	[Active effect 1 on  (000D5EF9)].CFEffectCreatureApply.OnEffectStart() - "CFEffectCreatureApply.psc" Line 10
+[06/06/2016 - 11:06:48PM] Error: HasMagicEffectWithKeyword called with invalid Keyword
+stack:
+	[ (00000014)].Actor.HasMagicEffectWithKeyword() - "<native>" Line ?
+	[alias Player on quest zadQuest (1100F624)].zadPlayerScript.OnObjectEquipped() - "zadPlayerScript.psc" Line 90
+[06/06/2016 - 11:06:48PM] [Zad]: Set slot mask to [337641472]: 337641472
+[06/06/2016 - 11:06:49PM] [CRDE] No nearby NPCs, leaving early
+[06/06/2016 - 11:06:49PM] [CRDE] OnUpdate time:17.450989
+[06/06/2016 - 11:06:49PM] [CRDE] closest npc(s): 
+[06/06/2016 - 11:06:53PM] Error: HasMagicEffectWithKeyword called with invalid Keywordw
+stack:
+	[ (00000014)].Actor.HasMagicEffectWithKeyword() - "<native>" Line ?
+	[alias Player on quest zadQuest (1100F624)].zadPlayerScript.OnObjectEquipped() - "zadPlayerScript.psc" Line 90
+[06/06/2016 - 11:06:53PM] Error: HasMagicEffectWithKeyword called with invalid Keyword
+stack:
+	[ (00000014)].Actor.HasMagicEffectWithKeyword() - "<native>" Line ?
+	[alias Player on quest zadQuest (1100F624)].zadPlayerScript.OnObjectEquipped() - "zadPlayerScript.psc" Line 90
+
+; keyword bug
+[7/07/2016 - 10:13:18PM] [CRDE] random/collar/randomPlug/belt/glovesandboots/cuffs/randomGag/harness(1/55/55/55/30/53/55/40)roll/total:(222/359)
+[07/07/2016 - 10:13:18PM] [CRDE] OnUpdate time:26.997009
+[07/07/2016 - 10:13:28PM] Updating Orphanables Status: ------------------------
+[07/07/2016 - 10:13:29PM] [CRDE] checking if arm + leg cuffs are worn already ...
+[07/07/2016 - 10:13:29PM] ERROR: Cannot call WornHasKeyword() on a None object, aborting function call
+stack:
+	[crdePlayerMonitor (B3001827)].crdeitemmanipulatescript.equipRandomDDCuffs() - "crdeitemmanipulatescript.psc" Line 640
+	[crdePlayerMonitor (B3001827)].crdeitemmanipulatescript.equipFollowerFoundItems() - "crdeitemmanipulatescript.psc" Line 1242
+	[topic info B303D1F1 on quest crdePlayerMonitor (B3001827)].pf_crde_followerforcedarmbinder.Fragment_0() - "pf_crde_followerforcedarmbinder.psc" Line 10
+[07/07/2016 - 10:13:29PM] warning: Assigning None to a non-object variable named "::temp126"
+stack:
+	[crdePlayerMonitor (B3001827)].crdeitemmanipulatescript.equipRandomDDCuffs() - "crdeitemmanipulatescript.psc" Line 640
+	[crdePlayerMonitor (B3001827)].crdeitemmanipulatescript.equipFollowerFoundItems() - "crdeitemmanipulatescript.psc" Line 1242
+	[topic info B303D1F1 on quest crdePlayerMonitor (B3001827)].pf_crde_followerforcedarmbinder.Fragment_0() - "pf_crde_followerforcedarmbinder.psc" Line 10
+[07/07/2016 - 10:13:29PM] [Zad]: Set slot mask to [0]: 0
+
+; er, dead body has no object? what?
+[08/29/2016 - 11:15:11PM] [DCUR] Looted a dead body.
+[08/29/2016 - 11:15:12PM] [BYOHHouseBuildingPlayerScript <alias Player on quest BYOHHouseBuilding (0500305D)>]OnItemAdded [Ammo < (0001397D)>], itemCount=15
+[08/29/2016 - 11:15:12PM] [byohhousebuildingscript <BYOHHouseBuilding (0500305D)>] UpdateLogCount
+[08/29/2016 - 11:15:12PM] [byohhousebuildingscript <BYOHHouseBuilding (0500305D)>] logcount=0
+[08/29/2016 - 11:15:13PM] [BYOHHouseBuildingPlayerScript <alias Player on quest BYOHHouseBuilding (0500305D)>]OnItemAdded [MiscObject < (0000000A)>], itemCount=1
+[08/29/2016 - 11:15:13PM] [byohhousebuildingscript <BYOHHouseBuilding (0500305D)>] UpdateLogCount
+[08/29/2016 - 11:15:13PM] [byohhousebuildingscript <BYOHHouseBuilding (0500305D)>] logcount=0
+[08/29/2016 - 11:15:15PM] [DCUR] Checking for Cursed Loot event.
+[08/29/2016 - 11:15:15PM] [DCUR] Calculated chance for cursed loot = 6.640000%
+[08/29/2016 - 11:15:21PM] ERROR: Unable to call IsLocked - no native object bound to the script object, or object is of incorrect type
+stack:
+	[<NULL form> (FF0013BE)].ObjectReference.IsLocked() - "<native>" Line ?
+	[ (AA043322)].PRKF_crdeContainerPerk_08043322.Fragment_2() - "PRKF_crdeContainerPerk_08043322.psc" Line 8
+[08/29/2016 - 11:15:21PM] [BYOHHouseBuildingPlayerScript <alias Player on quest BYOHHouseBuilding (0500305D)>]OnItemAdded [Ammo < (0001397D)>], itemCount=1
+[08/29/2016 - 11:15:21PM] [byohhousebuildingscript <BYOHHouseBuilding (0500305D)>] UpdateLogCount
+[08/29/2016 - 11:15:21PM] warning: Assigning None to a non-object variable named "::temp0"
+stack:
+	[ (AA043322)].PRKF_crdeContainerPerk_08043322.Fragment_2() - "PRKF_crdeContainerPerk_08043322.psc" Line 8
+[08/29/2016 - 11:15:21PM] ERROR: Unable to call GetNumItems - no native object bound to the script object, or object is of incorrect type
+stack:
+	[<NULL form> (FF0013BE)].ObjectReference.GetNumItems() - "<native>" Line ?
+	[ (AA043322)].PRKF_crdeContainerPerk_08043322.Fragment_2() - "PRKF_crdeContainerPerk_08043322.psc" Line 8
+[08/29/2016 - 11:15:21PM] warning: Assigning None to a non-object variable named "::temp1"
+stack:
+	[ (AA043322)].PRKF_crdeContainerPerk_08043322.Fragment_2() - "PRKF_crdeContainerPerk_08043322.psc" Line 8
+
+
