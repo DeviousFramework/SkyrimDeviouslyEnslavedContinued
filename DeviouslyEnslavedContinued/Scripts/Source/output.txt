@@ -1,0 +1,32 @@
+    iDistanceWeightDCVampireOID  = AddSliderOption("iDistanceWeightDCVampire", iDistanceWeightDCVampire, "{0}", 1);(!Mods.iDistanceWeightDCVampire) as int)
+    iDistanceWeightDCBanditsOID  = AddSliderOption("iDistanceWeightDCBandits", iDistanceWeightDCBandits, "{0}", 1);(!Mods.iDistanceWeightDCBandits) as int)
+
+
+  elseif a_option == iDistanceWeightDCVampireOID
+		SetSliderDialogStartValue(iDistanceWeightDCVampire)
+    SetSliderDialogRange(0, 150)
+    SetSliderDialogInterval( 1 )
+  elseif a_option == iDistanceWeightDCBanditsOID
+		SetSliderDialogStartValue(iDistanceWeightDCBandits)
+    SetSliderDialogRange(0, 150)
+    SetSliderDialogInterval( 1 )
+
+
+  elseif a_option == iDistanceWeightDCVampireOID
+    iDistanceWeightDCVampire = a_value as int
+    SetSliderOptionValue(a_option, a_value, "{0}")
+  elseif a_option == iDistanceWeightDCBanditsOID
+    iDistanceWeightDCBandits = a_value as int
+    SetSliderOptionValue(a_option, a_value, "{0}")
+
+
+  elseif a_option == iDistanceWeightDCVampireOID
+    SetInfoText("Weight for getting TODO FINISH TOOLTIPS")
+  elseif a_option == iDistanceWeightDCBanditsOID
+    SetInfoText("Weight for getting TODO FINISH TOOLTIPS")
+
+
+Int Property  iDistanceWeightDCVampire Auto
+Int  iDistanceWeightDCVampireOID
+Int Property  iDistanceWeightDCBandits Auto
+Int  iDistanceWeightDCBanditsOID
