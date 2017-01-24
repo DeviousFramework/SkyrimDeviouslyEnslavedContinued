@@ -685,7 +685,7 @@ function tryNonEnslaveSexEnding(actor actorRef)
     ; ...
 endFunction
 
-bool function tryEnslaveFromRape(actor actorRef)
+bool function tryEnslavableSexEnd(actor actorRef)
 	float rollEnslave = Utility.RandomInt(1,100) * ((Mods.canRunLocal() || DistanceEnslave.canRunSold() || DistanceEnslave.canRunGiven()) as int) * (( enslavedLevel == 0 ) as int)
 	float rollDevice  = Utility.RandomInt(1,100)
 
@@ -1620,12 +1620,12 @@ Event crdeSexHook(int tid, bool HasPlayer);(string eventName, string argString, 
       ;if  sexFromDEC ;|| (vulnerability >= MCM.iMinEnslaveVulnerable) ; NONslaveending dumbass
       if NPCMonitorScript.isInvalidRace(otherPerson) == false 
         if enslavedLevel < 1 
-          bool enslave_attempt_result = tryEnslaveFromRape(otherPerson)
+          bool enslave_attempt_result = tryEnslavableSexEnd(otherPerson)
           if enslave_attempt_result
             sexFromDEC = false 
             return
           endif
-          tryNonEnslaveSexEnding(otherPerson) ; try this just in case
+          ;tryNonEnslaveSexEnding(otherPerson) ; This is for non-enslavable only
         else
           tryNonEnslaveSexEnding(otherPerson)
         endif
