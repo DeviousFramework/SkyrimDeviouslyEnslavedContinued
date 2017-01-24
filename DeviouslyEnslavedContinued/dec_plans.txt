@@ -719,6 +719,9 @@ more recent (not mothballed either):
   ;move that button up/down
   BUG: if you add a follower manually, one that would be detected normally, they will get twice the item count
   
+  13:
+  F:\work\crde\compile_with_sources_local.bat &quot;$(FILE_NAME)&quot; &quot;$(CURRENT_DIRECTORY)&quot;
+  
   new followers system needs to be tested
   
   ** TODO / NOTES (bottom is most recent, older in ascending order)  --^ **

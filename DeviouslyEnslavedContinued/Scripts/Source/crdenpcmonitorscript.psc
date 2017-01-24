@@ -622,20 +622,18 @@ endFunction
 
 ; separated for clarity, since leaving it in printNearbyValidActors is a bad place to look for it
 function resetActors()
-  ; doesn't work it seems
-  ;ValidAttacker1.clear()       ; not needed if we use start/stop to reset the values
-  ;ValidAttacker1.TryToClear()
   ; only refresh the aliases if none of them were filled, less stress on the engine
   if IsRunning()
     stop()
+    Utility.Wait(1) ; this works, but removing in case it's not necessary
+                    ; re-enabled since it might have broken for some users
+    while IsStopping() && !IsRunning()
+      debugmsg("NPCMon is still waiting to stop ...")
+      Utility.Wait(1)
+    endWhile
+    start()
   endif
-  Utility.Wait(1) ; this works, but removing in case it's not necessary
-                  ; re-enabled since it might have broken for some users
-  while IsStopping() 
-    debugmsg("NPCMon is still waiting to stop ...")
-    Utility.Wait(1)
-  endWhile
-  start()
+  
 endFunction
 
 ; check if the followers are already in the list, if so
