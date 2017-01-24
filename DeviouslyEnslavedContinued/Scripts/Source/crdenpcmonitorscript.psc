@@ -625,9 +625,9 @@ function resetActors()
   ; only refresh the aliases if none of them were filled, less stress on the engine
   if IsRunning()
     stop()
-    Utility.Wait(1) ; this works, but removing in case it's not necessary
+    Utility.Wait(2) ; this works, but removing in case it's not necessary
                     ; re-enabled since it might have broken for some users
-    while IsStopping() && !IsRunning()
+    while IsStopping()
       debugmsg("NPCMon is still waiting to stop ...")
       Utility.Wait(1)
     endWhile
