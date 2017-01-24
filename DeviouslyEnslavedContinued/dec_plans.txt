@@ -720,7 +720,11 @@ more recent (not mothballed either):
   BUG: if you add a follower manually, one that would be detected normally, they will get twice the item count
   
   13:
-  F:\work\crde\compile_with_sources_local.bat &quot;$(FILE_NAME)&quot; &quot;$(CURRENT_DIRECTORY)&quot;
+  "oh did someone put these items on you? maybe you should remove them if you don't want to be used soon"
+   ^- this should probably not be said if the player is only considered naked and they have no items
+  Maybe use UIextensions to add interface for hand-picking clothes to count as magic/wizards clothes for intimidation
+  DCL lucky charm, maybe we can prevent the player from getting new items through dialogue if they are wearing this?
+  
   
   new followers system needs to be tested
   

@@ -2623,6 +2623,11 @@ event OnOptionHighlight(int a_option)
   elseif a_option == bSDGeneralLockoutOID
     SetInfoText("Toggles if DEC shouldn't be active during SD+ Enslavement, if ON DEC will do nothing")
 
+  elseif a_option == iSexEventDeviceOID
+    SetInfoText("Chance of getting items after DEC started sex when the player is already enslaved")
+  elseif a_option == iRapeEventDeviceOID
+    SetInfoText("Chance of getting items after DEC started sex when the player is not enslaved yet")
+
     
   else ; catch all; the stuff I forgot and then some
     SetInfoText("Catchall tooltip: typing hints is tedious, if you want to know what this does ask in the support thread, and/or report which option is missing the tooltip")
