@@ -1500,7 +1500,7 @@ int function isPlayerEnslaved()
   ; devide into general items, at least until leons quest
 
   if(modLoadedCursedLoot == true)
-    if dcurBondageQuest.IsRunning()
+    if dcurBondageQuest.IsRunning() && dcurBondageQuest.GetStage() < 1000
       debugmsg("enslaved: cursed loot bondage adventure quest 2", 3) ;&& dcurLeonQuest.GetStage() > 0
       setEnslavedLevel(2) ;  not sure why or where this quest is even used
     elseif (dcurLeonSlaveCollar != None && player.isEquipped(dcurLeonSlaveCollar)) || (dcurLeonGGQuest != None && dcurLeonGGQuest.IsRunning()) ;&& (dcurLeonGGQuest.GetStage() || dcurLeonGGQuest.GetStage() >= )
