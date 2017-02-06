@@ -705,18 +705,9 @@ more recent (not mothballed either):
   
   
 ; old, needs cleaning ^
+    SNAG: Cannot compile quest fragments, because the fragments are not being stored in the overwrite folder...?
   
-  SNAG: Cannot compile quest fragments, because the fragments are not being stored in the overwrite folder...?
-  
-  ;12
-  ;If player has orgasm event while in belt -> add sub to everyone nearby?
-  ;can we detect vampire lord and werewolf
-  ;MCM change SD Masters choice system
   Maybe MCM to allow users to add extra SD+ masters..?
-  ;  for follower += add item count to their internal counts
-  ;  change their counts dropping to zero from fragments
-  ;add to mcm the abilit to change it too
-  ;move that button up/down
   BUG: if you add a follower manually, one that would be detected normally, they will get twice the item count
   
   13:
@@ -724,7 +715,15 @@ more recent (not mothballed either):
    ^- this should probably not be said if the player is only considered naked and they have no items
   Maybe use UIextensions to add interface for hand-picking clothes to count as magic/wizards clothes for intimidation
   DCL lucky charm, maybe we can prevent the player from getting new items through dialogue if they are wearing this?
+  If player is in brothel, more vulnerable?
+    Extra dialogue for in brothel/freeuse zone?
   
+  Maybe extra dialogue, or different dialogue, if the same person appraoches you a second time, especially if you said no last time?
+  Higher local chance if you are not outside? not sure this is a good idea
+    then again local isn't really a good idea
+  Extra vulnerable if caught fondling or yearning in the last 15/20 seconds?
+  
+  Waiting for lsm to get back to my email about skse for theft/pickpocket detection using skse
   
   new followers system needs to be tested
   
