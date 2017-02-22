@@ -724,6 +724,11 @@ more recent (not mothballed either):
   Extra vulnerable if caught fondling or yearning in the last 15/20 seconds?
   
   Waiting for lsm to get back to my email about skse for theft/pickpocket detection using skse
+  ^- gah, he actually did insert assmebler into the esp, fucking hell I'm not messing with that
+  
+  make it so that the follower can replace non-blocking collars, and check for it the present collar is removable through DCUR
+    means writing a function or two
+  
   
   new followers system needs to be tested
   
@@ -1190,68 +1195,3 @@ INFO (18:40:06.0595): deleting Data\Scripts\Source/temp/QF_crdeRescueFollowers_0
 DEBUG (18:40:20.0006): create directory: Data\Scripts\Source/temp/ -> G:\Games\Mod Organizer\overwrite\\Scripts\Source\temp\
     
     
-    
-stack:
-	[Active effect 1 on  (000D5EF9)].CFEffectCreatureApply.OnEffectStart() - "CFEffectCreatureApply.psc" Line 10
-[06/06/2016 - 11:06:48PM] Error: HasMagicEffectWithKeyword called with invalid Keyword
-stack:
-	[ (00000014)].Actor.HasMagicEffectWithKeyword() - "<native>" Line ?
-	[alias Player on quest zadQuest (1100F624)].zadPlayerScript.OnObjectEquipped() - "zadPlayerScript.psc" Line 90
-[06/06/2016 - 11:06:48PM] [Zad]: Set slot mask to [337641472]: 337641472
-[06/06/2016 - 11:06:49PM] [CRDE] No nearby NPCs, leaving early
-[06/06/2016 - 11:06:49PM] [CRDE] OnUpdate time:17.450989
-[06/06/2016 - 11:06:49PM] [CRDE] closest npc(s): 
-[06/06/2016 - 11:06:53PM] Error: HasMagicEffectWithKeyword called with invalid Keywordw
-stack:
-	[ (00000014)].Actor.HasMagicEffectWithKeyword() - "<native>" Line ?
-	[alias Player on quest zadQuest (1100F624)].zadPlayerScript.OnObjectEquipped() - "zadPlayerScript.psc" Line 90
-[06/06/2016 - 11:06:53PM] Error: HasMagicEffectWithKeyword called with invalid Keyword
-stack:
-	[ (00000014)].Actor.HasMagicEffectWithKeyword() - "<native>" Line ?
-	[alias Player on quest zadQuest (1100F624)].zadPlayerScript.OnObjectEquipped() - "zadPlayerScript.psc" Line 90
-
-; keyword bug
-[7/07/2016 - 10:13:18PM] [CRDE] random/collar/randomPlug/belt/glovesandboots/cuffs/randomGag/harness(1/55/55/55/30/53/55/40)roll/total:(222/359)
-[07/07/2016 - 10:13:18PM] [CRDE] OnUpdate time:26.997009
-[07/07/2016 - 10:13:28PM] Updating Orphanables Status: ------------------------
-[07/07/2016 - 10:13:29PM] [CRDE] checking if arm + leg cuffs are worn already ...
-[07/07/2016 - 10:13:29PM] ERROR: Cannot call WornHasKeyword() on a None object, aborting function call
-stack:
-	[crdePlayerMonitor (B3001827)].crdeitemmanipulatescript.equipRandomDDCuffs() - "crdeitemmanipulatescript.psc" Line 640
-	[crdePlayerMonitor (B3001827)].crdeitemmanipulatescript.equipFollowerFoundItems() - "crdeitemmanipulatescript.psc" Line 1242
-	[topic info B303D1F1 on quest crdePlayerMonitor (B3001827)].pf_crde_followerforcedarmbinder.Fragment_0() - "pf_crde_followerforcedarmbinder.psc" Line 10
-[07/07/2016 - 10:13:29PM] warning: Assigning None to a non-object variable named "::temp126"
-stack:
-	[crdePlayerMonitor (B3001827)].crdeitemmanipulatescript.equipRandomDDCuffs() - "crdeitemmanipulatescript.psc" Line 640
-	[crdePlayerMonitor (B3001827)].crdeitemmanipulatescript.equipFollowerFoundItems() - "crdeitemmanipulatescript.psc" Line 1242
-	[topic info B303D1F1 on quest crdePlayerMonitor (B3001827)].pf_crde_followerforcedarmbinder.Fragment_0() - "pf_crde_followerforcedarmbinder.psc" Line 10
-[07/07/2016 - 10:13:29PM] [Zad]: Set slot mask to [0]: 0
-
-; er, dead body has no object? what?
-[08/29/2016 - 11:15:11PM] [DCUR] Looted a dead body.
-[08/29/2016 - 11:15:12PM] [BYOHHouseBuildingPlayerScript <alias Player on quest BYOHHouseBuilding (0500305D)>]OnItemAdded [Ammo < (0001397D)>], itemCount=15
-[08/29/2016 - 11:15:12PM] [byohhousebuildingscript <BYOHHouseBuilding (0500305D)>] UpdateLogCount
-[08/29/2016 - 11:15:12PM] [byohhousebuildingscript <BYOHHouseBuilding (0500305D)>] logcount=0
-[08/29/2016 - 11:15:13PM] [BYOHHouseBuildingPlayerScript <alias Player on quest BYOHHouseBuilding (0500305D)>]OnItemAdded [MiscObject < (0000000A)>], itemCount=1
-[08/29/2016 - 11:15:13PM] [byohhousebuildingscript <BYOHHouseBuilding (0500305D)>] UpdateLogCount
-[08/29/2016 - 11:15:13PM] [byohhousebuildingscript <BYOHHouseBuilding (0500305D)>] logcount=0
-[08/29/2016 - 11:15:15PM] [DCUR] Checking for Cursed Loot event.
-[08/29/2016 - 11:15:15PM] [DCUR] Calculated chance for cursed loot = 6.640000%
-[08/29/2016 - 11:15:21PM] ERROR: Unable to call IsLocked - no native object bound to the script object, or object is of incorrect type
-stack:
-	[<NULL form> (FF0013BE)].ObjectReference.IsLocked() - "<native>" Line ?
-	[ (AA043322)].PRKF_crdeContainerPerk_08043322.Fragment_2() - "PRKF_crdeContainerPerk_08043322.psc" Line 8
-[08/29/2016 - 11:15:21PM] [BYOHHouseBuildingPlayerScript <alias Player on quest BYOHHouseBuilding (0500305D)>]OnItemAdded [Ammo < (0001397D)>], itemCount=1
-[08/29/2016 - 11:15:21PM] [byohhousebuildingscript <BYOHHouseBuilding (0500305D)>] UpdateLogCount
-[08/29/2016 - 11:15:21PM] warning: Assigning None to a non-object variable named "::temp0"
-stack:
-	[ (AA043322)].PRKF_crdeContainerPerk_08043322.Fragment_2() - "PRKF_crdeContainerPerk_08043322.psc" Line 8
-[08/29/2016 - 11:15:21PM] ERROR: Unable to call GetNumItems - no native object bound to the script object, or object is of incorrect type
-stack:
-	[<NULL form> (FF0013BE)].ObjectReference.GetNumItems() - "<native>" Line ?
-	[ (AA043322)].PRKF_crdeContainerPerk_08043322.Fragment_2() - "PRKF_crdeContainerPerk_08043322.psc" Line 8
-[08/29/2016 - 11:15:21PM] warning: Assigning None to a non-object variable named "::temp1"
-stack:
-	[ (AA043322)].PRKF_crdeContainerPerk_08043322.Fragment_2() - "PRKF_crdeContainerPerk_08043322.psc" Line 8
-
-
