@@ -247,7 +247,6 @@ function unequipAllNonImportantSlow()
 endFunction
 
 
-
 ;remove DD collars so we can change them reliably
 ; tags: unequipCollar removecollar
 bool function removeCurrentCollar(actor actorRef)
@@ -408,7 +407,7 @@ armor[] function getRandomSingleDD(actor actorRef)
     if success && actorRef != None && actorRef == player
       Debug.Notification(actorRef.GetDisplayName() + " locks a collar on you before leaving!")
     endif
-    items[0] = getRandomDDCollars()
+    items[0] = getRandomDDCollars(actorRef)
     return items
   elseif roll <= glovesbootsChance + armbinderChance + collarChance + gagChance ; gag
     ;success = equipRandomGag(actorRef)
@@ -1002,7 +1001,7 @@ endFunction
 bool function equipRandomDDCollars(actor actorRef)
   PlayerMon.debugmsg("checking if collar is already worn ...", 1)
   if actorRef.wornHasKeyword(libs.zad_DeviousCollar) == false 
-    armor collar = getRandomDDCollars()
+    armor collar = getRandomDDCollars(actorRef)
     if collar
       return equipRegularDDItem(actorRef, collar, None)
     endif
@@ -1011,11 +1010,29 @@ bool function equipRandomDDCollars(actor actorRef)
   return false
 endFunction
 
-armor function getRandomDDCollars()
+; modified to return regular collar or return unique collar, random
+armor function getRandomDDCollars(actor actorRef)
+  bool collarBlocked     = collar != None && actorRef.WornHasKeyword(libs.zad_DeviousCollar) && collar.HasKeyword(libs.zad_BlockGeneric) ;PlayerMon.knownCollar != None && PlayerMon.knownCollar.HasKeyword(libs.zad_BlockGeneric)
+  int isCollarable        = (!(actorRef.WornHasKeyword(Mods.zazKeywordWornYoke) || collarBlocked || Mods.iEnslavedLevel > 0)) as int
+  int weightUniqueCollars  = MCM.iWeightUniqueCollars * ( isCollarable )
+  int weightRegularCollars  = MCM.iWeightSingleCollar * ( isCollarable )
+  
+  int weightTotal = weightUniqueCollars + weightRegularCollars
+  if weightTotal == 0
+    return None
+  endif
+  int roll = Utility.RandomInt(1, weightTotal)
+  ;PlayerMon.debugmsg("pet/cursed/slave/slut/rubber/banned/prostituted/naked/stripTease(" \
+  ;                   + weightPetCollar + "/" + weightDCURSlave + "/" + weightDCURSlut + "/" + weightPetCollar + "/"\ ...
+
   armor collar
-  ; check what color the other items are, modify index
-  int offsetIndex = Utility.Randomint(0,PlayerMon.randomDDCollars.length - 1)
-  collar = PlayerMon.randomDDCollars[offsetIndex]
+  if roll <= weightUniqueCollars 
+    collar = getRandomUniqueCollar(actorRef)
+  else
+    ; check what color the other items are, modify index
+    int offsetIndex = Utility.Randomint(0,PlayerMon.randomDDCollars.length - 1)
+    collar = PlayerMon.randomDDCollars[offsetIndex]
+  endif
   return collar 
 endFunction
 
@@ -1488,8 +1505,7 @@ armor[] Function getFollowerFoundItems(actor actorRef)
   if ic     == 0
     items = getRandomSingleDD(actorRef)
   elseif ic == 1 
-    ; todo: allow for rregular collars too
-    items[0] = getRandomUniqueCollar(actorRef)
+    items[0] = getRandomDDCollars(actorRef)
   elseif ic == 2 
     items = getRandomBeltAndStuff(actorRef, force_stuff = true)
   elseif ic == 3 
