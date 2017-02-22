@@ -1659,15 +1659,6 @@ endFunction
 ; looks for nearby NPCs who might have seen you having sex
 ; changes their opinion of you as a result
 ; can I just hope that the actors we're sexing are in this list by default as well? If yes,then we don't need to treat them special
-      ; increment all thinks dom by two
-      ;int i = 0
-      ;while i < a.length 
-      ;  testActor = a[i]
-      ;  if testActor != None
-      ;    modThinksPlayerDom(testActor, 2)
-      ;  endif
-      ;  i += 1
-      ;endWhile
 function modifyNearbyNPCPerception(actor[] sexActors, bool playerIsVictim = false)
   
   ; get nearby NPCs, get first because this might be slowish, get them NOW before they run away
@@ -1860,6 +1851,8 @@ bool function isWeaponProtected()
   return true
 endFunction
   
+; is the player armed? can't remember why I set it to default negative
+;  food for thought: the papyrus compiler can't rectify a double negative
 bool function playerIsNotArmed()
   if  player.GetEquippedWeapon() != None || player.GetEquippedWeapon(true) != None ;||\
       ;player.GetEquippedSpell(0) != None || player.GetEquippedSpell(1) != None
@@ -1886,10 +1879,9 @@ bool function playerIsNotWearingWizRobes()
   return true
 endFunction
 
-
-; I wanted to move these outside of the dialogue because I wanted more interesting logic than
-; what I could use with dialogue conditons
-; currently mess, but not used in 9.x anyway
+; pre-check on if the player is intimidating or presuasent enough to pass dialogue checks, 
+;  downside: if a user knows how to use SQV they can look this result up in console before and know the result
+;  advantage: one less dialogue fragment to call last second, we can run this before the approach even starts so no script lag interferance
 function checkPersuationIntimidateRequirements()
   ; are we protected by intimidation
   if MCM.bIntimidateToggle
@@ -1927,45 +1919,9 @@ function checkPersuationIntimidateRequirements()
   ; for now, I'll leave this blank since I'm not sure what conditions we should use
 endFunction
 
-; returns.... object type (furniture) 
-function  getNearbyZazFurniture()
-  ; look up furniture in range of player (1000 units) 
-    ; if nothing, return nothing
-  ;else return furniture 
-endfunction
-
-function checkHasPreviousMaster()
-  ; if player has been to CD shop
-  ; if player has had a SD master
-    ; or random?
-  ; if player has had a Maria master
-
-endFunction
-
-function giftwrapPlayer()
-  ;random
-    ; if player has angeli's
-      ; add rubber items
-    ; if player has cursed loot
-      ; add slave items 
-        ; need to figure out how to remove cursed loot items without breaking something
-    ; if player has CD
-      ; wrap in gold/silver restraints
-      ; and special plugs?
-    ; if player has devious toys
-    ; if player has devious zaz items
-      ; use those
-    ;else: zaz gift wrap
-      ; either zaz hood and other items
-      ; pony suit
-      ; some other combination
-  ;int total
-  ;int roll = 
-  ;print out rolling information
-      
-endFunction
  
 ; this is never called?, zombie function?
+; made by chase ignored by verstort
 function evalActor(actor actorRef)
 	clearActorFactions(actorRef)
 	if(Mods.isSlave(actorRef))
@@ -1993,6 +1949,7 @@ endFunction
  
  ; --- debug and testing functions
 
+; made by chase, ignored by verstort
 function clearActorFactions(actor actorRef)
 	actorRef.removeFromFaction(Vars.Slaver)
 	actorRef.removeFromFaction(Vars.Slave)
@@ -2003,8 +1960,11 @@ function clearActorFactions(actor actorRef)
 endFunction
 
 ; Plays a random DD bound animation, 
-function playRandomPlayerDDStruggle()
-  int r = Utility.Randomint(1,6)
+; BUG one of these won't reset on the player on certain enslavement events, IE CDx -> player keeps struggling during opening
+function playRandomPlayerDDStruggle(int r = 0)
+  if r <= -1 || r >= 7
+    r = Utility.Randomint(1,6)
+  endif
   if r == 1
     libs.ApplyBoundAnim(player, libs.DDZaZAPCArmBZaDS01) 
   elseif r == 2
@@ -2020,6 +1980,8 @@ function playRandomPlayerDDStruggle()
   Endif
 EndFunction
 
+; debug, prints what animations we would get from sexlab given tags 
+; this is very old, hasn't been kept uptodate with the sex function so I doubt it still works correctly
 function printPermitStatus()
   string animationTags = "aggressive"
   string supressTags   = "solo"
@@ -2064,7 +2026,7 @@ function printVulnerableStatus()
   Debug.MessageBox("is nighttime: " + isNight() )
 endFunction
 
-; searches for local NPCs and allows the player to pick one to count as valid, if they weren't before
+; searches for local NPCs and allows the player to pick one to count as valid race for future approaches
 function appointValidRace()
 
   actor[] a = NPCSearchScript.getNearbyActorsLinear()
@@ -2101,7 +2063,8 @@ function appointValidRace()
   endif
 endFunction
 
-; manually add followers
+; manually add followers to permanent list
+;  "permanent" list is still reset on mods refresh though, might want to change that...
 function addPermanentFollower()
   actor[] a = NPCSearchScript.getNearbyActorsLinear(500) ; range should be reasonably short
   
@@ -2131,6 +2094,9 @@ function addPermanentFollower()
   endif
 endFunction
 
+; resets DHLP Suspend status
+; ignores DEC set it in the first place, this can interfere with other mods 
+;  (unlikely if the user is manually setting it to go off)
 function resetDHLPSuspend()
   Mods.dhlpResume()
   debugmsg("resetDHLPSuspend called",1)
@@ -2145,19 +2111,19 @@ function resetFollowerContainerCount(actor follower)
   endif
 endFunction
  
- ; scrap this, used to test Maria eden slave start, but the mod is deprecated
-function testAbduction()
-	; get nearby actor (maybe)
-	debugmsg("looking for actor")
-	Actor valid = NPCMonitorScript.getClosestActor(player)
-	; start quest with new actor
-	if valid != None
-		debugmsg("Actor found, trying")
-		(Quest.getQuest("crdeMariaEden") as crdeMariaEdenScript).defeat2(valid)
-		MCM.bAbductionTest = false
-	endif
-		
-endFunction
+; deprecated, was used for ME but this function no longer exists in ME 2.0 anyway
+;function testAbduction()
+;	; get nearby actor (maybe)
+;	debugmsg("looking for actor")
+;	Actor valid = NPCMonitorScript.getClosestActor(player)
+;	; start quest with new actor
+;	if valid != None
+;		debugmsg("Actor found, trying")
+;		(Quest.getQuest("crdeMariaEden") as crdeMariaEdenScript).defeat2(valid)
+;		MCM.bAbductionTest = false
+;	endif
+;		
+;endFunction
 
 ; previously maria's eden init
 ; currently SD Sanguine's teleport test
@@ -2246,14 +2212,12 @@ endFunction
 ; changed to animation test
 function testTestButton2()
   
-
   ;equipPetGirlOutit(player)
   ;BallandChainRedOutfit.addform(Mods.zazBitGag) ; testing
   ;player.SetOutfit(BallandChainRedOutfit)
   ;MCM.bTestButton2 = false
   ; cursed loot tie me up function
  
-  
   ;debugmsg("testing DDZaZAPCArmBZaDS01",4) ; sure, makes sense
   ;Debug.SendAnimationEvent(player, "DDZaZAPCArmBZaDS01") ;arms back struggling
   ;Debug.SendAnimationEvent(player, libs.DDZaZAPCArmBZaDS01) ;arms back struggling  
@@ -2417,7 +2381,7 @@ function testTestButton6()
 endFunction
 
 ; old:test PO arrest
-; enslaveLeon
+; generic test button function 7
 function testTestButton7()	
 	;	(Quest.getQuest("crdeMariaEden") as crdeMariaEdenScript).defeat(valid)
   ;akSpeaker.
@@ -2561,7 +2525,7 @@ function testTattoos()
   endif
 endFunction  
 
-
+; prints a debug message, where level determines where it gets printed
 function debugmsg(string msg, int level = 0)
   msg = "[CRDE] " + msg
     
@@ -2616,6 +2580,8 @@ function debugmsg(string msg, int level = 0)
     endif
 endFunction
 
+; contains extra functionality that should be performed in OnUpdate() but infrequently/low volume
+; proposed rename to tryExtra, or something to reflect that it's not just for debug anymore
 function tryDebug()
 
   if MCM.bAddFollowerManually
@@ -2690,7 +2656,7 @@ function tryDebug()
 endFunction
 
 ; tests the speed of various critical components of the main loop (Onupdate())
-; if this stays longer than a version cycle then move to separate library
+; this hasn't been updated in a long time (version 9?) keep that in mind if you actually use this for testing
 function timeTest()
   ;timePlayerBusy timeGetClosestActor timeCheckDevices timeUpdateVulnerabiltiy timeCheckBukkake timePlayerEnslaved timeRollingWithModifiers
   
@@ -2811,6 +2777,7 @@ endFunction
 function resetCameraFadeout()
 endFunction
  
+; make sure they aren't dead, and the next one needs to match gender restrictions
 function refreshSDMaster()
   Debug.Notification("Reseting next distance SD master ...");
   
@@ -2897,6 +2864,7 @@ function StartCombat(actor Attacker)
   Attacker.StartCombat(player)
 endFunction
 
+; was going to be used for stalker and follower-drags-you-home concepts, both stalled
 function movePlayerToBed(actor other)
   ; find bed
   ; move player to top/middle of bed
@@ -2929,9 +2897,9 @@ function movePlayerToBed(actor other)
   
   ;catch postsex and make him disappear or do more stuff
   
-  
 endFunction
 
+; assuming we want more than one follower, but we don't want to populate all aliases everytime, just use them as a buffer
 function reshuffleFollowerAliases(actor mostRecent)
   
   if followerRefAlias01 == None
@@ -2951,50 +2919,6 @@ function reshuffleFollowerAliases(actor mostRecent)
 
 endFunction
 
-
-;function getNearbyBeds(actor targetNearby)
-;ObjectReference function FindBed(ObjectReference CenterRef, float Radius = 1000.0, bool IgnoreUsed = true, ObjectReference IgnoreRef1 = none, ObjectReference IgnoreRef2 = none)
-  ;if !CenterRef || Radius < 1.0
-   ; return none ; Invalid args
-  ;endIf
-  ;; Current elevation to determine bed being on same floor
-  ;float Z = CenterRef.GetPositionZ()
-  ;; Search a couple times for a nearby bed on the same elevation first before looking for random
-  ;ObjectReference NearRef = Game.FindClosestReferenceOfAnyTypeInListFromRef(BedsList, CenterRef, Radius)
-  ;if !NearRef || (NearRef != IgnoreRef1 && NearRef != IgnoreRef2 && SameFloor(NearRef, Z) && CheckBed(NearRef, IgnoreUsed))
-  ;  return NearRef
-  ;endIf
-  ;NearRef = Game.FindRandomReferenceOfAnyTypeInListFromRef(BedsList, CenterRef, Radius)
-  ;if !NearRef || (NearRef != IgnoreRef1 && NearRef != IgnoreRef2 && SameFloor(NearRef, Z) && CheckBed(NearRef, IgnoreUsed))
-  ;  return NearRef
-  ;endIf
-  ;NearRef = Game.FindRandomReferenceOfAnyTypeInListFromRef(BedsList, CenterRef, Radius)
-  ;if !NearRef || (NearRef != IgnoreRef1 && NearRef != IgnoreRef2 && SameFloor(NearRef, Z) && CheckBed(NearRef, IgnoreUsed))
-  ;  return NearRef
-  ;endIf
-  ;; Failover to any random useable bed
-  ;form[] Suppressed = new Form[10]
-  ;Suppressed[9] = NearRef
-  ;Suppressed[8] = IgnoreRef1
-  ;Suppressed[7] = IgnoreRef2
-  ;int i = 7
-  ;while i
-  ;  i -= 1
-  ;  ObjectReference BedRef = Game.FindRandomReferenceOfAnyTypeInListFromRef(BedsList, CenterRef, Radius)
-  ;  if !BedRef || (Suppressed.Find(BedRef) == -1 && CheckBed(BedRef, IgnoreUsed))
-  ;    return BedRef ; Found valid bed or none nearby and we should give up
-  ;  else
-  ;    Suppressed[i] = BedRef ; Add to suppression list
-  ;  endIf
-  ;endWhile
-  ;return none ; Nothing found in search loop
-;endFunction
-
-
-  
-
-; why they hell don't you put all of your variables in one place :(
-; edit: I'm guessing you added these through CK, which is why they are at the bottom
 
 Armor[] Property ponyGearDD  Auto 
 Armor[] Property ponyGearZaz  Auto 
