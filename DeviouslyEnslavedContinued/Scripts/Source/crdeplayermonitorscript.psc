@@ -801,7 +801,7 @@ bool function attemptApproach()
   ; if player has followers
   if  MCM.bFollowerDialogueToggle.GetValueInt() == 1 \
     && followers[0] != None && timeoutFollowerNag < CurrentGameTime \
-    && ( nearest.length == 1 || (player_loc && player_loc.haskeyword(locationTypePlayerhome))) 
+    && ( nearest.length == 1 || (player_loc && player_loc.haskeyword(LocTypePlayerHouse))) 
     ; special case, alone with followers[0] in the woods or some shit, lets do something
 
     ; are we alone with followers in a dungeon?
@@ -1644,14 +1644,13 @@ Event crdeSexHook(int tid, bool HasPlayer);(string eventName, string argString, 
   else
     debugmsg("crdeSexhook ERR: sexlab doesn't have player controller or mod is turned off", 2)
   endif
-
   
 endEvent
 
 ; check if player is in player house, if so, set last player house
 function setPreviousPlayerHome()
   Location current_loc = player.GetCurrentLocation()
-  if current_loc != None && current_loc.haskeyword(locationTypePlayerhome) ; we check here because we don't just want the last house but the last house the player had sex in
+  if current_loc != None && current_loc.haskeyword(LocTypePlayerHouse) ; we check here because we don't just want the last house but the last house the player had sex in
     previousPlayerHome = current_loc
   endif
 endFunction
@@ -2499,22 +2498,29 @@ function testTestButton7()
   ; getback.addFollowersAndSlaves(followers, slaves)
   ; getback.Start()
   
+  MCM.bTestButton7 = false
   int i = 0
-  while i < permanentFollowers.GetSize()
-    debugmsg((permanentFollowers.Getat(i) as actor).GetDisplayName() + " at " + i)
-    i += 1
+  while true
+    ;Debug.SendAnimationEvent(actorRef, "IdleNervous") ; should work well enough
+    playRandomPlayerDDStruggle(i)
+    debugmsg("Playing animation number: " + i, 4)
+    ; not pulling out a math library for mod, good greif
+    if i >= 6
+      i = 0
+    else
+      i += 1   
+    endif
+    Utility.Wait(5)
   endWhile
-  debugmsg(permanentFollowers.GetSize() + " is the size")
-
+  
   ;SendModEvent( "DvCidhna_StartBandits" )
   ;SendModEvent( "DvCidhna_StartVampires" )
   
   ;DistanceEnslave.enslaveLeon()
-  ;MCM.bTestButton7 = false
   Debug.Notification("Test has completed.")
 endFunction
 
-  
+; debug for checking if DEC can detect present tattoes on the player's body
 function testTattoos()
   if Mods.modLoadedSlaveTats
     SlavetatsScript.detectTattoos()
@@ -2961,7 +2967,7 @@ Keyword[] Property deviceKeywords  Auto
 
 Formlist Property WICommentCollegeRobesList Auto
 
-Keyword Property locationTypePlayerhome Auto
+Keyword Property LocTypePlayerHouse Auto
 
 ; moral cities
 Worldspace Property solitudeSpace Auto 
