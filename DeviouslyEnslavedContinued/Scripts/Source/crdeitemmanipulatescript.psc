@@ -1391,7 +1391,7 @@ function rollFollowerFoundItems(actor actorRef)
   int randomCD        = MCM.iWeightRandomCD           * ( Mods.modLoadedCD ) as int
   int nipplePiercings = MCM.iWeightPiercings          * ((checkItemAddingAvailability(actorRef, libs.zad_DeviousPiercingsNipple)  > 0) as int)
   int petCollar       = MCM.iWeightPetcollar          * ((checkItemAddingAvailability(actorRef, libs.zad_DeviousCollar)     > 0) as int)  
-  int uniqueCollar    = MCM.iWeightPetcollar          * ((checkItemAddingAvailability(actorRef, libs.zad_DeviousCollar)     > 0) as int)  
+  int uniqueCollar    = MCM.iWeightUniqueCollars      * ((checkItemAddingAvailability(actorRef, libs.zad_DeviousCollar)     > 0) as int)  
   
   ;int rubberSuit      = MCM.iWeightSingleBelt   * (( ! player.WornHasKeyword(libs.zad_DeviousSuit)) as int) ; wrong, do this later
   
