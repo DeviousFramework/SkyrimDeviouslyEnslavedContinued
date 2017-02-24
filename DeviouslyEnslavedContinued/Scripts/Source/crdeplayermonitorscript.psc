@@ -1584,6 +1584,7 @@ Event crdeSexHook(int tid, bool HasPlayer);(string eventName, string argString, 
     elseif victim == None && sexFromDECWithBeltReapplied
       ; put the player back into their belt
       ItemScript.equipRegularDDItem(player, ItemScript.previousBelt, libs.zad_DeviousBelt)
+      return
     elseif victim == None
       debugmsg("sexlabhook: player not victim, not started by DEC, mcm override is off, ignoring...", 3)
       return
@@ -1591,8 +1592,10 @@ Event crdeSexHook(int tid, bool HasPlayer);(string eventName, string argString, 
 
     if ( sexFromDEC && sexFromDECWithoutAfterAttacks  )
       debugmsg("sexlabhook: sex was specified no attack", 3)
-    ;elseif ( sexFromDEC && !MCM.bHookAnySexlabEvent)
-    ;  debugmsg("sexlabhook: sexlab wasn't started by DEC or ALL not set", 3)
+    elseif ( sexFromDEC && !MCM.bHookAnySexlabEvent)
+      ;debugmsg("sexlabhook: sexlab wasn't started by DEC or ALL not set", 3)
+      ;return ; don't return yet, we want to alter perception first
+      ; do nothing
     elseif Thread.ActorCount <= 1 ; masterbation or machine rape, either way noone to enslave or add items
       debugmsg("sexlabhook: not enough actors", 3)
     else ; no error, keep going
