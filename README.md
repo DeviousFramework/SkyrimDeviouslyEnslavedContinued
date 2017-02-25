@@ -3,8 +3,8 @@ An add on mod to the devious mods of Skyrim allowing you to be assaulted the mor
 Much credit for original work to Chase Roxand of Lovers Lab.<Br>
 Credit for continuation work to Verstort who carried on development before passing it along to me.
 
-DEC by Versort: https://www.loverslab.com/files/file/2414-deviously-enslaved-continued/
-DE by Chase Roxand: https://www.loverslab.com/files/file/2414-deviously-enslaved-continued/
+DEC by Versort: https://www.loverslab.com/files/file/2414-deviously-enslaved-continued/ <BR>
+DE by Chase Roxand: https://www.loverslab.com/files/file/1602-deviously-enslaved-v104-1715/
 
 Required Mods:
 -------------
