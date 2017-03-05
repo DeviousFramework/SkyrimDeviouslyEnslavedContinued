@@ -168,8 +168,11 @@ Event OnSexStart(int tid, bool HasPlayer)
   actor player = None
   int i = 0
   while i < 5
-    if actors[i] != None && actors[i].isPlayer
-      player = actors[i]
+    if actors[i] != None
+      Actor aActor = (actors[i].GetReference() As Actor)
+      if libs.PlayerRef == aActor
+        player = aActor
+      endif
     endif
   endWhile
 

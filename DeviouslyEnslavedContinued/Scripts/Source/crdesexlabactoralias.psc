@@ -92,7 +92,7 @@ endFunction
 ;float AnimScale
 ;float LastOrgasm
 ;int BestRelation
-;int BaseEnjoyment
+int BaseEnjoyment
 ;int Enjoyment
 ;int Orgasms
 ;int NthTranslation

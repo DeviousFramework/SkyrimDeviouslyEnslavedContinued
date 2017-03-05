@@ -8,7 +8,7 @@ Actor akSpeaker = akSpeakerRef as Actor
 ;BEGIN CODE
 crdePlayerMonitorScript monitorScript = GetOwningQuest() as crdePlayerMonitorScript
 monitorScript.forceGreetSlave = 0
-monitorScript.timeoutEnslaveGameTime = Utility.GetCurrentGameTime() + monitorScript.MCM.fEventTimeout
+monitorScript.fLastEnslaveAttempt = Utility.GetCurrentGameTime()
 monitorScript.debugmsg("Approach success, in dialogue ...",1)
 ;END CODE
 EndFunction

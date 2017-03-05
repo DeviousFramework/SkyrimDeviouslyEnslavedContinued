@@ -66,6 +66,9 @@ bool Property canRunGiven auto conditional
 bool Property hasRunBeforeCD auto conditional
 bool Property hasRunBeforeSS auto conditional
 
+; A reference to the Devious Framework (DFW) quest script.
+dfwDeviousFramework _qFramework
+
 Event OnInit()
   ; kinda need this, since MCM variables are needed for canRun*()
   Utility.Wait(5)
@@ -74,6 +77,7 @@ Event OnInit()
     Utility.Wait(1)
 	endwhile
   RegisterForSingleUpdate(1)
+  _qFramework = Quest.GetQuest("_dfwDeviousFramework") As dfwDeviousFramework
 EndEvent
 
 Event OnUpdate()
@@ -81,11 +85,27 @@ Event OnUpdate()
   if SDPreviousMaster == None
     SDPreviousMaster = player
   endif
+  ; TODO: Quest Variables should be refreshed on game load.  Not every update poll.
+  _qFramework = Quest.GetQuest("_dfwDeviousFramework") As dfwDeviousFramework
 EndEvent
+
+int function setDfwMaster()
+   ; If Devious Framework is not installed treat it as successful.
+   if (!_qFramework)
+      return 0
+   endif
+   return _qFramework.SetMaster(None, "", _qFramework.AP_ALL, _qFramework.MD_CLOSE, True)
+endFunction
 
 ; enslave without specific framework mod or situation given, random based on weights
 ; this uses almost identical logic to Playermonitor::rolldialogue, if you change something here keep that in mind
 bool function enslavePlayer(actor attacker = None)
+  ; Not sure when the OnUpdate() event is called so make sure the DFW framework quest variable is initialized.
+  ; TODO: This should be removed when we are setting the quest variables on game load.
+  if (!_qFramework)
+    _qFramework = Quest.GetQuest("_dfwDeviousFramework") As dfwDeviousFramework
+  endif
+
   int newLocalWeight    = Mods.canRunLocal() as int * MCM.iEnslaveWeightLocal 
   int newGivenWeight    = canRunGiven() as int * MCM.iEnslaveWeightGiven 
   int newSoldWeight     = canRunSold() as int * MCM.iEnslaveWeightSold 
@@ -99,7 +119,8 @@ bool function enslavePlayer(actor attacker = None)
   debugmsg("enslavePlayer loc/give/sold(" + newLocalWeight + "/" + newGivenWeight + "/" + newSoldWeight + ")roll/total:(" + roll + "/" + weightTotal + ")", 2)
   if roll <= newLocalWeight
     ; just slaverun, because slaverun has limitations
-    if SlaverunScript.canRun() && roll < ((MCM.iEnslaveWeightSlaverun / (MCM.iEnslaveWeightSlaverun + MCM.iEnslaveWeightMaria + MCM.iEnslaveWeightSD) ) * MCM.iEnslaveWeightLocal)
+    if SlaverunScript.canRun() && roll < ((MCM.iEnslaveWeightSlaverun / (MCM.iEnslaveWeightSlaverun + MCM.iEnslaveWeightMaria + MCM.iEnslaveWeightSD) ) * MCM.iEnslaveWeightLocal) && \
+       (0 <= setDfwMaster())
       Debug.Messagebox("You are now property of Zaid, slaver in whiterun.")
       SlaverunScript.enslave()
     else
@@ -125,16 +146,22 @@ bool function enslavePlayer(actor attacker = None)
 endFunction
 
 function enslaveSold(actor actorRef = none)
+  ; Not sure when the OnUpdate() event is called so make sure the DFW framework quest variable is initialized.
+  ; TODO: This should be removed when we are setting the quest variables on game load.
+  if (!_qFramework)
+    _qFramework = Quest.GetQuest("_dfwDeviousFramework") As dfwDeviousFramework
+  endif
+
   Mods.dhlpResume()
   PlayerMon.clear_force_variables()
-  ; if we take the boolean toggle, and conver it to int, we can use it to convert the roll to roll OR zero
+  ; if we take the boolean toggle, and convert it to int, we can use it to convert the roll to roll OR zero
   ; boolean isn't as pretty but since it's just simple math it should run faster than control structures.
-  int SS          = MCM.iDistanceWeightSS             * (Mods.modLoadedSimpleSlavery && MCM.bSSAuctionEnslaveToggle ) as int
-  int Maria       = MCM.iDistanceWeightMariaK         * (Mods.modLoadedMariaEden && MCM.bMariaKhajitEnslaveToggle ) as int
-  int CD          = MCM.iDistanceWeightCD             * (Mods.modLoadedCD && MCM.bCDEnslaveToggle ) as int
-  int SLUTS       = MCM.iDistanceWeightSLUTSEnslave   * (Mods.modLoadedSLUTS ) as int
-  int SRR         = MCM.iDistanceWeightSlaverunRSold  * (Mods.modLoadedSlaverunR ) as int
-  int DCBandits  = MCM.iDistanceWeightDCBandits      * (Mods.modLoadedDeviousCidhna ) as int
+  int SS        = MCM.iDistanceWeightSS             * (Mods.modLoadedSimpleSlavery && MCM.bSSAuctionEnslaveToggle ) as int
+  int Maria     = MCM.iDistanceWeightMariaK         * (Mods.modLoadedMariaEden && MCM.bMariaKhajitEnslaveToggle ) as int
+  int CD        = MCM.iDistanceWeightCD             * (Mods.modLoadedCD && MCM.bCDEnslaveToggle ) as int
+  int SLUTS     = MCM.iDistanceWeightSLUTSEnslave   * (Mods.modLoadedSLUTS ) as int
+  int SRR       = MCM.iDistanceWeightSlaverunRSold  * (Mods.modLoadedSlaverunR ) as int
+  int DCBandits = MCM.iDistanceWeightDCBandits      * (Mods.modLoadedDeviousCidhna ) as int
 
   int total = SS + Maria + CD + SLUTS + SRR + DCBandits
   if total == 0 ; stop gap, you shouldn't get this far
@@ -142,7 +169,7 @@ function enslaveSold(actor actorRef = none)
     return
   endif
   int roll = Utility.RandomInt(1, total ) ; keep it off zero, since that's a non-case DCVampires
-  debugmsg("Sold:khajit/cd/SS/Sluts/SRR("  + Maria + "/" + CD + "/" + SS + "/" + SRR + "/" + DCBandits +")roll/total:(" + roll + "/" + total + ")", 2)
+  debugmsg("Sold:khajit/cd/SS/Sluts/SRR(" + Maria + "/" + CD + "/" + SS + "/" + SRR + "/" + DCBandits + ")roll/total:(" + roll + "/" + total + ")", 2)
   if roll <= Maria
     if Mods.modLoadedMariaEden == false
       debugmsg("Err: reached Maria Eden enslave, but mod is not loaded", 4)
@@ -162,7 +189,7 @@ function enslaveSold(actor actorRef = none)
     enslaveSS()
   elseif roll <= Maria + CD + SS + SLUTS
     enslaveSLUTS()
-  elseif roll <= Maria + CD + SS + SLUTS +  SRR 
+  elseif roll <= Maria + CD + SS + SLUTS +  SRR
     enslaveSlaverunRSold()
   else ; roll <= Maria + CD + SS + SLUTS +  SRR + DCBandits
     enslaveDCBandits()
@@ -170,18 +197,24 @@ function enslaveSold(actor actorRef = none)
 endFunction
 
 function enslaveGiven(actor actorRef = none)
+  ; Not sure when the OnUpdate() event is called so make sure the DFW framework quest variable is initialized.
+  ; TODO: This should be removed when we are setting the quest variables on game load.
+  if (!_qFramework)
+    _qFramework = Quest.GetQuest("_dfwDeviousFramework") As dfwDeviousFramework
+  endif
+
   Mods.dhlpResume()
   PlayerMon.clear_force_variables()
-  int Maria       = MCM.iDistanceWeightMaria          * (Mods.modLoadedMariaEden && MCM.bMariaDistanceToggle ) as int
-  int WC          = MCM.iDistanceWeightWC             * (Mods.modLoadedWolfClub && MCM.bWCDistanceToggle) as int
-  int SD          = MCM.iDistanceWeightSD             * (Mods.modLoadedSD && MCM.bSDDistanceToggle) as int
-  int DC          = MCM.iDistanceWeightDCPirate       * (Mods.modLoadedDeviousCidhna && MCM.bDCPirateEnslaveToggle ) as int
-  int DCLDamsel   = MCM.iDistanceWeightDCLDamsel      * (Mods.modLoadedCursedLoot ) as int
-  int IOM         = MCM.iDistanceWeightIOMEnslave     * (Mods.modLoadedIsleofMara ) as int
-  int DCLBADV     = MCM.iDistanceWeightDCLBondageAdv  * (Mods.modLoadedCursedLoot ) as int
-  int DCLLeon     = MCM.iDistanceWeightDCLLeon        * (Mods.modLoadedCursedLoot ) as int
-  int DCVampires  = MCM.iDistanceWeightDCVampire      * (Mods.modLoadedDeviousCidhna ) as int
-  
+  int Maria      = MCM.iDistanceWeightMaria          * (Mods.modLoadedMariaEden && MCM.bMariaDistanceToggle ) as int
+  int WC         = MCM.iDistanceWeightWC             * (Mods.modLoadedWolfClub && MCM.bWCDistanceToggle) as int
+  int SD         = MCM.iDistanceWeightSD             * (Mods.modLoadedSD && MCM.bSDDistanceToggle) as int
+  int DC         = MCM.iDistanceWeightDCPirate       * (Mods.modLoadedDeviousCidhna && MCM.bDCPirateEnslaveToggle ) as int
+  int DCLDamsel  = MCM.iDistanceWeightDCLDamsel      * (Mods.modLoadedCursedLoot ) as int
+  int IOM        = MCM.iDistanceWeightIOMEnslave     * (Mods.modLoadedIsleofMara ) as int
+  int DCLBADV    = MCM.iDistanceWeightDCLBondageAdv  * (Mods.modLoadedCursedLoot ) as int
+  int DCLLeon    = MCM.iDistanceWeightDCLLeon        * (Mods.modLoadedCursedLoot ) as int
+  int DCVampires = MCM.iDistanceWeightDCVampire      * (Mods.modLoadedDeviousCidhna ) as int
+
   int total = Maria + WC + SD + DC + DCLDamsel + IOM + DCLBADV + DCLLeon + DCVampires
   if total == 0 ; stop gap, you shouldn't get this far
     debugmsg("enslaveGiven: max roll is zero, no enslave mods?", 4)
@@ -234,7 +267,7 @@ function enslaveGiven(actor actorRef = none)
     else
       enslaveDCURBondageAdv() 
     endif
-  elseif roll <= Maria + WC + DC + SD + DCLDamsel + IOM + DCLBADV + DCLLeon 
+  elseif roll <= Maria + WC + DC + SD + DCLDamsel + IOM + DCLBADV + DCLLeon
     if Mods.modLoadedCursedLoot == false
       debugmsg("Err: reached DCLLeon enslave, but mod is not loaded", 4)
     else
@@ -250,6 +283,11 @@ function enslaveGiven(actor actorRef = none)
 endFunction
 
 function enslaveWC(actor actorRef = none)
+  if (0 > setDfwMaster())
+    debugmsg("Err enslaveWC: Could not overthow current DFW Master.", 4)
+    return
+  endif
+
   ; looks like we don't need the quest anymore we can just call the event, assuming it works? it works
   Utility.wait(2)
   debugmsg(" Starting Wolfclub ... " , 1)
@@ -308,6 +346,11 @@ endFunction
 ; called by exterior
 ; for now, variation does nothing
 function distantSD( actor masterRef = None) ;Int variation,
+  if (0 > setDfwMaster())
+    debugmsg("Err distantSD: Could not overthow current DFW Master.", 4)
+    return
+  endif
+
   ; not sure if I want the mod to remember who was previously the master
   ; if I keep just the last ONE, with a sufficiently large list of possible masters it should reduce the chances
   ; of getting the same master to 0 except for constant enslavement
@@ -347,13 +390,14 @@ Actor function selectNextSDMaster()
     masterRef = SDMasters[Utility.RandomInt(0,(len - 1))] ; get random
 
     if MCM.bUseSexlabGender
-      actor_sex     = PlayerMon.SexLab.GetGender(masterRef)
+      actor_sex = PlayerMon.SexLab.GetGender(masterRef)
     else
-      actor_sex     = masterRef.GetActorBase().getSex()
+      actor_sex = masterRef.GetActorBase().getSex()
     endif   
 
     if masterRef != SDPreviousMaster && !masterRef.isDead() \
     && !((actor_sex == 0 && gender_pref == 2) || (actor_sex == 1 && gender_pref == 1)) ;not fail cases
+      ; lazy, this should work fine
       SDNextMaster = masterRef
       return masterRef
     endIf
@@ -369,6 +413,11 @@ endFunction
 
 function   defeatKhajit(actor actorRef = none)
   ; fix: if version 1.2x, replace with scene where the player starts in the cage already, like new game start
+
+  if (0 > setDfwMaster())
+    debugmsg("Err defeatKhajit: Could not overthow current DFW Master.", 4)
+    return
+  endif
 
   ;MariaEdenScript.defeat(actorRef)
   debugmsg(" Starting Maria defeat (khajit)" , 1)
@@ -391,6 +440,11 @@ endFunction
 
 ; code was kanged from Simple Slavery, so I assume it works
 function enslaveCD() ;Captured Dreams
+  if (0 > setDfwMaster())
+    debugmsg("Err enslaveCD: Could not overthow current DFW Master.", 4)
+    return
+  endif
+
   MCM.bCDEnslaveToggle = false ; turn off, since it makes less sense for the scene to happen more than once
   hasRunBeforeCD = true
   ; stop DE from working for 1 in-game out, should be enough time to stop it from working
@@ -436,6 +490,11 @@ function enslaveSS()
   ; just for now, call the function without changing anything
   ; in the future we might want to rewrite the test so that the text makes more sense
   
+  if (0 > setDfwMaster())
+    debugmsg("Err enslaveSS: Could not overthow current DFW Master.", 4)
+    return
+  endif
+
   ;if Mods.modLoadedDeathAlternative == false ; deprecated, new DA doesn't require it anymore
   ;  debugmsg("WARNING: Simple slavery enslave without DA, should not work, turn off Simpleslavery toggle in MCM to stop this happening", 5)
   ;endif
@@ -472,6 +531,11 @@ endFunction
 
 ; borrowed from Simple Slavery
 function enslaveDCPirate()
+  if (0 > setDfwMaster())
+    debugmsg("Err enslaveDCPirate: Could not overthow current DFW Master.", 4)
+    return
+  endif
+
   debugmsg(" Starting DC pirate quest" , 1)
   ; remove armor first?
   
@@ -483,6 +547,11 @@ function enslaveDCPirate()
 endFunction 
 
 function enslaveSLUTS()
+  if (0 > setDfwMaster())
+    debugmsg("Err enslaveSLUTS: Could not overthow current DFW Master.", 4)
+    return
+  endif
+
   ; player should be naked, optional cuffs which will be removed when the player is made livery
   ; unequip major clothes
   Game.DisablePlayerControls()
@@ -499,6 +568,11 @@ function enslaveSLUTS()
 endFunction
 
 function enslaveDCLDamsel()
+  if (0 > setDfwMaster())
+    debugmsg("Err enslaveDCLDamsel: Could not overthow current DFW Master.", 4)
+    return
+  endif
+
   ; flavor prepare
   Game.DisablePlayerControls()
   Game.ForceThirdPerson()
@@ -514,6 +588,11 @@ function enslaveDCLDamsel()
 endFunction
 
 function enslaveSlaverunRSold()
+  if (0 > setDfwMaster())
+    debugmsg("Err enslaveSlaverunRSold: Could not overthow current DFW Master.", 4)
+    return
+  endif
+
   Game.DisablePlayerControls()
   Game.ForceThirdPerson() ; good for this, since after teleport player is stuck in first person for the whole start
   BlackFade.ApplyCrossFade(3)
@@ -528,6 +607,11 @@ function enslaveSlaverunRSold()
 endFunction
 
 function enslaveIsleOfMara()
+  if (0 > setDfwMaster())
+    debugmsg("Err enslaveIsleOfMara: Could not overthow current DFW Master.", 4)
+    return
+  endif
+
   Game.DisablePlayerControls()
   ;ItemScript.unequipAllNonDD()
   Game.ForceThirdPerson()
@@ -543,6 +627,11 @@ endFunction
 
 ; both leon and leah, roll chance is 50/50 for now
 function enslaveLeon()
+  if (0 > setDfwMaster())
+    debugmsg("Err enslaveLeon: Could not overthow current DFW Master.", 4)
+    return
+  endif
+
   ; disable player controls
   ; teleport player to location
   ; start quest
@@ -587,6 +676,11 @@ function enslaveLeon2()
 endFunction
 
 function enslaveDCURBondageAdv()
+  if (0 > setDfwMaster())
+    debugmsg("Err enslaveDCURBondageAdv: Could not overthow current DFW Master.", 4)
+    return
+  endif
+
   ; add animation to smooth over the transition
   Game.DisablePlayerControls()
   Game.ForceThirdPerson()
@@ -605,11 +699,21 @@ function enslaveSDDream()
 endFunction
 
 function enslaveDCBandits()
+  if (0 > setDfwMaster())
+    debugmsg("Err enslaveDCBandits: Could not overthow current DFW Master.", 4)
+    return
+  endif
+
   Utility.Wait(2)
   SendModEvent( "DvCidhna_StartBandits" )
 endFunction
 
 function enslaveDCVampires()
+  if (0 > setDfwMaster())
+    debugmsg("Err enslaveDCVampires: Could not overthow current DFW Master.", 4)
+    return
+  endif
+
   Utility.Wait(4)
   SendModEvent( "DvCidhna_StartVampires" )
 endFunction
@@ -623,7 +727,7 @@ bool function canRunSold()
   if Mods.modLoadedSimpleSlavery && MCM.bSSAuctionEnslaveToggle && (MCM.iDistanceWeightSS > 0)
     canRunSold = true
     return true
-  
+
   elseif Mods.modLoadedMariaEden && MCM.bMariaDistanceToggle && (MCM.iDistanceWeightMariaK > 0) 
   ; we only need is loaded, since you are either a slave or not, and checked before we get here
     canRunSold = true
@@ -665,9 +769,9 @@ bool function canRunGiven()
   elseif canRunWC()
     canRunGiven = true
     return true
-  elseif Mods.modLoadedDeviousCidhna && (MCM.bDCPirateEnslaveToggle && (MCM.iDistanceWeightDCPirate > 0) \ 
+  elseif Mods.modLoadedDeviousCidhna && (MCM.bDCPirateEnslaveToggle && (MCM.iDistanceWeightDCPirate > 0) \
                                       || (MCM.iDistanceWeightDCVampire > 0))
-  
+
     canRunGiven = true
     return true
   elseif Mods.modLoadedCursedLoot && (MCM.iDistanceWeightDCLDamsel > 0); DLC

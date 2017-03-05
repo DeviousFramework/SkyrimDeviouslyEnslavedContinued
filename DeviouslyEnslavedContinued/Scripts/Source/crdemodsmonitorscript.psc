@@ -534,7 +534,7 @@ function updateForms()
   if finishedCheckingMods ; we've been here already, leave
     return
   endIf
-    
+  
   Debug.Trace("[CRDE]Mods script updateForms() start ...")
   Debug.Trace("[CRDE] ******** ignore any errors between these two messages START ********", 1)
 
@@ -658,9 +658,8 @@ function updateForms()
       MariaPotentialMaster      = Game.GetFormFromFile(0x2470B59b, "Maria.esp") as Faction
       meSlaveTraderQuest        = Game.GetFormFromFile(0x8F16BF7B, "Maria.esp") as Quest
       meAuctionQuest            = Game.GetFormFromFile(0x057CEF9F, "Maria.esp") as Quest
-
     endif
-  endif 
+  endif
 
   tir_start01               = Quest.GetQuest("tir_start01") ; TODO fix
   modLoadedTrappedInRubber  = tir_start01 != None
@@ -1293,7 +1292,7 @@ int function isPlayerEnslaved()
     endif
     ; loaded but not a slave, keep going
   endif
-   
+ 
   if modLoadedFromtheDeep
     if player.isinfaction(ftdSlaveFaction)
       setEnslavedLevel(2)
@@ -1644,8 +1643,9 @@ int function isPlayerEnslaved()
       debugmsg("enslaved: SGOMES collar or belt 2", 3)
       setEnslavedLevel(2) ; up to master if the player is vulnerable
   endif
-  
-  if player.isInFaction(zazFactionSlave) 
+
+  ; If Devious Framework is preferred slave checking is done elsewhere, earlier in the process.
+  if !MCM.bPreferDfw && player.isInFaction(zazFactionSlave)
     setEnslavedLevel(2) 
     debugmsg("enslaved: in zaz slave faction 2", 3)
     return iEnslavedLevel 
@@ -1669,7 +1669,6 @@ int function isPlayerEnslaved()
   endif
   return iEnslavedLevel
 endFunction
-
 
 ; deprecate: this function no longer has a use, just adding to the stack load, slowdown
 function setEnslavedLevel(int level)
@@ -1753,9 +1752,8 @@ Int function metReqFrameworkIncreaseVuln()
     return ((fame_values[17] >= MCM.iReqLevelSLSFSlutMakeVulnerable) as int) \
          + ((fame_values[18] >= MCM.iReqLevelSLSFSlaveMakeVulnerable) as int) \
          + ((fame_values[4] >= MCM.iReqLevelSLSFExhibMakeVulnerable) as int) 
-  else
-    debugmsg("fame system didn't return enough stats. size " + fame_values.Length)
   endif
+  debugmsg("fame system didn't return enough stats. size " + fame_values.Length)
   return 0
 endFunction
 
@@ -1771,9 +1769,8 @@ Int function metReqFrameworkMakeVuln()
     return ((fame_values[17] >= MCM.iReqLevelSLSFSlutIncreaseVulnerable) as int) \
          + ((fame_values[18] >= MCM.iReqLevelSLSFSlaveIncreaseVulnerable) as int) \
          + ((fame_values[4] >= MCM.iReqLevelSLSFExhibIncreaseVulnerable) as int) 
-  else
-    debugmsg("fame system didn't return enough stats. size " + fame_values.Length)
   endif
+  debugmsg("fame system didn't return enough stats. size " + fame_values.Length)
   return 0
 endFunction
 

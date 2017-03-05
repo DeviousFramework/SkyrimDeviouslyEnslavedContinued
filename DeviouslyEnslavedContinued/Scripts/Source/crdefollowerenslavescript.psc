@@ -1,4 +1,4 @@
-Scriptname crdeFolowerEnslaveScript extends Quest conditional
+Scriptname crdeFollowerEnslaveScript extends Quest conditional
 ;***********************************************************************************************
 ; Mod: Deviously Enslaved Continued
 ;
@@ -144,6 +144,7 @@ function enslaveLola(actor masterRef = none) ; Sanguine's Debaunchery+
 endFunction
 
 function distantME( actor masterRef = None) ;Int variation,
+endFunction
 
 
 
@@ -176,9 +177,10 @@ Function trainingSlaverun()
 EndFunction
 
 ;*********************** Enslaved by follower directly *******************************
-Function enslaveLola()
-  ; do thing
-EndFunction
+; Already defined above (and below).  Why is this function defined three times?
+;Function enslaveLola()
+;  ; do thing
+;EndFunction
 
 ;Function enslavePetCollar()
   ; do thing
@@ -188,9 +190,10 @@ Function enslaveSD()
   ; do thing
 EndFunction
 
-Function enslaveLola() ; one day, maybe leon?
-  ; do thing
-EndFunction
+; Already defined above (twice).  Why is this function defined three times?
+;Function enslaveLola() ; one day, maybe leon?
+;  ; do thing
+;EndFunction
 
 ;***********************     "Given" to good master      *******************************
 

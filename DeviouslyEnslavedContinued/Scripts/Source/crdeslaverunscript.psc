@@ -81,8 +81,8 @@ function enslave(actor actorRef = none, bool local = true)	; Slaverun
     if isPlayerInWhiterun()
       ; player is in whiterun, let's do the soft enslave
       ; kanged straight from the fragment, attached to slv_mainquest
-      ;(Mods.slaverunRMCMQuest as SLV_Utiilities).enslavement(Self) ;<- don't know what this does
-      (Mods.slaverunRMCMQuest as SLV_Utiilities).enslavement() ; new
+      ;(Mods.slaverunRMCMQuest as SLV_Utilities).enslavement(Self) ;<- don't know what this does
+      (Mods.slaverunRMCMQuest as SLV_Utilities).SLV_enslavement() ; new
 
       PlayerMonitor.player.AddToFaction(Mods.zazFactionSlave) 
       Mods.slaverunRMainQuest.SetObjectiveCompleted(250)

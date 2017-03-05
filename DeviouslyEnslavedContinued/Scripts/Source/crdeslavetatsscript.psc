@@ -108,7 +108,6 @@ EndEvent
 ;    endif
 ;EndEvent
 
-
 ; meta thread, call this it knows what else to do
 Function detectTattoos()
   ; reset flags
@@ -236,7 +235,7 @@ Function checkSectionForKeywords( string tattoo_section, bool face)
     section += 1
   EndWhile
   ; repeat per subtype, if more
- 
+
   ; special case: Bistro slavetats has too many sections, but they all start with "BIS "
   section = 0
   While section < bisSectionNames.LENGTH                ; BIS
@@ -245,7 +244,6 @@ Function checkSectionForKeywords( string tattoo_section, bool face)
       wearingSlaveTattoo = true
     endif
   EndWhile
- 
  
 EndFunction 
 

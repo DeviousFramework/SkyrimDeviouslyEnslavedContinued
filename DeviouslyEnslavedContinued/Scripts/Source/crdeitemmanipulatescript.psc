@@ -83,40 +83,44 @@ Keyword[] Property deviceKeywords  Auto
 
 ; just from player, was meant to clear armor quickly, not sure if it's even still being used 
 function removeDDs()
-	
-	PlayerMon.updateWornDD(); good idea
+  if (!player)
+    PlayerMon.debugmsg("Error: Invalid Player - removeDDs", 4)
+    player = Game.GetPlayer()
+  endif
+
+  PlayerMon.updateWornDD(); good idea
   ; TODO add other items that we might want to remove, like cuffs/belts
   ;TODO add specifics for specialty colars later
-	if PlayerMon.wearingCollar; && !PlayerMon.knownCollar.HasKeyword(libs.zad_BlockGeneric))
-		removeDDbyKWD(PlayerMon.player, libs.zad_DeviousCollar)
-	endif
-	if PlayerMon.wearingArmbinder ;&& !PlayerMon.knownCollar.HasKeyword(libs.zad_BlockGeneric))
-    removeDDbyKWD(PlayerMon.player, libs.zad_DeviousArmbinder)
-		;removeDDbyArmor(PlayerMon.knownArmbinder)
-	endif
-	if PlayerMon.wearingGag; && !PlayerMon.knownCollar.HasKeyword(libs.zad_BlockGeneric))
-    removeDDbyKWD(PlayerMon.player, libs.zad_DeviousGag)
-		;removeDDbyArmor(PlayerMon.knownGag)
-	endif
-	if PlayerMon.wearingBlindfold; && !PlayerMon.knownCollar.HasKeyword(libs.zad_BlockGeneric))
-    removeDDbyKWD(PlayerMon.player, libs.zad_DeviousBlindFold)
-		;removeDDbyArmor(PlayerMon.knownBlindfold)
-	endif
+  if PlayerMon.wearingCollar; && !PlayerMon.knownCollar.HasKeyword(libs.zad_BlockGeneric))
+    removeDDbyKWD(player, libs.zad_DeviousCollar)
+  endif
+  if PlayerMon.wearingArmbinder ;&& !PlayerMon.knownCollar.HasKeyword(libs.zad_BlockGeneric))
+    removeDDbyKWD(player, libs.zad_DeviousArmbinder)
+    ;removeDDbyArmor(PlayerMon.knownArmbinder)
+  endif
+  if PlayerMon.wearingGag; && !PlayerMon.knownCollar.HasKeyword(libs.zad_BlockGeneric))
+    removeDDbyKWD(player, libs.zad_DeviousGag)
+    ;removeDDbyArmor(PlayerMon.knownGag)
+  endif
+  if PlayerMon.wearingBlindfold; && !PlayerMon.knownCollar.HasKeyword(libs.zad_BlockGeneric))
+    removeDDbyKWD(player, libs.zad_DeviousBlindFold)
+    ;removeDDbyArmor(PlayerMon.knownBlindfold)
+  endif
 endFunction
 
 function removeDDbyArmor(actor actorRef, armor armorRef)
-	keyword kwd = libs.GetDeviceKeyword(armorRef)
-	armor rndrd = libs.GetRenderedDevice(armorRef)
-	libs.removeDevice(actorRef, armorRef, rndrd, kwd)
+  keyword kwd = libs.GetDeviceKeyword(armorRef)
+  armor rndrd = libs.GetRenderedDevice(armorRef)
+  libs.removeDevice(actorRef, armorRef, rndrd, kwd)
   if armorRef != None && armorRef.haskeyword(libs.zad_DeviousBelt)
     previousBelt = armorRef
   endif
 endFunction
 
 function removeDDbyKWD(actor actorRef, keyword keywordRef)
-	armor dd    = libs.GetWornDeviceFuzzyMatch(actorRef, keywordRef)
-	armor rndrd = libs.GetRenderedDevice(dd)
-	libs.removeDevice(actorRef, dd, rndrd, keywordRef)
+  armor dd    = libs.GetWornDeviceFuzzyMatch(actorRef, keywordRef)
+  armor rndrd = libs.GetRenderedDevice(dd)
+  libs.removeDevice(actorRef, dd, rndrd, keywordRef)
   if dd != None && dd.haskeyword(libs.zad_DeviousBelt)
     previousBelt = dd
   endif
@@ -126,16 +130,10 @@ function removeDDArmbinder(actor actorRef)
   ;removeDDbyKWD(Mods.zazKeywordAnimWrists) ; if this works this should take care of all hands locking items
   ;removeDDbyKWD(libs.zad_DeviousYoke)      ; maybe this was a touch reckless, we have the item from earlier
   ;removeDDbyKWD(libs.zad_DeviousArmbinder)
-  if actorRef.Wornhaskeyword(libs.zad_DeviousArmbinder) ;&& actorRef.knownArmbinder != None
+  if actorRef.WornHasKeyword(libs.zad_DeviousYoke)
+    removeDDbyKWD(actorRef, libs.zad_DeviousYoke)      ; maybe this was a touch reckless, we have the item from earlier
+  elseif actorRef.WornHasKeyword(libs.zad_DeviousArmbinder)
     removeDDbyKWD(actorRef, libs.zad_DeviousArmbinder)
-  elseif actorRef.Wornhaskeyword(libs.zad_DeviousArmbinder)
-    if actorRef.WornHasKeyword(libs.zad_DeviousYoke)
-      removeDDbyKWD(actorRef, libs.zad_DeviousYoke)      ; maybe this was a touch reckless, we have the item from earlier
-    elseif actorRef.WornHasKeyword(libs.zad_DeviousArmbinder)
-      removeDDbyKWD(actorRef, libs.zad_DeviousArmbinder)
-    else
-      PlayerMon.debugmsg("removeDDArmbinder: wearingArmbinder is true but armor unPlayerMon.known: " + actorRef.GetWornForm(0x2E));(46)
-    endif
   endif
 endFunction
 
@@ -147,7 +145,7 @@ function stealKeys(actor actorRef)
   endif
   if player == None
     player = Game.GetPlayer() ; needs refreshing? sometimes none at this point
-  endif	
+  endif
   PlayerMon.debugmsg("" + actorRef.getDisplayName() + " is stealing keys from " + player.GetDisplayName(), 1)
   int index = 0
   int cnt
@@ -162,8 +160,8 @@ function stealKeys(actor actorRef)
     if cnt > 0
       player.removeItem(Mods.deviousRegImperialKey, cnt, true)
       actorRef.addItem(Mods.deviousRegImperialKey, cnt, true)
-      endif
-      cnt = player.getItemCount(Mods.deviousRegStormCloakKey)
+    endif
+    cnt = player.getItemCount(Mods.deviousRegStormCloakKey)
     if cnt > 0
       player.removeItem(Mods.deviousRegStormCloakKey, cnt, true)
       actorRef.addItem(Mods.deviousRegStormCloakKey, cnt, true)
@@ -173,6 +171,11 @@ endFunction
 
 ; just unequip everything in certain sockets
 function unequipAllNonDD()
+  if (!player)
+    PlayerMon.debugmsg("Error: Invalid Player - unequipAllNonDD", 4)
+    player = Game.GetPlayer()
+  endif
+
   ;for all in thing
   ;if ; not dd and not zaz items
     ; unequip
@@ -192,6 +195,11 @@ endFunction
 ; so lets remove items 2-3 at a time, instead
 ; shouldn't need to worry about blocking devices here, since we don't get this far
 function unequipAllNonImportantSlow()
+  if (!player)
+    PlayerMon.debugmsg("Error: Invalid Player - unequipAllNonImportantSlow", 4)
+    player = Game.GetPlayer()
+  endif
+
   ; at first, we ignore gag, armbinder, DD items
   
   ; first we remove head, shoes, and gloves
@@ -219,24 +227,24 @@ function unequipAllNonImportantSlow()
   
   ;then we remove Arm and leg cuffs, 
   if player.WornHasKeyword(libs.zad_DeviousArmCuffs) ; ARM CUFFS
-    removeDDbyKWD(PlayerMon.player, libs.zad_DeviousArmCuffs)
+    removeDDbyKWD(player, libs.zad_DeviousArmCuffs)
     Utility.Wait(1)
   endif
   if player.WornHasKeyword(libs.zad_DeviousLegCuffs) ; LEG CUFFS
-    removeDDbyKWD(PlayerMon.player, libs.zad_DeviousLegCuffs)
+    removeDDbyKWD(player, libs.zad_DeviousLegCuffs)
     Utility.Wait(1)
   endif
   ;Utility.Wait(1)
   ; followed by Restrictive boots, arms
   if player.WornHasKeyword(libs.zad_DeviousGloves) ; GLOVES
-    removeDDbyKWD(PlayerMon.player, libs.zad_DeviousGloves) ; 33
+    removeDDbyKWD(player, libs.zad_DeviousGloves) ; 33
     Utility.Wait(1)
   endif
   if player.WornHasKeyword(libs.zad_DeviousBoots) ; LEGGINGS
-    removeDDbyKWD(PlayerMon.player, libs.zad_DeviousBoots) ; 37
+    removeDDbyKWD(player, libs.zad_DeviousBoots) ; 37
     Utility.Wait(1)
   endif
-    
+
   ;Utility.Wait(1)
   ; followed by collar, hood
   ;Utility.Wait(0.5)
@@ -253,17 +261,17 @@ bool function removeCurrentCollar(actor actorRef)
   ; we use DeviousCollar and not zaz because we don't care about non-devious items, they unequip if we equip something else
   ;Armor collar  = player.GetWornForm( 0x00008000 ) as Armor ;maybe this doesn't always work?
   armor collar   = libs.GetWornDeviceFuzzyMatch(actorRef, libs.zad_DeviousCollar)
-	;armor rndrd = libs.GetRenderedDevice(collar)
-	if collar != None && actorRef.WornHasKeyword(libs.zad_DeviousCollar) && !collar.HasKeyword(libs.zad_BlockGeneric) 
+  ;armor rndrd = libs.GetRenderedDevice(collar)
+  if collar != None && actorRef.WornHasKeyword(libs.zad_DeviousCollar) && !collar.HasKeyword(libs.zad_BlockGeneric) 
     PlayerMon.debugmsg("Trying to remove: " + collar.GetName())
-		;PlayerMon.updateWornDD(true) ; lets assume this is a waste of time, 
+    ;PlayerMon.updateWornDD(true) ; lets assume this is a waste of time, 
     ;removeDDbyKWD(libs.zad_DeviousCollar)
-		removeDDbyArmor(actorRef, collar)
+    removeDDbyArmor(actorRef, collar)
     Utility.Wait(1)
     return true
   ;elseif actorRef.WornHasKeyword(libs.zad_DeviousHarness) ;&& !PlayerMon.knownCollar.HasKeyword(libs.zad_BlockGeneric)
   ;  ; lets assume there are no blocking harnesses, I'm sure this won't come back and bite me in the ass one day...
-	;	removeDDbyArmor(PlayerMon.knownCollar)
+  ;  removeDDbyArmor(PlayerMon.knownCollar)
   ;  return true
     
   elseif actorRef.WornHasKeyword(Mods.zazKeywordWornCollar)
@@ -272,7 +280,7 @@ bool function removeCurrentCollar(actor actorRef)
   else 
     PlayerMon.debugmsg("removecurrentcollar called but actorRef is not wearing collar")
     return true ; we 'succeeded' in removing the collar
-	endif
+  endif
   return false
 endFunction
 
@@ -287,11 +295,10 @@ function equipRegularDDItem(actor actorRef, Armor dd, keyword kw)
   endif
 endFunction
 
-
 ; this function doesn't get abstracted because getRandomMultipleDD uses outfits and events, which makes it all much harder
 bool function equipRandomDD(actor actorRef, actor attacker = None, bool canEnslave = false)
   PlayerMon.clear_force_variables() ; we reach this spot through the dialogue 
-	PlayerMon.CheckDevices()
+  PlayerMon.CheckDevices()
   Armor collar          = actorRef.GetWornForm( 0x00008000 ) as Armor 
   bool collarBlocked    = collar != None && actorRef.WornHasKeyword(libs.zad_DeviousCollar) && collar.HasKeyword(libs.zad_BlockGeneric) ;PlayerMon.knownCollar != None && PlayerMon.knownCollar.HasKeyword(libs.zad_BlockGeneric)
   bool isCollarable     = !(actorRef.WornHasKeyword(Mods.zazKeywordWornYoke) || collarBlocked || Mods.iEnslavedLevel > 0)
@@ -299,7 +306,6 @@ bool function equipRandomDD(actor actorRef, actor attacker = None, bool canEnsla
   int total = MCM.iWeightSingleDD + MCM.iWeightMultiDD + uniqueChance
   int roll = Utility.RandomInt(1,total)
   PlayerMon.debugmsg("single/multi/uniqueCol(" + MCM.iWeightSingleDD + "/" + MCM.iWeightMultiDD + "/" + uniqueChance + ")roll/total:(" + roll + "/" + total + ")", 2)
-  armor[] items = new armor[10]
   if total == 0
     PlayerMon.debugmsg("All item weights are zero, no items to be added")
     return false; quiet, all off
@@ -322,7 +328,7 @@ endFunction
 armor[] function getRandomDD(actor actorRef, actor attacker = None, bool canEnslave = false)
   ;PlayerMon.debugmsg("Resetting approach at start of equiprandomDD",1)
   PlayerMon.clear_force_variables() ; we reach this spot through the dialogue 
-	PlayerMon.CheckDevices()
+  PlayerMon.CheckDevices()
   Armor collar          = actorRef.GetWornForm( 0x00008000 ) as Armor 
   bool collarBlocked    = collar != None && actorRef.WornHasKeyword(libs.zad_DeviousCollar) && collar.HasKeyword(libs.zad_BlockGeneric) ;PlayerMon.knownCollar != None && PlayerMon.knownCollar.HasKeyword(libs.zad_BlockGeneric)
   bool isCollarable     = !(actorRef.WornHasKeyword(Mods.zazKeywordWornYoke) || collarBlocked || Mods.iEnslavedLevel > 0)
@@ -361,8 +367,13 @@ bool function equipRandomSingleDD(actor actorRef)
 endFunction
 
 armor[] function getRandomSingleDD(actor actorRef)
+  if (!player)
+    PlayerMon.debugmsg("Error: Invalid Player - getRandomSingleDD", 4)
+    player = Game.GetPlayer()
+  endif
+
   ; TODO check if player is already blocked, return with false
-	bool success = false
+  bool success = false
   int glovesbootsChance   = MCM.iWeightSingleGlovesBoots * ((!actorRef.wornHasKeyword(libs.zad_DeviousGloves) && !actorRef.wornHasKeyword(libs.zad_DeviousBoots)) as int)
   int armbinderChance     = MCM.iWeightSingleArmbinder * ((!actorRef.wornHasKeyword(libs.zad_DeviousArmbinder) && !actorRef.wornHasKeyword(libs.zad_DeviousYoke)) as int)
   int collarChance        = MCM.iWeightSingleCollar * ((!actorRef.wornHasKeyword(libs.zad_DeviousCollar)) as int) ; could do harness too
@@ -388,39 +399,50 @@ armor[] function getRandomSingleDD(actor actorRef)
            cuffsChance + "/" +\
            ankleChance + "/" +\
            ") roll:" + roll)
-  armor[] items = new armor[3]     
+
+  armor[] items = new armor[3]
   if roll <= glovesbootsChance
     ;success = equipRandomDDxRGlovesBoots(actorRef)
-    if success && actorRef != None && actorRef == player
-      Debug.Notification(actorRef.GetDisplayName() + " gave you some lovely boots and gloves before leaving!")
-    endif 
+    ; Obsolete: This is no longer used as the function changed from equip to get.
+    ;           I am leaving here as we are likely to find a place to move it to.
+    ;if actorRef != None && actorRef == player
+    ;  Debug.Notification(actorRef.GetDisplayName() + " gave you some lovely boots and gloves before leaving!")
+    ;endif 
     return getRandomDDxRGlovesBoots()
   elseif roll <= glovesbootsChance + armbinderChance
     ;success = equipRandomDDArmbinders(actorRef)
     items[0] = getRandomDDArmbinders()
-    if success && actorRef != None && actorRef == player
-      Debug.Notification(actorRef.GetDisplayName() + " locks a armbinder on you before leaving!")
-    endif
+    ; Obsolete: This is no longer used as the function changed from equip to get.
+    ;           I am leaving here as we are likely to find a place to move it to.
+    ;if actorRef != None && actorRef == player
+    ;  Debug.Notification(actorRef.GetDisplayName() + " locks a armbinder on you before leaving!")
+    ;endif
     return items
   elseif roll <= glovesbootsChance + armbinderChance + collarChance; Collars
     ;success = equipRandomDDCollars(actorRef)
-    if success && actorRef != None && actorRef == player
-      Debug.Notification(actorRef.GetDisplayName() + " locks a collar on you before leaving!")
-    endif
+    ; Obsolete: This is no longer used as the function changed from equip to get.
+    ;           I am leaving here as we are likely to find a place to move it to.
+    ;if actorRef != None && actorRef == player
+    ;  Debug.Notification(actorRef.GetDisplayName() + " locks a collar on you before leaving!")
+    ;endif
     items[0] = getRandomDDCollars(actorRef)
     return items
   elseif roll <= glovesbootsChance + armbinderChance + collarChance + gagChance ; gag
     ;success = equipRandomGag(actorRef)
     items[0] = getRandomGag() 
-    if success && actorRef != None && actorRef == player
-      Debug.Notification(actorRef.GetDisplayName() + " shoves a gag in your mouth before leaving!")
-    endif
+    ; Obsolete: This is no longer used as the function changed from equip to get.
+    ;           I am leaving here as we are likely to find a place to move it to.
+    ;if actorRef != None && actorRef == player
+    ;  Debug.Notification(actorRef.GetDisplayName() + " shoves a gag in your mouth before leaving!")
+    ;endif
     return items
   elseif roll <= glovesbootsChance + armbinderChance + collarChance + gagChance + harnessChance; harness and plug
     ;success = equipRandomHarnessAndStuff(actorRef)
-    if success && actorRef != None && actorRef == player
-      Debug.Notification(actorRef.GetDisplayName() + " locks a harness on you before leaving!")
-    endif
+    ; Obsolete: This is no longer used as the function changed from equip to get.
+    ;           I am leaving here as we are likely to find a place to move it to.
+    ;if actorRef != None && actorRef == player
+    ;  Debug.Notification(actorRef.GetDisplayName() + " locks a harness on you before leaving!")
+    ;endif
     return getRandomHarnessAndStuff(actorRef)
   elseif roll <= glovesbootsChance + armbinderChance + collarChance + gagChance + harnessChance + beltChance; belt and plug
     PlayerMon.debugmsg("attempting belt ...")
@@ -430,21 +452,27 @@ armor[] function getRandomSingleDD(actor actorRef)
     ;else
     ;  success = equipRandomBeltAndStuff()
     ;endif
-    if success && actorRef != None && actorRef == player
-      Debug.Notification(actorRef.GetDisplayName() + " locks a tight chastity belt on you before leaving!")
-    endif ;ankleChance
+    ; Obsolete: This is no longer used as the function changed from equip to get.
+    ;           I am leaving here as we are likely to find a place to move it to.
+    ;if actorRef != None && actorRef == player
+    ;  Debug.Notification(actorRef.GetDisplayName() + " locks a tight chastity belt on you before leaving!")
+    ;endif ;ankleChance
     return getRandomBeltAndStuff(actorRef, Utility.RandomInt(1, (MCM.iWeightBeltPunishment + MCM.iWeightBeltRegular)) <= MCM.iWeightBeltPunishment)
   elseif roll <= glovesbootsChance + armbinderChance + collarChance + gagChance + harnessChance + beltChance + cuffsChance; legs and arm cuffs
     ;success = equipRandomDDCuffs(actorRef)
-    if success && actorRef != None && actorRef == player
-      Debug.Notification(actorRef.GetDisplayName() + " locks arm and leg cuffs to you before leaving!")
-    endif
+    ; Obsolete: This is no longer used as the function changed from equip to get.
+    ;           I am leaving here as we are likely to find a place to move it to.
+    ;if actorRef != None && actorRef == player
+    ;  Debug.Notification(actorRef.GetDisplayName() + " locks arm and leg cuffs to you before leaving!")
+    ;endif
     return getRandomDDCuffs()
   else;if roll <= glovesbootsChance + armbinderChance + collarChance + gagChance + harnessChance + beltChance + cuffsChance + ankleChance; legs and arm cuffs
     ;success = equipRandomAnkleChains(actorRef)
-    if success && actorRef != None && actorRef == player
-      Debug.Notification(actorRef.GetDisplayName() + " locks ankle chains on you before leaving!")
-    endif
+    ; Obsolete: This is no longer used as the function changed from equip to get.
+    ;           I am leaving here as we are likely to find a place to move it to.
+    ;if actorRef != None && actorRef == player
+    ;  Debug.Notification(actorRef.GetDisplayName() + " locks ankle chains on you before leaving!")
+    ;endif
     items[0] = getRandomAnkleChains()
     return items
   endif  
@@ -452,7 +480,7 @@ armor[] function getRandomSingleDD(actor actorRef)
 endFunction
 
 ; unlike the other functions, because this one contains outfits, I elected to leave it alone
-function equipRandomMultipleDD(actor actorRef) 
+function equipRandomMultipleDD(actor actorRef)
   ; animate fall to knees or tied up
   ; fade to black or straight to black
 
@@ -500,10 +528,9 @@ function equipRandomMultipleDD(actor actorRef)
   ; wait fade in
   ; get up off the ground
 endFunction
-
 
 ; unlike the other functions, because this one contains outfits, I elected to leave it alone
-function getRandomMultipleDD(actor actorRef) 
+function getRandomMultipleDD(actor actorRef)
   ; animate fall to knees or tied up
   ; fade to black or straight to black
 
@@ -551,7 +578,6 @@ function getRandomMultipleDD(actor actorRef)
   ; wait fade in
   ; get up off the ground
 endFunction
-
 
 Function equipRandomUniqueCollar(actor actorRef)
   armor collar = getRandomUniqueCollar(actorRef)
@@ -562,24 +588,29 @@ endFunction
 
 
 armor function getRandomUniqueCollar(actor actorRef)
+  if (!player)
+    PlayerMon.debugmsg("Error: Invalid Player - getRandomUniqueCollar", 4)
+    player = Game.GetPlayer()
+  endif
+
   ; we shouldn't need collarable anymore, since we can't do anything here without it anymore
-  bool isPlayer = actorRef == PlayerMon.player
+  bool isPlayer = actorRef == player
   int weightPetCollar             = MCM.iWeightPetcollar * ( Mods.modLoadedPetCollar ) as int
-  int weightDCURCursedCollar      = MCM.iWeightCursedCollar * ( Mods.modLoadedCursedLoot && (actorRef == PlayerMon.player) && isPlayer) as int
+  int weightDCURCursedCollar      = MCM.iWeightCursedCollar * ( Mods.modLoadedCursedLoot && isPlayer) as int
   int weightDCURSlave             = MCM.iWeightSlaveCollar * ( Mods.modLoadedCursedLoot && isPlayer) as int
-  int weightDCURSlut              = MCM.iWeightSlutCollar * (Mods.modLoadedCursedLoot&& isPlayer ) as int
-  int weightDCURRubberDollCollar  = MCM.iWeightRubberDollCollar * (  Mods.modLoadedCursedLoot && (actorRef == PlayerMon.player) && isPlayer) as int
+  int weightDCURSlut              = MCM.iWeightSlutCollar * (Mods.modLoadedCursedLoot && isPlayer) as int
+  int weightDCURRubberDollCollar  = MCM.iWeightRubberDollCollar * (  Mods.modLoadedCursedLoot && isPlayer) as int
   int weightFBanned               = MCM.iWeightdeviousPunishEquipmentBannnedCollar * (  Mods.deviousPunishEquipmentBannnedCollar != None ) as int
   int weightFProstituted          = MCM.iWeightdeviousPunishEquipmentProstitutedCollar * (  Mods.deviousPunishEquipmentProstitutedCollar != None ) as int
   int weightFNaked                = MCM.iWeightdeviousPunishEquipmentNakedCollar * (  Mods.deviousPunishEquipmentNakedCollar != None ) as int
   int weightStripTease            = mcm.iWeightStripCollar * (Mods.modLoadedCursedLoot ) as int
-  
+
   ;int suits       = MCM.iWeightMultiDD * 
   int weightTotal = weightPetCollar + weightDCURCursedCollar + weightDCURSlave + weightDCURSlut \
                   + weightDCURRubberDollCollar + weightFBanned + weightFProstituted + weightFNaked + weightStripTease
   if weightTotal == 0
     PlayerMon.debugmsg("equipPlayerMon.randomDD: weight is zero, equipping nothing", 4)
-  endif	
+  endif
   int   roll    = Utility.RandomInt(1, weightTotal)
   bool  removed = false
   ;PlayerMon.debugmsg("equipPlayerMon.randomDD: rolled " + roll, 2)
@@ -587,24 +618,23 @@ armor function getRandomUniqueCollar(actor actorRef)
                      + weightPetCollar + "/" + weightDCURSlave + "/" + weightDCURSlut + "/" + weightPetCollar + "/"\
                      + weightDCURRubberDollCollar + "/" + weightFBanned + "/" + weightFProstituted + "/" \
                      + weightFNaked + "/" + weightStripTease \
-                     +")roll/total:(" + roll + "/" + weightTotal + ")", 2)
+                     + ")roll/total:(" + roll + "/" + weightTotal + ")", 2)
 
-  armor collar
   if (roll == 0)
     PlayerMon.debugmsg("equipPlayerMon.randomDD: nothing to equip?")
-    return collar
+    return None
   endif
   removed = removeCurrentCollar(actorRef)
   if roll <= weightPetCollar 
-    if actorRef != None && actorRef != PlayerMon.player
+    if actorRef != None && actorRef != player
       Debug.Notification(actorRef.GetDisplayName() + " puts a collar on the bitch.")
     else
       Debug.Notification("The bitch has earned a collar")
     endif
-    ;ods.equipPetCollar(actorRef)
+    ;Mods.equipPetCollar(actorRef)
     return Mods.petCollar
   elseif roll <=  weightPetCollar + weightDCURCursedCollar 
-    if actorRef != None && actorRef == PlayerMon.player
+    if actorRef != None && actorRef == player
       Debug.Notification(actorRef.GetDisplayName() + " puts a strange collar on you! What's this strange letter...?")
     else
       Debug.Notification("Suddenly you notice a strange collar around your neck. What's this letter...?")
@@ -612,60 +642,64 @@ armor function getRandomUniqueCollar(actor actorRef)
     ;Mods.equipCursedCollar()
     return Mods.dcurCursedCollar
   elseif roll <= weightPetCollar + weightDCURCursedCollar + weightDCURSlave 
-    if actorRef != None && actorRef == PlayerMon.player
+    if actorRef != None && actorRef == player
       Debug.Notification(actorRef.GetDisplayName() + " puts a slave collar on you!")
     else
       Debug.Notification("The slave has been marked")
     endif
     return Mods.dcurSlaveCollar
   elseif roll <= weightPetCollar + weightDCURCursedCollar + weightDCURSlave + weightDCURSlut
-    if actorRef != None && actorRef == PlayerMon.player
+    if actorRef != None && actorRef == player
       Debug.Notification(actorRef.GetDisplayName() + " locks a collar on the slut.")
     else
       Debug.Notification("The slut has earned a collar")
     endif
     return Mods.dcurSlutCollar
   elseif roll <= weightPetCollar + weightDCURCursedCollar + weightDCURSlave + weightDCURSlut + weightDCURRubberDollCollar
-    if actorRef != None && actorRef == PlayerMon.player
+    if actorRef != None && actorRef == player
       Debug.Notification(actorRef.GetDisplayName() + " locks a rubbery collar around your neck!")
     else
       Debug.Notification("The rubbery collar locks around your neck")
     endif
     return Mods.dcurRubberCollar
   elseif roll <= weightPetCollar + weightDCURCursedCollar + weightDCURSlave + weightDCURSlut + weightDCURRubberDollCollar + weightFBanned 
-    if actorRef != None && actorRef == PlayerMon.player
+    if actorRef != None && actorRef == player
       Debug.Notification(actorRef.GetDisplayName() + " locks a Banned collar around your neck!")
     else
       Debug.Notification("The slut has earned a collar")
     endif
     return Mods.deviousPunishEquipmentBannnedCollar 
   elseif roll <= weightPetCollar + weightDCURCursedCollar + weightDCURSlave + weightDCURSlut + weightDCURRubberDollCollar + weightFBanned + weightFProstituted 
-    if actorRef != None && actorRef == PlayerMon.player
+    if actorRef != None && actorRef == player
       Debug.Notification(actorRef.GetDisplayName() + " locks a Banned collar around your neck!")
     else
       Debug.Notification("The slut has earned a collar")
     endif
     return Mods.deviousPunishEquipmentProstitutedCollar 
   elseif roll <= weightPetCollar + weightDCURCursedCollar + weightDCURSlave + weightDCURSlut + weightDCURRubberDollCollar + weightFBanned + weightFProstituted + weightFNaked   
-    if actorRef != None && actorRef == PlayerMon.player
+    if actorRef != None && actorRef == player
       Debug.Notification(actorRef.GetDisplayName() + " locks a Banned collar around your neck!")
     else
       Debug.Notification("The slut has earned a new collar")
     endif
     return Mods.deviousPunishEquipmentNakedCollar 
   else;if roll <= weightPetCollar + weightDCURCursedCollar + weightDCURSlave + weightDCURSlut + weightDCURRubberDollCollar + weightFBanned + weightFProstituted + weightFNaked +weightStripTease
-    if actorRef != None && actorRef == PlayerMon.player
+    if actorRef != None && actorRef == player
       Debug.Notification(actorRef.GetDisplayName() + " locks a StripTease collar around your neck!")
     else
       Debug.Notification("The slut has earned a new collar")
     endif
     return Mods.dcurStripTeaseCollar 
   endif
+  return None
 endFunction
 
-
-
 bool function equipRandomDDCuffs(actor actorRef)
+  if (!player)
+    PlayerMon.debugmsg("Error: Invalid Player - equipRandomDDCuffs", 4)
+    player = Game.GetPlayer()
+  endif
+
   int i = 0
   PlayerMon.debugmsg("checking if arm + leg cuffs are worn already ...", 1)
   if(actorRef.wornHasKeyword(libs.zad_DeviousLegCuffs) == false && player.wornHasKeyword(libs.zad_DeviousArmCuffs) == false)
@@ -681,15 +715,14 @@ bool function equipRandomDDCuffs(actor actorRef)
 endFunction
 
 armor[] function getRandomDDCuffs()
-  armor[] pair      = new armor[2]
-  int offsetIndex    = Utility.Randomint(0,2) * 2 ; 01 are ebonite, 23 are red, 45 are white
+  armor[] pair    = new armor[2]
+  int offsetIndex = Utility.Randomint(0,2) * 2 ; 01 are ebonite, 23 are red, 45 are white
   pair[0] = PlayerMon.randomDDxCuffs[offsetIndex]
   pair[1] = PlayerMon.randomDDxCuffs[offsetIndex + 1]
   return pair
 endFunction
 
 bool function equipRandomAnkleChains(actor actorRef)
-  int i = 0
   PlayerMon.debugmsg("checking if ankle chains are worn already ...", 1)
   if actorRef.wornHasKeyword(libs.zad_DeviousLegCuffs) == false
     armor chains = getRandomAnkleChains()
@@ -735,7 +768,7 @@ endFunction
 armor[] function getRandomDDxRGlovesBoots()
   armor[] pair = new armor[2]
   ; remove gloves cuffs first, then put them back?
-  
+
   int offsetIndex = 0 ; 01 are ebonite, 23 are red, 45 are white
   offsetIndex     = Utility.Randomint(0,2) * 2
   pair[0] = PlayerMon.randomDDxRGlovesBoots[offsetIndex]
@@ -846,37 +879,37 @@ endFunction
 
 bool function equipRandomHarnessAndStuff(actor actorRef)
   int i = 0
-  armor[] items = getRandomHarnessAndStuff(actorRef)
-  actorRef.UnequipItemSlot(32) ; take off the body, we need to apply the harness
-  while i < items.length && items[i] != None
-    equipRegularDDItem(actorRef, items[i], None)
-    i += 1
-  endWhile
+  PlayerMon.debugmsg("checking if harness are worn already ...", 1)
+  if actorRef.wornHasKeyword(libs.zad_DeviousHarness) == false 
+    armor[] items = getRandomHarnessAndStuff(actorRef)
+    actorRef.UnequipItemSlot(32) ; take off the body, we need to apply the harness
+    while i < items.length && items[i] != None
+      equipRegularDDItem(actorRef, items[i], None)
+      i += 1
+    endWhile
+  endif
+
+  return i > 0
 endFunction
 
 armor[] function getRandomHarnessAndStuff(actor actorRef)
-  PlayerMon.debugmsg("checking if harness are worn already ...", 1)
   armor[] items = new armor[5]
-  if actorRef.wornHasKeyword(libs.zad_DeviousHarness) == false 
-    int offsetIndex = Utility.Randomint(0,2);0 ; 0 are ebonite, 1 are red, 2 are white
-    ;offsetIndex     =
-    Armor harness = randomDDxHarnesss[offsetIndex]
-    ;PlayerMon.debugmsg("harness:" + harness)
-    armor[] stuff = getRandomStuff(actorRef, harness)
-    ;armor rndrd = libs.GetRenderedDevice(harness)
-    int i = 0
-    while i < stuff.length && stuff[i] != None
-      items[i] = stuff[i]
-      i += 1
-    endWhile
-    items[i] = harness
-  endif
-    return items
+  int offsetIndex = Utility.Randomint(0,2);0 ; 0 are ebonite, 1 are red, 2 are white
+  Armor harness = randomDDxHarnesss[offsetIndex]
+  armor[] stuff = getRandomStuff(actorRef, harness)
+  int i = 0
+  while i < stuff.length && stuff[i] != None
+    items[i] = stuff[i]
+    i += 1
+  endWhile
+  items[i] = harness
+  return items
 endFunction
 
 ;moving everything here because same code normally
 bool function equipRandomBeltAndStuff(actor actorRef, bool punishment = false, bool force_stuff = false)
   int i = 0
+  PlayerMon.debugmsg("checking if belt and stuff are already worn ...", 1)
   if(actorRef.wornHasKeyword(libs.zad_DeviousBelt) == false )
     actorRef.UnequipItemSlot(32) ; take off the body, we need to apply the belt
     armor[] items = getRandomBeltAndStuff(actorRef, punishment, force_stuff)
@@ -889,9 +922,8 @@ bool function equipRandomBeltAndStuff(actor actorRef, bool punishment = false, b
 endFunction
 
 armor[] function getRandomBeltAndStuff(actor actorRef, bool punishment = false, bool force_stuff = false)
-  PlayerMon.debugmsg("checking if belt and stuff are already worn ...", 1)
   ; check what color the other items are, modify index
-  
+
   int newPadded   = MCM.iWeightBeltPadded  / ((1 * (punishment as int)) + 1)
   int newIron     = MCM.iWeightBeltIron    / ((1 * (punishment as int)) + 1)
   int newImperial = MCM.iWeightBeltRegulationsImperial   * (Mods.modLoadedDeviousRegulations as int) / ((1 * (punishment as int)) + 1)
@@ -925,7 +957,7 @@ armor[] function getRandomBeltAndStuff(actor actorRef, bool punishment = false, 
 endFunction
 
 ;punishment version
-function equipPunishmentBeltAndStuff(actor actorRef) 
+function equipPunishmentBeltAndStuff(actor actorRef)
   equipRandomBeltAndStuff(actorRef, false, true)
 endfunction
 
@@ -938,8 +970,6 @@ function equipSpellPunishmentBelt(actor actorRef)
 
 endfunction
 
-
-
 bool function equipArousingPlugAndBelt(actor actorRef, actor masterRef = None)
   if actorRef.wornhaskeyword(libs.zad_DeviousPlug) ; if wearing a plug already
     removeDDbyKWD(actorRef, libs.zad_DeviousPlug)
@@ -949,7 +979,7 @@ bool function equipArousingPlugAndBelt(actor actorRef, actor masterRef = None)
   endif
 
   ; TODO set player's master as the follower who equipped this
-  if actorRef == PlayerMon.player && masterRef != None
+  if actorRef == player && masterRef != None
     PlayerMon.masterRefAlias.forceRefTo(masterRef)
   endif
 
@@ -1012,11 +1042,11 @@ endFunction
 
 ; modified to return regular collar or return unique collar, random
 armor function getRandomDDCollars(actor actorRef)
-  bool collarBlocked     = collar != None && actorRef.WornHasKeyword(libs.zad_DeviousCollar) && collar.HasKeyword(libs.zad_BlockGeneric) ;PlayerMon.knownCollar != None && PlayerMon.knownCollar.HasKeyword(libs.zad_BlockGeneric)
-  int isCollarable        = (!(actorRef.WornHasKeyword(Mods.zazKeywordWornYoke) || collarBlocked || Mods.iEnslavedLevel > 0)) as int
+  bool collarBlocked       = collar != None && actorRef.WornHasKeyword(libs.zad_DeviousCollar) && collar.HasKeyword(libs.zad_BlockGeneric) ;PlayerMon.knownCollar != None && PlayerMon.knownCollar.HasKeyword(libs.zad_BlockGeneric)
+  int isCollarable         = (!(actorRef.WornHasKeyword(Mods.zazKeywordWornYoke) || collarBlocked || Mods.iEnslavedLevel > 0)) as int
   int weightUniqueCollars  = MCM.iWeightUniqueCollars * ( isCollarable )
-  int weightRegularCollars  = MCM.iWeightSingleCollar * ( isCollarable )
-  
+  int weightRegularCollars = MCM.iWeightSingleCollar * ( isCollarable )
+
   int weightTotal = weightUniqueCollars + weightRegularCollars
   if weightTotal == 0
     return None
@@ -1033,7 +1063,7 @@ armor function getRandomDDCollars(actor actorRef)
     int offsetIndex = Utility.Randomint(0,PlayerMon.randomDDCollars.length - 1)
     collar = PlayerMon.randomDDCollars[offsetIndex]
   endif
-  return collar 
+  return collar
 endFunction
 
 ;PlayerMon.randomDDArmbinders
@@ -1043,9 +1073,8 @@ bool function equipRandomDDArmbinders(actor actorRef)
     armor armbinder = getRandomDDArmbinders()
     if armbinder
       return equipRegularDDItem(actorRef, armbinder, None)
-        else
+    else
       PlayerMon.debugmsg("Err: Random armbinder returned nothing")
-
     endif
   endif
   return false
@@ -1073,9 +1102,8 @@ endFunction
 
 armor function getRandomDDBlindfolds()
   ;keyword blindfold = libs.zad_DeviousBlindFold
-  ;armor  b = libs.blindfold
   
-  return libs.blindfold ;b
+  return libs.blindfold
 endFunction
 
 ; not finished
@@ -1134,10 +1162,13 @@ endFunction
 ; more than one collar type we can use here
 ; return type describes if attempted adding worked
 bool function equipPetGirlCollar(actor actorRef)
-  armor collar = getPetGirlCollar()
-  if collar
-    return equipRegularDDItem(actorRef, collar, None)
-  endif
+  ; Should we be checking if a collar is already worn?
+  ;if !actorRef.WornHasKeyword(libs.zad_DeviousCollar)
+    armor collar = getPetGirlCollar()
+    if collar
+      return equipRegularDDItem(actorRef, collar, None)
+    endif
+  ;endif
   return false
 endFunction
 
@@ -1160,7 +1191,6 @@ armor function getRandomPetItem()
 endFunction
 
 function equipPetGirlOutit(actor actorRef)
-
   actorRef.UnEquipItemSlot(32)
   int index = 0
   equipPetGirlCollar(actorRef)
@@ -1170,7 +1200,7 @@ function equipPetGirlOutit(actor actorRef)
   endWhile
 endFunction
 
-; player only 
+; player only
 function equipDCURRubberOutfit(actor actorRef)
   ;nah, player only 
   SendModEvent("dcur_triggerRubberSuit")
@@ -1182,7 +1212,6 @@ function equipDCURTransparentOutfit(actor actorRef)
   if Mods.modLoadedCursedLoot
     ; if player is PlayerMon.wearing items on top of the suit, take them off, keep them, put them back on?
     SendModEvent("dcur-triggerExhibitionistSuit")
-
   else
     PlayerMon.debugmsg("Err: equipDCURTransparentOutfit called but cursed loot isn't installed")
   endif
@@ -1195,12 +1224,11 @@ function equipCDxFullSet(actor actorRef)
 
 endFunction
 
-
-armor[] function getRandomCDItems(actor actorRef)    
+armor[] function getRandomCDItems(actor actorRef)
   armor[] items = new armor[6]
   int item_index = 0
   int style = Utility.RandomInt(1,5) ; 0 is padded, 1 is gold, 2 is silver, 3 is white, 4 is black, 5 is red
-  
+
   ; plug roll
   int roll = Utility.RandomInt(1,5)
   ;PlayerMon.debugmsg("roll is " + roll + " and style was " + style)
@@ -1212,13 +1240,13 @@ armor[] function getRandomCDItems(actor actorRef)
     items[item_index] = stuff[0] ; for now just the one item, finish this later
     item_index += 1
   endif
-  
+
   armor tmp = None
   roll = Utility.RandomInt(1,5) ; belt
   if roll <= 2
     if MCM.iWeightSingleBelt  == 0 && MCM.iWeightBeltCD == 0; b r w
       if style == 0
-        tmp = None 
+        tmp = None
       elseif style == 1
         tmp = randomDDxHarnesss[0]
       elseif style == 2
@@ -1245,37 +1273,37 @@ armor[] function getRandomCDItems(actor actorRef)
         tmp = Mods.cdRedBelt
       endif
       ;PlayerMon.debugmsg("adding belt " + tmp)
-    
+
     items[item_index] = tmp ; for now just the one item, finish this later
     item_index += 1
 
-    endif  
+    endif
   endif
-  
- 
-  
+
+
+
   roll = Utility.RandomInt(1,5) ; cuffs
   if roll <= 2
     if style == 0
       tmp = None
     elseif style == 1
-      items[item_index]     = Mods.cdGoldArmCuffs 
+      items[item_index]     = Mods.cdGoldArmCuffs
       items[item_index + 1] = Mods.cdGoldLegCuffs
       item_index += 2
     elseif style == 2
-      items[item_index]     = Mods.cdSilverArmCuffs 
+      items[item_index]     = Mods.cdSilverArmCuffs
       items[item_index + 1] = Mods.cdSilverLegCuffs
       item_index += 2
     elseif style == 3
-      items[item_index]     = Mods.cdWhiteArmCuffs 
+      items[item_index]     = Mods.cdWhiteArmCuffs
       items[item_index + 1] = Mods.cdWhiteLegCuffs
       item_index += 2
     elseif style == 4
-      items[item_index]     = Mods.cdBlackArmCuffs 
+      items[item_index]     = Mods.cdBlackArmCuffs
       items[item_index + 1] = Mods.cdBlackLegCuffs
       item_index += 2
     elseif style == 5
-      items[item_index]     = Mods.cdRedArmCuffs 
+      items[item_index]     = Mods.cdRedArmCuffs
       items[item_index + 1] = Mods.cdRedLegCuffs
       item_index += 2
     endif
@@ -1305,7 +1333,7 @@ armor[] function getRandomCDItems(actor actorRef)
     items[0] = Mods.cdTeaserPlug
     PlayerMon.debugmsg("pity roll for teaser")
   endif
-  
+
   return items
 
 endFunction
@@ -1354,7 +1382,7 @@ armor[] function getCDStuff(actor actorRef)
       items[0] = Mods.cdPunisherPlug
     endif
   endif
-  
+
   return items
 endFunction
 
@@ -1363,7 +1391,7 @@ int function checkItemAddingAvailability(actor actorRef, keyword keywordRef)
     PlayerMon.debugmsg("Err: keyword provided is none",1)
     return 0
   endif
-  bool playerAlreadyWearing  = PlayerMon.player.WornHasKeyword(keywordRef)
+  bool playerAlreadyWearing  = player.WornHasKeyword(keywordRef)
   bool actorAlreadyWearing   = actorRef.WornHasKeyword(keywordRef)
   if playerAlreadyWearing && actorAlreadyWearing
     ;PlayerMon.followerItemsWhichOneFree = 3
@@ -1381,23 +1409,23 @@ endFunction
 ;  we have to roll this stuff before dialogue starts, and hope users don't hack the parts they want
 ; contains a number for different combos
 ;   0 is random single item, 1 is random collar
-;   2 is plug and extra, 3 is belt and extra
-;   4 is gloves and boots, 5 is other boots, 6 cuffs
-;   7 is blindfold, 8 is armbinder,  
-;   10 is random ringgag, 11 is random ball gag, 12 is random panel gag, 13 is random any gag
-;   14 is rubber suit, 15 is red suit, 16 is pony suit, 17 is harness
-;   21 nipple piercings, 22 vag/cock piercing, 23 random, 24 both
+;   2 is plug and extra,     3 is belt and extra
+;   4 is gloves and boots,   5 is other boots,      6 cuffs
+;   7 is blindfold,          8 is armbinder,
+;   10 is random ringgag,   11 is random ball gag, 12 is random panel gag, 13 is random any gag
+;   14 is rubber suit,      15 is red suit,        16 is pony suit,        17 is harness
+;   21 nipple piercings,    22 vag/cock piercing,  23 random,              24 both
 ;   30 is random unique collar
 ;   31 is pet collar
 ;   40 is random CDx items
 ; this list is up above as well
 ; that one needs to sync
 function rollFollowerFoundItems(actor actorRef)
-  
+
   ; check what color the other items are, modify index
   ; we should probably check the NPC to see if they can wear it too
-  ;int random          = 1 ;MCM.iWeightBeltPadded  * (player.WornHasKeyword(libs.zad_Devious) as int)
-  int collar          = MCM.iWeightSingleCollar       * ((checkItemAddingAvailability(actorRef, libs.zad_DeviousCollar)     > 0) as int)  
+  ;int random          = 1 ;MCM.iWeightBeltPadded      * (player.WornHasKeyword(libs.zad_Devious) as int)
+  int collar          = MCM.iWeightSingleCollar       * ((checkItemAddingAvailability(actorRef, libs.zad_DeviousCollar)     > 0) as int)
   int randomPlug      = MCM.iWeightPlugs              * ((checkItemAddingAvailability(actorRef, libs.zad_DeviousBelt)       > 0) as int) ; (( ! player.WornHasKeyword(libs.zad_DeviousBelt)) as int)
   int belt            = MCM.iWeightSingleBelt         * ((checkItemAddingAvailability(actorRef, libs.zad_DeviousBelt)       > 0) as int) ; (( ! player.WornHasKeyword(libs.zad_DeviousBelt)) as int)
   int glovesandboots  = MCM.iWeightSingleGlovesBoots  * ((checkItemAddingAvailability(actorRef, libs.zad_DeviousBoots)      > 0) as int) ; (( ! player.WornHasKeyword(libs.zad_DeviousBoots)) as int)
@@ -1407,45 +1435,44 @@ function rollFollowerFoundItems(actor actorRef)
   int armbinder       = MCM.iWeightSingleArmbinder    * ((checkItemAddingAvailability(actorRef, libs.zad_DeviousArmbinder)  > 0) as int)
   int randomCD        = MCM.iWeightRandomCD           * ( Mods.modLoadedCD ) as int
   int nipplePiercings = MCM.iWeightPiercings          * ((checkItemAddingAvailability(actorRef, libs.zad_DeviousPiercingsNipple)  > 0) as int)
-  int petCollar       = MCM.iWeightPetcollar          * ((checkItemAddingAvailability(actorRef, libs.zad_DeviousCollar)     > 0) as int)  
-  int uniqueCollar    = MCM.iWeightUniqueCollars      * ((checkItemAddingAvailability(actorRef, libs.zad_DeviousCollar)     > 0) as int)  
-  
-  ;int rubberSuit      = MCM.iWeightSingleBelt   * (( ! player.WornHasKeyword(libs.zad_DeviousSuit)) as int) ; wrong, do this later
-  
-  int total       = collar + randomPlug + belt + glovesandboots + cuffs + randomGag + harness + armbinder + randomCD
-  
+  int petCollar       = MCM.iWeightPetcollar          * ((checkItemAddingAvailability(actorRef, libs.zad_DeviousCollar)     > 0) as int)
+  int uniqueCollar    = MCM.iWeightUniqueCollars      * ((checkItemAddingAvailability(actorRef, libs.zad_DeviousCollar)     > 0) as int)
+  ;int rubberSuit      = MCM.iWeightSingleBelt         * (( ! player.WornHasKeyword(libs.zad_DeviousSuit)) as int) ; wrong, do this later
+
+  int total = collar + randomPlug + belt + glovesandboots + cuffs + randomGag + harness + armbinder + randomCD
+
   int roll = Utility.RandomInt(1,total)
   PlayerMon.debugmsg("collar/randomPlug/belt/glovesandboots/cuffs/randomGag/harness/armbinder/randomCD/petcollar/uniqueCollar(" + collar + "/" + randomPlug + "/" + belt + "/"\
                                     + glovesandboots + "/" + cuffs + "/"  + randomGag + "/"  + harness + "/"  + armbinder + "/"  + randomCD +  "/" + petCollar + "/" + uniqueCollar +")roll/total:(" + roll + "/" + total + ")", 2)
   ;if roll < random
   ;  PlayerMon.followerItemsCombination = 0
-    
+
   keyword armorKeyword
-  if roll < collar 
+  if roll < collar
     PlayerMon.followerItemsCombination = 1
     armorKeyword = libs.zad_DeviousCollar
-  elseif roll < collar + randomPlug 
+  elseif roll < collar + randomPlug
     PlayerMon.followerItemsCombination = 2
     armorKeyword = libs.zad_DeviousBelt
-  elseif roll < collar + randomPlug + belt 
+  elseif roll < collar + randomPlug + belt
     PlayerMon.followerItemsCombination = 3
     armorKeyword = libs.zad_DeviousBelt
-  elseif roll < collar + randomPlug + belt + glovesandboots 
+  elseif roll < collar + randomPlug + belt + glovesandboots
     PlayerMon.followerItemsCombination = 4
     armorKeyword = libs.zad_DeviousBoots
   elseif roll < collar + randomPlug + belt + glovesandboots + cuffs
     PlayerMon.followerItemsCombination = 6
     armorKeyword = libs.zad_DeviousArmCuffs
-  elseif roll < collar + randomPlug + belt + glovesandboots + cuffs + randomGag 
+  elseif roll < collar + randomPlug + belt + glovesandboots + cuffs + randomGag
     PlayerMon.followerItemsCombination = 13
     armorKeyword = libs.zad_DeviousGag
-  elseif roll < collar + randomPlug + belt + glovesandboots + cuffs + randomGag + harness 
+  elseif roll < collar + randomPlug + belt + glovesandboots + cuffs + randomGag + harness
     PlayerMon.followerItemsCombination = 17
     armorKeyword = libs.zad_DeviousHarness
-  elseif roll < collar + randomPlug + belt + glovesandboots + cuffs + randomGag + harness + armbinder 
+  elseif roll < collar + randomPlug + belt + glovesandboots + cuffs + randomGag + harness + armbinder
     PlayerMon.followerItemsCombination = 8
     armorKeyword = libs.zad_DeviousArmbinder
-  elseif roll < collar + randomPlug + belt + glovesandboots + cuffs + randomGag + harness + armbinder + randomCD 
+  elseif roll < collar + randomPlug + belt + glovesandboots + cuffs + randomGag + harness + armbinder + randomCD
     PlayerMon.followerItemsCombination = 40
     armorKeyword = libs.zad_DeviousBelt
   elseif roll < collar + randomPlug + belt + glovesandboots + cuffs + randomGag + harness + armbinder + randomCD + nipplePiercings
@@ -1457,15 +1484,15 @@ function rollFollowerFoundItems(actor actorRef)
   else;if roll < collar + randomPlug + belt + glovesandboots + cuffs + randomGag + harness + armbinder + randomCD + nipplePiercings + petCollar + uniqueCollar
     PlayerMon.followerItemsCombination = 30
     armorKeyword = libs.zad_DeviousCollar
-  endif     
-  
+  endif
+
   if armorKeyword
     PlayerMon.followerItemsWhichOneFree = checkItemAddingAvailability(actorRef, armorKeyword)
     PlayerMon.debugmsg("for keyword: " + armorKeyword + " availability is " + PlayerMon.followerItemsWhichOneFree)
   else
     PlayerMon.followerItemsWhichOneFree = -1
   endif
-  
+
 endFunction
 
 function equipFollowerFoundItems(actor actorRef)
@@ -1488,7 +1515,7 @@ function equipFollowerFoundItems(actor actorRef)
     if tmp !=None
       name = tmp.GetName()
     endif
-  
+
     if tmp != None
       PlayerMon.debugmsg(" equipping " + tmp + " on actor "+ actorRef, 2)
       equipRegularDDItem(actorRef, tmp, None)
@@ -1496,7 +1523,7 @@ function equipFollowerFoundItems(actor actorRef)
     endif
     i += 1
   endWhile
-  
+
 endFunction
 
 armor[] Function getFollowerFoundItems(actor actorRef)
@@ -1504,37 +1531,37 @@ armor[] Function getFollowerFoundItems(actor actorRef)
   int ic = PlayerMon.followerItemsCombination ; shorter, also avoiding the compiler asking PlayerMon for the property over and over again
   if ic     == 0
     items = getRandomSingleDD(actorRef)
-  elseif ic == 1 
+  elseif ic == 1
     items[0] = getRandomDDCollars(actorRef)
-  elseif ic == 2 
+  elseif ic == 2
     items = getRandomBeltAndStuff(actorRef, force_stuff = true)
-  elseif ic == 3 
+  elseif ic == 3
     items = getRandomBeltAndStuff(actorRef)
-  elseif ic == 4 
+  elseif ic == 4
     items = getRandomDDxRGlovesBoots()
-  elseif ic == 6 
+  elseif ic == 6
     items = getRandomDDCuffs() ;equipRandomDDCuffs
-  elseif ic == 13 
+  elseif ic == 13
     items[0] = getRandomGag()
   elseif ic == 8
-    items[0] = getRandomDDArmbinders()    
-  elseif ic == 17 
+    items[0] = getRandomDDArmbinders()
+  elseif ic == 17
     items = getRandomHarnessAndStuff(actorRef)
-  elseif ic == 40 
+  elseif ic == 40
     items = getRandomCDItems(actorRef)
-  elseif ic == 21 
+  elseif ic == 21
     items[0] = getRandomNipplePiercings(actorRef)
-  elseif ic == 24 
+  elseif ic == 24
     ;items[0] = getRandomAssortedPiercings(actorRef)
   elseif ic == 31
     items[0] = Mods.petCollar
-  elseif ic == 30 
+  elseif ic == 30
     items[0] = getRandomUniqueCollar(actorRef)
 
   else
     PlayerMon.debugmsg("ERR: Unexected value for followerItemsCombination")
-  endif     
-  
+  endif
+
   return items
 
 endFunction
@@ -1543,7 +1570,7 @@ endFunction
 function giveFollowerFoundItems(actor actorRef)
 
   if actorRef == None
-    actorRef = PlayerMon.player
+    actorRef = player
   endif
 
   armor[] items = getFollowerFoundItems(actorRef)
@@ -1573,5 +1600,6 @@ endFunction
 
 ; for now, might as well use this
 function stripPlayer()
-    unequipAllNonImportantSlow()  
+    unequipAllNonImportantSlow()
 endFunction
+

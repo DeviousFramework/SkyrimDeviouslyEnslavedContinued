@@ -32,14 +32,53 @@ crdeStartQuestScript  Property StartScript Auto
 import GlobalVariable ; apparently, need this to use global variable object functions, even if skyrim doesn't require it for actor ect
 
 int lastChosenFollower
-actor currentFollower 
+actor currentFollower
 string[] property actorNames Auto
 
 ;string Property ModName auto
 
 int function GetVersion()
-  return (StartScript.GetVersion() *10000) as int 
+  ; TODO: This version number is intended to be a version number for the script, not the mod.
+  ; It should be decoupled from the version number of the mod.
+  int iVersion = (StartScript.GetVersion() *10000) as int
+  Debug.Trace("[CRDE] MCM Checking Version " + CurrentVersion + " => " + iVersion)
+
+  ; Update all quest variables upon loading each game.
+  ; There are too many things that can cause them to become invalid.
+  _qFramework = (Quest.GetQuest("_dfwDeviousFramework") As dfwDeviousFramework)
+  _qDfwMcm    = (Quest.GetQuest("_dfwDeviousFramework") As dfwMCM)
+
+  return iVersion
 endFunction
+
+
+;***********************************************************************************************
+;***                                     STATE VARIABLES                                     ***
+;***********************************************************************************************
+; *** Toggle Options ***
+bool Property bPreferDfw Auto
+
+; *** Integer Slider Options ***
+int Property iSettingSecurity             Auto
+int Property iPercentDfwVulnerability     Auto
+int Property iMinVulnerabilitySex         Auto
+int Property iMinVulnerabilityEnslave     Auto
+int Property iPercentVulnerabilitySex     Auto
+int Property iPercentVulnerabilityEnslave Auto
+int Property iPercentSexWhenEnslaved      Auto
+
+
+;***********************************************************************************************
+;***                                    GLOBAL VARIABLES                                     ***
+;***********************************************************************************************
+; A reference to the Devious Framework (DFW) quest script.
+dfwDeviousFramework _qFramework
+
+; A reference to the DFW MCM quest script.
+dfwMCM _qDfwMcm
+
+; Keeps track of the last page the user viewed.
+string _szLastPage
 
 ; are we even using these, or did you forget about them
 string[]  _difficultyList ; are any of these actually being used? I don't trust papyrus compiler to optimise these out
@@ -125,31 +164,31 @@ endEvent
 
 ; @overrides SKI_ConfigBase
 event OnConfigInit()
-  Utility.Wait(5) 
+  Utility.Wait(5)
   while Mods.finishedCheckingMods == false
     Debug.Trace("[CRDE] mcm:mods not finished yet")
-    Utility.Wait(2) 
+    Utility.Wait(2)
   endwhile
   Pages = new string[8]
-  Pages[0] = "" ; too lazy to move a page worth of contents here, just leaving it empty
-  Pages[1] = "Settings"
-  Pages[2] = "Item Options"
-  Pages[3] = "Vulnerability"
-  Pages[4] = "Enslavement"
-  Pages[5] = "Follower dialogue"
-  Pages[6] = "Intimidation Defense"
+  Pages[0] = "Settings"
+  Pages[1] = "Item Options"
+  Pages[2] = "Vulnerability"
+  Pages[3] = "Enslavement"
+  Pages[4] = "Follower Dialogue"
+  Pages[5] = "Intimidation Defense"
+  Pages[6] = "DFW Compatibility"
   Pages[7] = "Debug Settings"
-  ModName = "Deviously Enslaved"  ; Why is this here? Because one user found his menu wasn't loading, 
+  ModName = "Deviously Enslaved"  ; Why is this here? Because one user found his menu wasn't loading,
                                   ; and the log said there was no name
                                   ; setting the name here fixed it
-  
+
 ; the enslavement on toggles, init should be set to if the mod is loaded
 ; we have to chance the weights too, since our formuulas don't check if mods are loaded, just assume 0 weights
 
   ; TODO: delete this, deprecated waste
   bCDEnslaveToggle            = Mods.modLoadedCD
   if !Mods.modLoadedCD
-    
+
     iEnslaveWeightCD            = 0 ; TODO: there shouldn't be two of these
     iDistanceWeightCD           = 0
   endif
@@ -177,532 +216,90 @@ event OnConfigInit()
   if !Mods.modLoadedWolfclub
     iDistanceWeightWC           = 0
   endif
-    
+
   actorNames = new string[15]
-    
+
   Debug.Trace("[CRDE] mcm: finished init")
-    
+
 endEvent
+
+Function UpdateScript()
+  ; Added in version 130702.
+  if (130702 > CurrentVersion)
+    Debug.Notification("[CRDE] MCM Initializing DFW.")
+
+    ; Removed "" page because it is loaded on menu open without a Pages entry.
+    Pages = new string[8]
+    Pages[0] = "Settings"
+    Pages[1] = "Item Options"
+    Pages[2] = "Vulnerability"
+    Pages[3] = "Enslavement"
+    Pages[4] = "Follower Dialogue"
+    Pages[5] = "Intimidation Defense"
+    Pages[6] = "DFW Compatibility"
+    Pages[7] = "Debug Settings"
+
+    bPreferDfw                   = false
+    iSettingSecurity             = 100
+    iPercentDfwVulnerability     = 100
+    iMinVulnerabilitySex         = 15
+    iMinVulnerabilityEnslave     = 40
+    iPercentVulnerabilitySex     = 20
+    iPercentVulnerabilityEnslave = 10
+    iPercentSexWhenEnslaved      = 10
+
+    _qFramework = (Quest.GetQuest("_dfwDeviousFramework") As dfwDeviousFramework)
+    _qDfwMcm    = (Quest.GetQuest("_dfwDeviousFramework") As dfwMCM)
+  endif
+endFunction
 
 ; @implements SKI_QuestBase
 event OnVersionUpdate(int a_version)
   {Called when a version update of this script has been detected}
   ; what. nothing? why even override?
+  ; Why: If a variable is set in the script (Say a defalut value of 20) and you want to change
+  ;      the default to 30.  This will only change for "new" script.  Any existing script will
+  ;      keep the old value of 20.  Similarly if "constant" variables change they may need to
+  ;      be updated.  And the "Pages" array of course.
+  ;      Using literals (i.e. the number "20") all around the script helps with this problem
+  ;      but may not be recommended as it could contribute to out of sync values.
+  ;      Also note: The OnConfigInit() only gets called on new scripts and should not be used
+  ;      very much.  Once any game is created with this script in use nothing should be put
+  ;      in the OnConfigInit() as it won't work the same in those games.
+
+  Debug.Notification("[CRDE] Upgrading MCM " + CurrentVersion + " => " + a_version)
+
+  UpdateScript()
 endEvent
 
-
-; EVENTS ------------------------------------------------------------------------------------------
-
-; @implements SKI_ConfigBase
-event OnPageReset(string a_page)
-  {Called when a new page is selected, including the initial empty page}
-
-  ; Load custom logo in DDS format
-  if (a_page == "")
-    ; Image size 256x256
-    ; X offset = 376 - (height / 2) = 258
-    ; Y offset = 223 - (width / 2) = 95
-    LoadCustomContent("skyui/res/mcm_logo.dds", 258, 95)
-    return
-  else
-    UnloadCustomContent()
+;***********************************************************************************************
+;***                                  SUPPORT FUNCTIONS                                      ***
+;***********************************************************************************************
+bool function IsSecure()
+  if (!_qFramework)
+    return false
   endIf
-  SetCursorFillMode(TOP_TO_BOTTOM)
-
-  ; first page SHOULD be image, actually
-  if a_page == Pages[1] ;Settings
-
-    gCRDEEnableOID        = AddToggleOption("Mod Enabled", gCRDEEnable.GetValueInt() == 1)
-    ;bCRDEEnableOID        = AddToggleOption("Mod Enabled", bCRDEEnable)
-    AddEmptyOption() ; spacer
-    
-    AddHeaderOption("Dialogue Chances")
-    iChanceSexConvoOID              = AddSliderOption("Chance of Sex Conversation", iChanceSexConvo, "{0}%")
-    iChanceEnslavementConvoOID      = AddSliderOption("Chance of Enslavement Conversation", iChanceEnslavementConvo, "{0}%")
-    iChanceVulEnslavementConvoOID   = AddSliderOption("Chance of Armbinder Conversation", iChanceVulEnslavementConvo, "{0}%", 1)
-    fModifierSlaverChancesOID       = AddSliderOption("Modifier of chances if NPC is Slaver", fModifierSlaverChances, "{1}"); slaver event modifier
-    AddEmptyOption() ; spacer
-    
-    AddHeaderOption("General Settings")
-    fEventIntervalOID     = AddSliderOption("Event Interval", fEventInterval, "{0} seconds")
-    fEventTimeoutOID      = AddSliderOption("Event Timeout", fEventTimeoutHours, "{1} Game Hours")
-    iSearchRangeOID       = AddSliderOption("Search range", gSearchRange.GetValueInt(), "{0} Inches")  ; event range
-    iApproachDurationOID  = AddSliderOption("Search duration", iApproachDuration, "{0} Game Mins")
-    iNPCSearchCountOID    = AddSliderOption("NPC Search Count", iNPCSearchCount , "{0} NPCs", 1) ; search depth
-    iGenderPrefOID        = AddMenuOption("Approacher Gender Preference", genderList[iGenderPref])
-    iGenderPrefMasterOID  = AddMenuOption("Master Gender Preference", genderList[iGenderPrefMaster])
-    bUseSexlabGenderOID   = AddToggleOption("Use Sexlab Genders", bUseSexlabGender)
-    AddEmptyOption() ; spacer
-    
-    SetCursorPosition(1) ; switched sides
-    
-    AddHeaderOption("Sex Events")
-    bHookAnySexlabEventOID      = AddToggleOption("Trigger after all sex", bHookAnySexlabEvent)
-    bHookReqVictimStatusOID     = AddToggleOption("Require Victim Requirement", bHookReqVictimStatus)
-    bFxFAlwaysAggressiveOID     = AddToggleOption("FxF always aggressive", bFxFAlwaysAggressive)
-    iSexEventKeyOID             = AddSliderOption("Chance of Key Removal", iSexEventKey, "{0}%")
-    iSexEventDeviceOID          = AddSliderOption("Chance of Devious Device(s)", iSexEventDevice, "{0}%")
-    AddEmptyOption() ; spacer
-    
-    AddHeaderOption("Rape Events")
-    iRapeEventEnslaveOID      = AddSliderOption("Chance of Enslavement", iRapeEventEnslave, "{0}%")
-    iRapeEventDeviceOID       = AddSliderOption("Chance of Devious Device(s)", iRapeEventDevice, "{0}%")
-    AddEmptyOption() ; spacer
-    
-    AddHeaderOption("General lockout")
-    bSDGeneralLockoutOID     = AddToggleOption("SD+ Enslave Lockout", bSDGeneralLockout, (!Mods.modLoadedSD) as int)
-
-    
-  elseif a_page == Pages[2] ; items
-    AddHeaderOption("Event weights")
-    iWeightSingleDDOID         = AddSliderOption("Standard Devious Device", iWeightSingleDD, "{0}")
-    iWeightMultiDDOID          = AddSliderOption("Multiple Devious Devices", iWeightMultiDD, "{0}")
-    iWeightUniqueCollarsOID    = AddSliderOption("Unique Collars", iWeightUniqueCollars, "{0}")
-    iWeightRandomCDOID         = AddSliderOption("Random CD collection", iWeightRandomCD, "{0}")
-
-    
-    AddEmptyOption() ; spacer
-    AddHeaderOption("Single Event weights")
-    iWeightSingleCollarOID        = AddSliderOption("Collar", iWeightSingleCollar, "{0}")
-    iWeightSingleGagOID           = AddSliderOption("Gag", iWeightSingleGag, "{0}")
-    iWeightSingleArmbinderOID     = AddSliderOption("Armbinder", iWeightSingleArmbinder, "{0}")
-    iWeightSingleCuffsOID         = AddSliderOption("Cuffs", iWeightSingleCuffs, "{0}")
-    iWeightSingleHarnessOID       = AddSliderOption("Harness", iWeightSingleHarness, "{0}")
-    iWeightSingleBeltOID          = AddSliderOption("Belt", iWeightSingleBelt, "{0}")
-    iWeightSingleGlovesBootsOID   = AddSliderOption("Gloves and Boots", iWeightSingleGlovesBoots, "{0}")
-    iWeightSingleAnkleChainsOID   = AddSliderOption("Ankle Chains", iWeightSingleAnkleChains, "{0}");(!Mods.iWeightSingleAnkleChains) as int)
-    iWeightSingleBlindfoldOID     = AddSliderOption("Blindfold", iWeightSingleBlindfold, "{0}",1)
-    iWeightSingleYokeOID          = AddSliderOption("Yoke", iWeightSingleYoke, "{0}", 1)
-    iWeightSingleBootsOID         = AddSliderOption("Boots", iWeightSingleBoots, "{0}", 1);(!Mods.iWeightSingleBoots) as int)
-    iWeightSingleHoodOID          = AddSliderOption("Hoods", iWeightSingleHood, "{0}", 1);(!Mods.iWeightSingleHood) as int)
-
-    
-    AddEmptyOption() ; spacer
-    AddHeaderOption("Multiple Event weights")
-    iWeightMultiPonyOID           = AddSliderOption("Pony suit", iWeightMultiPony, "{0}")
-    iWeightMultiRedBNCOID         = AddSliderOption("Red Ebonite suit", iWeightMultiRedBNC, "{0}")
-    iWeightMultiSeveralOID        = AddSliderOption("Several single items", iWeightMultiSeveral, "{0}")
-    iWeightMultiTransparentOID    = AddSliderOption("DCUR Transparent Suit", iWeightMultiTransparent, "{0}")
-    iWeightMultiRubberOID         = AddSliderOption("DCUR Rubber Suit", iWeightMultiRubber, "{0}")
-
-    AddEmptyOption() ; spacer
-    AddHeaderOption("Unique Collar Event weights")
-    iWeightPetcollarOID               = AddSliderOption("Pet Collar", iWeightPetcollar, "{0}", (!Mods.modLoadedPetCollar) as int)
-    iWeightCursedCollarOID            = AddSliderOption("Cursed Collar", iWeightCursedCollar, "{0}", (!Mods.modLoadedCursedLoot) as int)
-    iWeightSlaveCollarOID             = AddSliderOption("Slave Collar", iWeightSlaveCollar, "{0}", (!Mods.modLoadedCursedLoot) as int)
-    iWeightSlutCollarOID              = AddSliderOption("Slut Collar", iWeightSlutCollar, "{0}", (!Mods.modLoadedCursedLoot) as int)
-    iWeightRubberDollCollarOID        = AddSliderOption("Rubber Doll Collar", iWeightRubberDollCollar, "{0}", (!Mods.modLoadedCursedLoot) as int)
-    iWeightDeviousPunishEquipmentBannnedCollarOID     = AddSliderOption("Banned Collar", iWeightDeviousPunishEquipmentBannnedCollar, "{0}", (!Mods.modLoadedDeviousPunishEquipment) as int)
-    iWeightDeviousPunishEquipmentProstitutedCollarOID = AddSliderOption("Prostituted Collar", iWeightDeviousPunishEquipmentProstitutedCollar, "{0}", (!Mods.modLoadedDeviousPunishEquipment) as int)
-    iWeightDeviousPunishEquipmentNakedCollarOID       = AddSliderOption("Naked Collar", iWeightDeviousPunishEquipmentNakedCollar, "{0}",(!Mods.modLoadedDeviousPunishEquipment) as int)
-    iWeightStripCollarOID             = AddSliderOption("Strip Collar", iWeightStripCollar, "{0}", (!Mods.modLoadedCursedLoot) as int)
-    
-    AddEmptyOption() ; spacer
-    ;AddHeaderOption("Event weights")
-        ;AddEmptyOption() ; spacer
-
-    SetCursorPosition(1) ; switched sides
-    
-    AddHeaderOption("Theme weights")
-    ;iWeightDDRegularOID           = AddSliderOption("Single DD Items", iWeightDDRegular, "{0}", 1);(!Mods.iWeightDDRegular) as int)
-    iWeightDDZazVelOID            = AddSliderOption("Single DD-Zaz Items", iWeightDDZazVel, "{0}", 1);(!Mods.iWeightDDZazVel) as int)
-    iWeightZazRegOID              = AddSliderOption("Single Zaz Items", iWeightZazReg, "{0}", 1);(!Mods.iWeightZazReg) as int)
-    AddEmptyOption() ; spacer
-
-    iWeightEboniteRegularOID      = AddSliderOption("Black Ebonite", iWeightEboniteRegular, "{0}", 1)
-    iWeightEboniteRedOID          = AddSliderOption("Red Ebonite", iWeightEboniteRed, "{0}" , 1)
-    iWeightEboniteWhiteOID        = AddSliderOption("White Ebonite", iWeightEboniteWhite, "{0}", 1)
-    iWeightZazMetalBrownOID       = AddSliderOption("Brown Metal Zaz", iWeightZazMetalBrown, "{0}", 1);(!Mods.iWeightZazMetalBrown) as int)
-    iWeightZazMetalBlackOID       = AddSliderOption("Black Metal Zaz", iWeightZazMetalBlack, "{0}", 1);(!Mods.iWeightZazMetalBlack) as int)
-    iWeightZazLeatherOID          = AddSliderOption("Leather Zaz", iWeightZazLeather, "{0}", 1);(!Mods.iWeightZazLeather) as int)
-    iWeightZazRopeOID             = AddSliderOption("Rope Zaz", iWeightZazRope, "{0}", 1);(!Mods.iWeightZazRope) as int)
-    iWeightCDGoldOID              = AddSliderOption("CD Gold", iWeightCDGold, "{0}", 1);(!Mods.iWeightCDGold) as int)
-    iWeightCDSilverOID            = AddSliderOption("CD Silver", iWeightCDSilver, "{0}", 1);(!Mods.iWeightCDSilver) as int)
-    
-    AddEmptyOption() ; spacer
-    AddHeaderOption("Plugs and stuff")
-    iWeightPlugsOID               = AddSliderOption("Plugs", iWeightPlugs, "{0}")
-    iWeightPiercingsOID           = AddSliderOption("Piercings", iWeightPiercings, "{0}")
-    AddEmptyOption() ; spacer
-    iWeightPiercingsSoulGemOID    = AddSliderOption("iWeightPiercingsSoulGem", iWeightPiercingsSoulGem, "{0}", 1);(!Mods.iWeightPiercingsSoulGem) as int)
-    iWeightPiercingsShockOID      = AddSliderOption("iWeightPiercingsShock", iWeightPiercingsShock, "{0}", 1);(!Mods.iWeightPiercingsShock) as int)
-    iWeightPlugSoulGemOID         = AddSliderOption("Soul Gem Plug", iWeightPlugSoulGem, "{0}")
-    iWeightPlugInflatableOID      = AddSliderOption("Inflatable Plug", iWeightPlugInflatable, "{0}")
-    iWeightPlugChargingOID        = AddSliderOption("Charging Plug", iWeightPlugCharging, "{0}")
-    iWeightPlugShockOID           = AddSliderOption("Shock Plug", iWeightPlugShock, "{0}")
-    iWeightPlugTrainingOID        = AddSliderOption("Training Plug", iWeightPlugTraining, "{0}")
-    iWeightPlugCDEffectOID        = AddSliderOption("CD Special Plugs", iWeightPlugCDEffect, "{0}", (!Mods.modLoadedCD) as int)
-    iWeightPlugCDClassOID         = AddSliderOption("CD Class Plugs", iWeightPlugCDSpecial, "{0}", (!Mods.modLoadedCD) as int);(!Mods.modLoadedCD) as int)
-    iWeightPlugWoodOID            = AddSliderOption("Wood plugs", iWeightPlugWood, "{0}", 1);(!Mods.iWeightPlugWood) as int)
-    iWeightPlugDashaOID           = AddSliderOption("Devious Toys Plugs", iWeightPlugDasha, "{0}", 1);(!Mods.iWeightPlugDasha) as int)
-
-    AddEmptyOption() ; spacer
-    AddHeaderOption("Belts")
-    iWeightBeltPunishmentOID      = AddSliderOption("Punishment Belt", iWeightBeltPunishment, "{0}")
-    iWeightBeltRegularOID         = AddSliderOption("Regular Belt", iWeightBeltRegular, "{0}")
-    AddEmptyOption() ; spacer
-    iWeightBeltPaddedOID                  = AddSliderOption("Padded Belt", iWeightBeltPadded, "{0}")
-    iWeightBeltIronOID                    = AddSliderOption("Iron Belt",  iWeightBeltIron, "{0}")
-    iWeightBeltRegulationsImperialOID     = AddSliderOption("Imperial Belt", iWeightBeltRegulationsImperial, "{0}", (!Mods.modLoadedDeviousRegulations) as int)
-    iWeightBeltRegulationsStormCloakOID   = AddSliderOption("StormCloak Belt", iWeightBeltRegulationsStormCloak, "{0}", (!Mods.modLoadedDeviousRegulations) as int)
-    iWeightBeltShameOID                   = AddSliderOption("Shame belt", iWeightBeltShame, "{0}", (!Mods.modLoadedCursedLoot) as int)
-    iWeightBeltCDOID                      = AddSliderOption("CD belt", iWeightBeltCD, "{0}", (!Mods.modLoadedCD) as int)
-
-    AddEmptyOption() ; spacer
-    AddHeaderOption("Boots")
-    iWeightBootsSlaveOID        = AddSliderOption("iWeightBootsSlave", iWeightBootsSlave, "{0}", 1);(!Mods.iWeightBootsSlave) as int)
-    iWeightBootsRestrictiveOID  = AddSliderOption("iWeightBootsRestrictive", iWeightBootsRestrictive, "{0}", 1);(!Mods.iWeightBootsRestrictive) as int)
-    iWeightBootsPonyOID         = AddSliderOption("iWeightBootsPony", iWeightBootsPony, "{0}", 1);(!Mods.iWeightBootsPony) as int)
-    ; punishment boots from that one guys mod
-    
-    AddEmptyOption() ; spacer
-    AddHeaderOption("Tattoos")
-    iWeightSlutTattooOID    = AddSliderOption("iWeightSlutTattoo", iWeightSlutTattoo, "{0}", 1);(!Mods.iWeightSlutTattoo) as int)
-    iWeightSlaveTattooOID   = AddSliderOption("iWeightSlaveTattoo", iWeightSlaveTattoo, "{0}", 1);(!Mods.iWeightSlaveTattoo) as int)
-    iWeightWhoreTattooOID   = AddSliderOption("iWeightWhoreTattoo", iWeightWhoreTattoo, "{0}", 1);(!Mods.iWeightWhoreTattoo) as int)
-
-    
-  elseif a_page == Pages[3] ; vulnerability
-
-    AddHeaderOption("General Options")
-    iMinEnslaveVulnerableOID        = AddSliderOption("Minimum Enslavement Vulnerability", iMinEnslaveVulnerable, "Level {0}")
-    iMinApproachArousalOID          = AddSliderOption("Minimum NPC Arousal", gMinApproachArousal.GetValueInt(), "{0}%")
-    iMaxEnslaveMoralityOID          = AddSliderOption("Maximum Morality (enslave)", iMaxEnslaveMorality, "Level {0}")
-    iMaxSolicitMoralityOID          = AddSliderOption("Maximum Morality (sex)", iMaxSolicitMorality, "Level {0}")
-    bIsVulNakedOID                  = AddToggleOption("Nudity Vulnerability", bIsVulNaked)
-    bIsNonChestArmorIgnoredNakedOID = AddToggleOption("Alt Armor Slot Protection", bIsNonChestArmorIgnoredNaked)
-    ;bChastityToggleOID              = AddToggleOption("Chastity Protection", bChastityToggle); deprecated: duplicate
-    bVulnerableLOSOID               = AddToggleOption("Line of sight", bVulnerableLOS)
-    iWeaponProtectionLevelOID       = AddSliderOption("Weapon Protection Level", iWeaponProtectionLevel, "Level {0}")
-    iRelationshipProtectionLevelOID = AddSliderOption("Relationship Protection Level", iRelationshipProtectionLevel, "Level {0}")
-    bVulnerableFurnitureOID         = AddToggleOption("Xaz Furniture", bVulnerableFurniture)
-    bAttackersGuardsOID             = AddToggleOption("Guards Toggle",  bAttackersGuards)
-    bAltBodySlotSearchWorkaroundOID = AddToggleOption("Alternate body slot search", bAltBodySlotSearchWorkaround)
-    
-    AddEmptyOption() ; spacer
-    AddHeaderOption("Nighttime Options")
-    fNightReqArousalModifierOID      = AddSliderOption("Night Arousal Modifier", fNightReqArousalModifier, "{1}", 0);(!Mods.fNightReqArousalModifier) as int)
-    fNightDistanceModifierOID        = AddSliderOption("Night Distance Modifier", fNightDistanceModifier, "{1}", 1);(!Mods.fNightDistanceModifier) as int)
-    fNightChanceModifierOID          = AddSliderOption("Night Approach Chance Modifier", fNightChanceModifier, "{1}", 0);(!Mods.fNightChanceModifier) as int
-    iNightReqConfidenceReductionOID  = AddSliderOption("iNightReqConfidenceReduction", iNightReqConfidenceReduction, "{0}", 0);(!Mods.iNightReqConfidenceReduction) as int)
-    bNightAddsToVulnerableOID        = AddToggleOption("Night Makes More Vulnerable", bNightAddsToVulnerable, 0);(!Mods.bNightAddsToVulnerable) as int)
-    
-    ;AddEmptyOption() ; spacer
-
-    
-    AddEmptyOption() ; spacer
-    AddHeaderOption("Vulnerable items")
-    bVulnerableGagOID         = AddToggleOption("Gag", bVulnerableGag)
-    bVulnerableCollarOID      = AddToggleOption("Collar", bVulnerableCollar)
-    bVulnerableArmbinderOID   = AddToggleOption("Armbinder+Yoke", bVulnerableArmbinder)
-    bVulnerableBlindfoldOID   = AddToggleOption("BlindFold", bVulnerableBlindfold)
-    bVulnerableBukkakeOID     = AddToggleOption("Semen", bVulnerableBukkake)
-    bVulnerableSlaveBootsOID  = AddToggleOption("SlaveBoots",  bVulnerableSlaveBoots)
-    bVulnerableHarnessOID     = AddToggleOption("Harness", bVulnerableHarness)
-    bVulnerablePiercedOID     = AddToggleOption("Piercings", bVulnerablePierced)
-    bVulnerableSlaveTattooOID = AddToggleOption("Slave Tattoos", bVulnerableSlaveTattoo)
-    bVulnerableSlutTattooOID  = AddToggleOption("Slut Tattoos", bVulnerableSlutTattoo)
-    
-    SetCursorPosition(1) ; switch sides
-    
-    ;AddHeaderOption("Vulnerability Protection") 
-    AddHeaderOption("Chastity General") 
-    bChastityToggleOID            = AddToggleOption("Chastity Enable", bChastityToggle)
-    fChastityPartialModifierOID   = AddSliderOption("Approach chance (partial) Modifier", fChastityPartialModifier, "{1}")
-    fChastityCompleteModifierOID  = AddSliderOption("Approach chance (full) Modifier", fChastityCompleteModifier, "{1}")
-    ; sliders for weight adjustment: partial and total chastity chances
-    
-    AddEmptyOption() ; spacer
-    AddHeaderOption("Chastity items")   
-    bChastityGagOID        = AddToggleOption("DD Gag (Blocking)", bChastityGag)
-    bChastityBraOID        = AddToggleOption("DD Bra", bChastityBra)
-    bChastityLockingZazOID = AddToggleOption("Restrict Zaz to locking items only", bChastityLockingZaz, 1)
-    bChastityZazGagOID     = AddToggleOption("Zaz Gag (Blocking)", bChastityZazGag)
-    bChastityZazBeltOID    = AddToggleOption("Zaz Belts", bChastityZazBelt)
-
-    AddEmptyOption() ; spacer
-    AddEmptyOption() ; spacer 
-    AddHeaderOption("Fame Makes vulnerable")
-    iReqLevelSLSFSlaveIncreaseVulnerableOID  = AddSliderOption("SLSF Slave Increases vulnerable", iReqLevelSLSFSlaveIncreaseVulnerable, "{0}", (!Mods.modLoadedFameFramework) as int)
-    iReqLevelSLSFExhibIncreaseVulnerableOID  = AddSliderOption("SLSF Exhibition Increases vulnerable", iReqLevelSLSFExhibIncreaseVulnerable, "{0}", (!Mods.modLoadedFameFramework) as int)
-    iReqLevelSLSFSlutIncreaseVulnerableOID   = AddSliderOption("SLSF Slut Increases vulnerable", iReqLevelSLSFSlutIncreaseVulnerable, "{0}", (!Mods.modLoadedFameFramework) as int)
-    
-    ;AddEmptyOption() ; spacer
-    ;AddHeaderOption("Fame Makes vulnerable")
-    iReqLevelSLSFSlaveMakeVulnerableOID  = AddSliderOption("SLSF Slave Makes vulnerable", iReqLevelSLSFSlaveMakeVulnerable, "{0}", (!Mods.modLoadedFameFramework) as int)
-    iReqLevelSLSFExhibMakeVulnerableOID  = AddSliderOption("SLSF Exhibition Makes vulnerable", iReqLevelSLSFExhibMakeVulnerable, "{0}", (!Mods.modLoadedFameFramework) as int)
-    iReqLevelSLSFSlutMakeVulnerableOID   = AddSliderOption("SLSF Slut Makes vulnerable", iReqLevelSLSFSlutMakeVulnerable, "{0}", (!Mods.modLoadedFameFramework) as int)
-
-    ;AddEmptyOption() ; spacer
-    AddEmptyOption() ; spacer
-    AddHeaderOption("Vulnerable only while naked")
-    bNakedReqGagOID         = AddToggleOption("Gag", bNakedReqGag, (!bIsVulNaked) as int)
-    bNakedReqCollarOID      = AddToggleOption("Collar", bNakedReqCollar, (!bIsVulNaked) as int)
-    bNakedReqArmbinderOID   = AddToggleOption("Armbinder+Yoke", bNakedReqArmbinder, 1)
-    bNakedReqBlindfoldOID   = AddToggleOption("BlindFold", bNakedReqBlindfold, 1)
-    bNakedReqBukkakeOID     = AddToggleOption("Semen", bNakedReqBukkake, (!bIsVulNaked) as int)
-    bNakedReqSlaveBootsOID  = AddToggleOption("SlaveBoots",  bNakedReqSlaveBoots, 1)
-    bNakedReqHarnessOID     = AddToggleOption("Harness", bNakedReqHarness, (!bIsVulNaked) as int)
-    bNakedReqPiercedOID     = AddToggleOption("Piercings", bNakedReqPierced, (!bIsVulNaked) as int)
-    bNakedReqSlaveTattooOID = AddToggleOption("Slave Tattoos", bNakedReqSlaveTattoo)
-    bNakedReqSlutTattooOID  = AddToggleOption("Slut Tattoos", bNakedReqSlutTattoo)
-    
-  elseif a_page == Pages[4] ;Enslavement
-    
-    AddHeaderOption("General enslavement options")
-    bGuardDialogueToggleOID       = AddToggleOption("Guard dialogue", bGuardDialogueToggle)
-    bEnslaveLockoutDCUROID        = AddToggleOption("Cursed loot Blocking item lock", bEnslaveLockoutDCUR, (!Mods.modLoadedCursedLoot) as int)
-    bEnslaveFollowerLockToggleOID = AddToggleOption("Nearby Follower Lock", bEnslaveFollowerLockToggle)
-    
-    AddHeaderOption("Enslavement Toggle Local")
-    bMariaEnslaveToggleOID      = AddToggleOption("Maria local", bMariaEnslaveToggle, (!Mods.modLoadedMariaEden) as int)
-    bSlaverunEnslaveToggleOID   = AddToggleOption("Slaverun Enslavement", bSlaverunEnslaveToggle, (!(Mods.modLoadedSlaverun || Mods.modLoadedSlaverunR)) as int)
-    bSDEnslaveToggleOID         = AddToggleOption("SD+ local", bSDEnslaveToggle, (!Mods.modLoadedSD) as int)
-    
-    AddHeaderOption("Enslavement Toggle Distance (Given)")
-    bWCDistanceToggleOID        = AddToggleOption("Wolfclub", bWCDistanceToggle, (!Mods.modLoadedWolfclub) as int)
-    bSDDistanceToggleOID        = AddToggleOption("SD+", bSDDistanceToggle, (!Mods.modLoadedSD) as int)
-    bDCPirateEnslaveToggleOID   = AddToggleOption("Devious Cidhna (Pirate)", bDCPirateEnslaveToggle, (!Mods.modLoadedDeviousCidhna) as int)
-    bMariaDistanceToggleOID     = AddToggleOption("Maria's Eden (regular)", bMariaDistanceToggle, (!Mods.modLoadedMariaEden) as int)
-    
-    AddHeaderOption("Enslavement Toggle Distance (Sold)")
-    bCDEnslaveToggleOID         = AddToggleOption("Captured Dreams", bCDEnslaveToggle, (!Mods.modLoadedCD) as int)
-    bSSAuctionEnslaveToggleOID  = AddToggleOption("Simple Slavery auction", bSSAuctionEnslaveToggle, (!Mods.modLoadedSimpleSlavery) as int)
-    bMariaKhajitEnslaveToggleOID= AddToggleOption("Maria's Eden (sold to khajit)", bMariaKhajitEnslaveToggle, (!Mods.modLoadedMariaEden) as int)
-    
-    AddheaderOption("Enslavement Quest Lock-out") 
-    bEnslaveLockoutCLDollOID    = AddToggleOption("Cursed loot doll collar", bEnslaveLockoutCLDoll, (!Mods.modLoadedCursedLoot) as int)
-    bEnslaveLockoutTIROID       = AddToggleOption("Trapped in rubber suit", bEnslaveLockoutTIR, (!Mods.modLoadedTrappedInRubber) as int)
-    bEnslaveLockoutSDDreamOID   = AddToggleOption("SD+ Dreamworld", bEnslaveLockoutSDDream, (!Mods.modLoadedSD) as int)
-    bEnslaveLockoutSRROID       = AddToggleOption("Slaverun Reloaded", bEnslaveLockoutSRR, (!Mods.modLoadedSlaverunR) as int)
-    bEnslaveLockoutCDOID        = AddToggleOption("CD", bEnslaveLockoutCD, 1); (!Mods.modLoadedCD) as int)
-    bEnslaveLockoutMiasLairOID  = AddToggleOption("MiasLair", bEnslaveLockoutMiasLair, 1); (!Mods.modLoadedMiasLair) as int)
-    bEnslaveLockoutAngrimOID    = AddToggleOption("Angrim", bEnslaveLockoutAngrim, 1); (!Mods.modLoadedAngrim) as int)
-    bEnslaveLockoutFTDOID       = AddToggleOption("FTD", bEnslaveLockoutFTD, 1); (!Mods.modLoadedFromTheDeep) as int)
-
-    ; weight side
-    SetCursorPosition(1) ; switch sides    
-
-    AddHeaderOption("Enslavement Conversation Weights(type)")
-    iEnslaveWeightLocalOID    = AddSliderOption("Local", iEnslaveWeightLocal);, !Mods.canRunLocal())
-    iEnslaveWeightGivenOID    = AddSliderOption("Given", iEnslaveWeightGiven)
-    iEnslaveWeightSoldOID     = AddSliderOption("Sold", iEnslaveWeightSold)
-    
-    ; this is silly, we don't really need to drop them to zero if we check if the mod is loaded
-    AddHeaderOption("Enslavement Weights (local)")
-    iEnslaveWeightSDOID           = AddSliderOption("SD+ Weight", iEnslaveWeightSD, "{0}", (!Mods.modLoadedSD) as int)
-    iEnslaveWeightMariaOID        = AddSliderOption("Maria's Eden Weight", iEnslaveWeightMaria, "{0}", (!Mods.modLoadedMariaEden) as int)
-    iEnslaveWeightSlaverunOID     = AddSliderOption("Slaverun Weight", iEnslaveWeightSlaverun, "{0}",  (!(Mods.modLoadedSlaverun || Mods.modLoadedSlaverunR)) as int)
-    
-    AddHeaderOption("Enslavement Weights(distance)")
-    
-    iDistanceWeightCDOID            = AddSliderOption("CD Weight", iDistanceWeightCD, "{0}", (!Mods.modLoadedCD) as int)
-    iDistanceWeightMariaOID         = AddSliderOption("Maria Weight", iDistanceWeightMaria, "{0}", 1) 
-    iDistanceWeightMariaKOID        = AddSliderOption("Maria (Kahjit) Weight", iDistanceWeightMariaK, "{0}", (!Mods.modLoadedMariaEden) as int) 
-    iDistanceWeightSSOID            = AddSliderOption("Simple Slavery Weight", iDistanceWeightSS, "{0}", (!Mods.modLoadedSimpleSlavery) as int)
-    iDistanceWeightSDOID            = AddSliderOption("SD+ Weight", iDistanceWeightSD, "{0}", (!Mods.modLoadedSD) as int)
-    iDistanceWeightWCOID            = AddSliderOption("Wolfclub Weight", iDistanceWeightWC, "{0}", (!Mods.modLoadedWolfclub) as int)
-    iDistanceWeightDCPirateOID      = AddSliderOption("Devious Cidhna (pirate) Weight", iDistanceWeightDCPirate, "{0}", (!Mods.modLoadedDeviousCidhna) as int)
-    iDistanceWeightDCLDamselOID     = AddSliderOption("Cursed Loot damsel", iDistanceWeightDCLDamsel, "{0}", (!Mods.modLoadedCursedloot) as int)
-    iDistanceWeightDCLBondageAdvOID = AddSliderOption("Cursed loot Bondage Adv", iDistanceWeightDCLBondageAdv, "{0}", (!Mods.modLoadedCursedLoot) as int)
-    iDistanceWeightSlaverunRSoldOID = AddSliderOption("Slaverun reloaded (Sold)", iDistanceWeightSlaverunRSold, "{0}", (!Mods.modLoadedSlaverunR) as int)
-    iDistanceWeightSLUTSEnslaveOID  = AddSliderOption("SLUTS enslavement", iDistanceWeightSLUTSEnslave, "{0}", (!Mods.modLoadedSLUTS) as int)
-    iDistanceWeightIOMEnslaveOID    = AddSliderOption("Isle of mara enslavement", iDistanceWeightIOMEnslave, "{0}", (!Mods.modLoadedIsleofMara) as int)
-    iDistanceWeightDCLLeonOID       = AddSliderOption("Cursed loot Leon", iDistanceWeightDCLLeon, "{0}", (!Mods.modLoadedCursedLoot) as int)
-    iDistanceWeightDCVampireOID     = AddSliderOption("Devious Cidhna (Vampires) Weight", iDistanceWeightDCVampire, "{0}", (!Mods.modLoadedDeviousCidhna) as int)
-    iDistanceWeightDCBanditsOID     = AddSliderOption("Devious Cidhna (Bandits) Weight", iDistanceWeightDCBandits, "{0}", (!Mods.modLoadedDeviousCidhna) as int)
-
-    
-  elseif a_page == Pages[5] ; follower 
-    ;UpdateFollowerPage()
-    SetCursorFillMode(TOP_TO_BOTTOM) ; probably not needed, since I never change it, assumption: mod scope
-    ;SetCursorPosition(0) ; left side first
-    ;  AddHeaderOption("loading follower list ... " )
-
-    ; get array of nearby followers
-
-    SetCursorPosition(0) ; left side first
-    AddHeaderOption("General")
-    bFollowerDialogueToggleOID            = AddToggleOption("Follower dialogue", bFollowerDialogueToggle.GetValueInt(), 0)
-    bSecondBusyCheckWorkaroundOID         = AddToggleOption("Remembers if you shot them", bSecondBusyCheckWorkaround, 1)
-    AddEmptyOption() ; spacer
-
-    gForceGreetItemFindOID                = AddToggleOption("Follower Approaches Directly (Item found)", gForceGreetItemFind.GetValueInt())
-    bFollowerDungeonEnterRequiredOID      = AddToggleOption("Finding Item Requires Dungeon", bFollowerDungeonEnterRequired, 1);(!Mods.bFollowerDungeonEnterRequired) as int)
-    fFollowerFindMinContainersOID         = AddSliderOption("Minimum containers", fFollowerFindMinContainers, "{1}", 1);(!Mods.fFollowerFindMinContainers) as int)
-    fFollowerFindChanceMaxPercentageOID   = AddSliderOption("Max chance follower found an item", fFollowerFindChanceMaxPercentage, "{1}");(!Mods.fFollowerFindChanceMaxPercentage) as int)
-    iFollowerFindChanceMaxContainersOID   = AddSliderOption("Containers needed for Max", iFollowerFindChanceMaxContainers, "{0}");(!Mods.iFollowerFindChanceMaxContainers) as int)
-    fFollowerItemApproachExpOID           = AddSliderOption("Finding Item Curve Exponent", fFollowerItemApproachExp, "{1}");
-    AddEmptyOption() ; spacer
-    
-    iFollowerMinVulnerableApproachableOID   = AddSliderOption("Vulnerable required for sex approach", iFollowerMinVulnerableApproachable, "{0}", 1);(!Mods.iFollowerMinVulnerableApproachable) as int)
-    iFollowerRelationshipLimitOID           = AddSliderOption("Non-Follower Relationship lower limit", iFollowerRelationshipLimit.GetValueInt(), "Level {0}")
-
-    gFollowerArousalMinOID                  = AddSliderOption("Follower Sex Arousal Min", gFollowerArousalMin.GetValueInt(), "{0}");(!Mods.gFollowerArousalMin) as int)
-    fFollowerSexApproachChanceMaxPercentageOID = AddSliderOption("Max Approach Chance", fFollowerSexApproachChanceMaxPercentage, "{0}");
-    fFollowerSexApproachExpOID              = AddSliderOption("Approach Curve Exponent", fFollowerSexApproachExp, "{1}");(
-    AddEmptyOption() ; spacer
-
-    
-    SetCursorPosition(1) ; now for right-hand side
-
-    FormList followers = Mods.PreviousFollowers  ; old unreliable method
-    ;actor[] followers = new followers
-    
-    actorNames = new string[15] ; don't remove it locks to 1 name
-    if followers != None
-      int size = followers.GetSize()
-      if size == 0
-        actorNames[0] == "<no follower>"
-      else
-        int i = 0
-        actor test_actor
-        while i < followers.GetSize()
-           test_actor = followers.GetAt(i) as Actor
-          if test_actor != None
-            actorNames[i] = test_actor.GetDisplayName()
-          ;else
-          ;  i += 100
-          endif
-          i += 1
-        endWhile
-      endif
-    else
-      ;Debug.Trace("[crde] mcm:followers is none")
-      return
-    endif
-    currentFollower = None 
-    int f_size = followers.GetSize()
-    ;if followers == None ; assume can never be none, formlist
-    if f_size <=  lastChosenFollower
-      lastChosenFollower = 0 ; reset if the size changed
-    endif 
-    if f_size >= 1
-      currentFollower = followers.GetAt(lastChosenFollower) as actor
-    endif
-    ;Debug.trace("[crde] mcm: followers count:" + f_size)
-
-    
-    ;AddHeaderOption("Follower Select:")
-    ; list of followers
-    
-    ;if (lastChosenFollower == 0 && actorNames.length == 0)
-    if (f_size <= 0)
-      aFollowerSelectOID  = AddMenuOption("Follower: <None>", 0)
-    else
-      aFollowerSelectOID  = AddMenuOption("Follower:", actorNames[lastChosenFollower], 0)
-    endif
-      
-    AddEmptyOption() ; spacer
-
-    bAddFollowerManuallyOID = AddTextOption("Add Follower Manually", "Push Here")
-    ; get follower, if NONE
-    if currentFollower == None
-      AddEmptyOption() ; spacer
-      AddHeaderOption("No follower selected") ; used to be ,1
-
-      AddEmptyOption() ; spacer
-      AddTextOption("Followers need time to be added","")
-      AddTextOption("If you have a follower and they","")
-      AddTextOption("haven't shown up, exit the menu","")
-      AddTextOption("and wait ~30 seconds for DEC to find them","")
-
-      
-    else
-      ; follower dom
-      ; follower sub
-      ; follower thinks player is...
-      AddHeaderOption("Name: " + currentFollower.GetDisplayName(), 0)
-      tFollowerteleportToPlayerOID  = AddTextOption("Teleport follower to player", "Push Here")
-      AddHeaderOption("Follower details: ",0)
-
-      fFollowerSpecEnjoysDomOID         = AddSliderOption("Follower Enjoys Being Dom", StorageUtil.GetFloatValue(currentFollower, "crdeFollEnjoysDom"), "{1}")
-      fFollowerSpecEnjoysSubOID         = AddSliderOption("Follower Enjoys Being Sub", StorageUtil.GetFloatValue(currentFollower, "crdeFollEnjoysSub") , "{1}")
-      fFollowerSpecThinksPlayerDomOID   = AddSliderOption("Follower Thinks Player Dom", StorageUtil.GetFloatValue(currentFollower, "crdeThinksPCEnjoysDom"), "{1}")
-      fFollowerSpecThinksPlayerSubOID   = AddSliderOption("Follower Thinks Player Sub", StorageUtil.GetFloatValue(currentFollower, "crdeThinksPCEnjoysSub"), "{1}")
-      fFollowerSpecContainersCountOID   = AddSliderOption("Followers containers discovered", StorageUtil.GetIntValue(currentFollower, "crdeFollContainersSearched"), "{1}")
-      fFollowerSpecFrustrationOID       = AddSliderOption("Followers level of Frustration", StorageUtil.GetFloatValue(currentFollower, "crdeFollowerFrustration"), "{1}")
-      
-    endif
-    debug.trace("[crde] mcm: last follower:" + lastChosenFollower)
-  
-  elseif a_page == Pages[6]  ; dialogue guard/intimidation, and now confidence
-    AddHeaderOption("Confidence options")
-    bConfidenceToggleOID                  = AddToggleOption("Confidence Check", bConfidenceToggle)
-    iWeightConfidenceArousalOverrideOID   = AddSliderOption("Confidence Override Arousal", iWeightConfidenceArousalOverride, "{0}")
-  
-    AddHeaderOption("Intimidate options")
-    bIntimidateToggleOID              = AddToggleOption("Intimidate", gIntimidateToggle.GetValueInt()) ; intimidation main toggle
-    bIntimidateWeaponFullToggleOID    = AddToggleOption("Intimidate Gag Block", bIntimidateGagFullToggle, 1) 
-    bIntimidateWeaponFullToggleOID    = AddToggleOption("Intimidate Weapon Block", bIntimidateWeaponFullToggle, 1);
-    ; gag prevention
-    ; weapon protects 100% toggle
-    
-    AddHeaderOption("Modifiers ")
-    ; more to come here later
-    
-  elseif a_page == Pages[7] ; debug
-  
-    AddHeaderOption("Workarounds")
-    bArousalFunctionWorkaroundOID         = AddToggleOption("Aroused function alternative", bArousalFunctionWorkaround)
-    bSecondBusyCheckWorkaroundOID         = AddToggleOption("Second busy check", bSecondBusyCheckWorkaround)
-    bIgnoreZazOnNPCOID                    = AddToggleOption("Ignore Zaz on NPC Slaves", bIgnoreZazOnNPC)
-    AddEmptyOption() ; spacer
-  
-    AddHeaderOption("Debug Toggle")
-    bDebugModeOID                         = AddToggleOption("Debug Info Enable", bDebugMode)
-    bDebugConsoleModeOID                  = AddToggleOption("Debug In Console", bDebugConsoleMode )
-    gUnfinishedDialogueToggleOID          = AddToggleOption("Unfinished Dialogue", gUnfinishedDialogueToggle.GetValueInt() as bool )
-    bDebugLoudApproachFailOID             = AddToggleOption("Louder Approach Fail", bDebugLoudApproachFail )
-    
-    AddHeaderOption("Debug visibility control")
-    bDebugRollVisOID                      = AddToggleOption("Rolling information/results", bDebugRollVis )
-    bDebugStateVisOID                     = AddToggleOption("State information", bDebugStateVis )
-    bDebugStatusVisOID                    = AddToggleOption("Status information", bDebugStatusVis )
- 
-    SetCursorPosition(1) ; switch sides  
-  
-    AddHeaderOption("Useful Fixes/Debug Commands")
-    bResetDHLPOID                 = AddToggleOption("Reset/resume DHLP suspend and approach", bResetDHLP)
-    bRefreshSDMasterOID           = AddToggleOption("Refresh SD Masters", bRefreshSDMaster) 
-    bRefreshModDetectOID          = AddToggleOption("Refresh detected mods", Mods.bRefreshModDetect) 
-    bSetValidRaceOID              = AddToggleOption("Set Valid Race", bSetValidRace) 
-    bPrintSexlabStatusOID         = AddToggleOption("Print Block/permit sexlab status", bPrintSexlabStatus)
-    bPrintVulnerabilityStatusOID  = AddToggleOption("Print vulnerability status", bPrintVulnerabilityStatus)
-    bTestTattoosOID               = AddToggleOption("Tattoo test", bTestTattoos)
-    bTestTimeTestOID              = AddToggleOption("Component time test", bTestTimeTest)
-    
-    ;AddEmptyOption()
-    AddHeaderOption("building/testing, not meant for regular use")
-    bAbductionTestOID         = AddToggleOption("Pony Button", bAbductionTest);, (!Mods.modLoadedMariaEden) as int)
-    bInitTestOID              = AddToggleOption("SD Dream test", bInitTest, (!Mods.modLoadedSD) as int)
-    bTestButton1OID           = AddToggleOption("Remove Broken Item Test", bTestButton1)
-    bTestButton2OID           = AddToggleOption("Broken DDi NPC reset test", bTestButton2)
-    bTestButton3OID           = AddToggleOption("DD Key check", bTestButton3);, (!Mods.modLoadedSlaveTats) as int)
-    bTestButton4OID           = AddToggleOption("Bed teleport test", bTestButton4, (!Mods.modLoadedCursedLoot) as int)
-    bTestButton5OID           = AddToggleOption("Add Item test", bTestButton5);, (!Mods.modLoadedIsleofMara) as int)
-    bCDTestOID                = AddToggleOption("CD item test", bCDTest, (!Mods.modLoadedSlaverunR) as int)
-    bTestButton6OID           = AddToggleOption("SD distant start", bTestButton6, (!Mods.modLoadedSD) as int)
-    bTestButton7OID           = AddToggleOption("Temporary test", bTestButton7);, (!Mods.modLoadedPrisonOverhaulPatch) as int)
+  if (iSettingSecurity < _qFramework.GetVulnerability())
+    return true
   endIf
-  
-endEvent
+  return _qFramework.IsPlayerBound(True)
+endFunction
 
-Function UpdateFollowerPage()
-  
-  ;moved to above, since errors
-  
+function UpdateFollowerPage()
+
+  ;moved to below, since errors
+
   ; testing
   ;int i = 0
   ;while i < followers.GetSize()
   ;  AddHeaderOption("follower " + (followers.GetAt(i) as actor).GetDisplayName(), 1)
   ;  i += 1
   ;endWhile
-  
+
   ; show stats and options for that follower, including assignments
   ; values for stress and opinion
   ; fields to change preferences
-  
+
 endFunction
 
 function reevaluateItemParabolicModifier()
@@ -723,16 +320,576 @@ function reevaluateSexApproachParabolicModifier()
   ;  except b doesn't matter here, c is starting value,
   ;  a is what we want right now, then we can re-evaluate y from x any time using above
   ; a = (y - c)/ x^2  ->  a = y / (x ^ p) ; since c doesn't translate anymore, and we can use any power n > 1
-  
+
   sexApproachParabolicModifier = ( fFollowerSexApproachChanceMaxPercentage ) / (Math.Pow(100, fFollowerSexApproachExp))
 
 endFunction
 
 
+; EVENTS ------------------------------------------------------------------------------------------
+
+; @implements SKI_ConfigBase
+event OnPageReset(string a_page)
+  {Called when a new page is selected, including the initial empty page}
+
+  ; Note: GetVersion() and OnVersionUpdate() are not being called for some reason.
+  ; I am adding temporary code to set the related variables here:
+  if (8 != Pages.length)
+    UpdateScript()
+  endIf
+  if (!_qFramework)
+    _qFramework = (Quest.GetQuest("_dfwDeviousFramework") As dfwDeviousFramework)
+  endIf
+  if (!_qDfwMcm)
+    _qDfwMcm    = (Quest.GetQuest("_dfwDeviousFramework") As dfwMCM)
+  endIf
+
+  ; Skip loading a custom logo for now until there is a logo specific for this mod.
+  ; ; Load custom logo in DDS format
+  ; if (a_page == "")
+  ;   ; Image size 256x256
+  ;   ; X offset = 376 - (height / 2) = 258
+  ;   ; Y offset = 223 - (width / 2) = 95
+  ;   LoadCustomContent("skyui/res/mcm_logo.dds", 258, 95)
+  ;   return
+  ; else
+  ;   UnloadCustomContent()
+  ; endIf
+
+  SetCursorFillMode(TOP_TO_BOTTOM)
+
+  ; Keep track of whether some settings are disabled or not.
+  Bool bSecure = IsSecure()
+
+  ; If no page is requested (the menu is just opened) default to the last page opened.
+  string szPage = a_page
+  If ("" == szPage)
+    szPage = _szLastPage
+  Else
+    _szLastPage = a_page
+  EndIf
+
+  if szPage == Pages[1]
+    ShowItemOptionsPage(bSecure)
+  elseif szPage == Pages[2]
+    ShowVulnerabilityPage(bSecure)
+  elseif szPage == Pages[3]
+    ShowEnslavementPage(bSecure)
+  elseif szPage == Pages[4]
+    ShowFollowerDialoguePage(bSecure)
+  elseif szPage == Pages[5]
+    ShowIntimidationDefensePage(bSecure)
+  elseif szPage == Pages[6]
+    ShowDfwCompatibilityPage(bSecure)
+  elseif szPage == Pages[7]
+    ShowDebugSettingsPage(bSecure)
+  else
+    ShowSettingsPage(bSecure)
+  endIf
+endEvent
+
+function ShowSettingsPage(Bool bSecure)
+  AddHeaderOption("Basic")
+  gCRDEEnableOID        = AddToggleOption("Mod Enabled", gCRDEEnable.GetValueInt() == 1)
+  ;bCRDEEnableOID        = AddToggleOption("Mod Enabled", bCRDEEnable)
+  AddEmptyOption() ; spacer
+
+  AddHeaderOption("Dialogue Chances")
+  iChanceSexConvoOID              = AddSliderOption("Chance of Sex Conversation", iChanceSexConvo, "{0}%")
+  iChanceEnslavementConvoOID      = AddSliderOption("Chance of Enslavement Conversation", iChanceEnslavementConvo, "{0}%")
+  iChanceVulEnslavementConvoOID   = AddSliderOption("Chance of Armbinder Conversation", iChanceVulEnslavementConvo, "{0}%", OPTION_FLAG_DISABLED)
+  fModifierSlaverChancesOID       = AddSliderOption("Modifier of chances if NPC is Slaver", fModifierSlaverChances, "{1}"); slaver event modifier
+  AddEmptyOption() ; spacer
+
+  AddHeaderOption("General Settings")
+  fEventIntervalOID     = AddSliderOption("Event Interval", fEventInterval, "{0} seconds")
+  fEventTimeoutOID      = AddSliderOption("Event Timeout", ((fEventTimeout * 24) as int), "{1} Game Hours")
+  iSearchRangeOID       = AddSliderOption("Search range", gSearchRange.GetValueInt(), "{0} Inches")  ; event range
+  iApproachDurationOID  = AddSliderOption("Search duration", iApproachDuration, "{0} Game Mins")
+  iNPCSearchCountOID    = AddSliderOption("NPC Search Count", iNPCSearchCount , "{0} NPCs", 1) ; search depth
+  iGenderPrefOID        = AddMenuOption("Approacher Gender Preference", genderList[iGenderPref])
+  iGenderPrefMasterOID  = AddMenuOption("Master Gender Preference", genderList[iGenderPrefMaster])
+  bUseSexlabGenderOID   = AddToggleOption("Use Sexlab Genders", bUseSexlabGender)
+  AddEmptyOption() ; spacer
+
+  SetCursorPosition(1) ; switched sides
+
+  AddHeaderOption("Sex Events")
+  bHookAnySexlabEventOID      = AddToggleOption("Trigger after all sex", bHookAnySexlabEvent)
+  bHookReqVictimStatusOID     = AddToggleOption("Require Victim Requirement", bHookReqVictimStatus)
+  bFxFAlwaysAggressiveOID     = AddToggleOption("FxF always aggressive", bFxFAlwaysAggressive)
+  iSexEventKeyOID             = AddSliderOption("Chance of Key Removal", iSexEventKey, "{0}%")
+  iSexEventDeviceOID          = AddSliderOption("Chance of Devious Device(s)", iSexEventDevice, "{0}%")
+  AddEmptyOption() ; spacer
+
+  AddHeaderOption("Rape Events")
+  iRapeEventEnslaveOID      = AddSliderOption("Chance of Enslavement", iRapeEventEnslave, "{0}%")
+  iRapeEventDeviceOID       = AddSliderOption("Chance of Devious Device(s)", iRapeEventDevice, "{0}%")
+  AddEmptyOption() ; spacer
+
+  AddHeaderOption("General lockout")
+  bSDGeneralLockoutOID     = AddToggleOption("SD+ Enslave Lockout", bSDGeneralLockout, (!Mods.modLoadedSD) as int)
+endFunction
+
+function ShowItemOptionsPage(Bool bSecure)
+  AddHeaderOption("Event weights")
+  iWeightSingleDDOID         = AddSliderOption("Standard Devious Device", iWeightSingleDD, "{0}")
+  iWeightMultiDDOID          = AddSliderOption("Multiple Devious Devices", iWeightMultiDD, "{0}")
+  iWeightUniqueCollarsOID    = AddSliderOption("Unique Collars", iWeightUniqueCollars, "{0}")
+  iWeightRandomCDOID         = AddSliderOption("Random CD collection", iWeightRandomCD, "{0}")
+  AddEmptyOption() ; spacer
+
+  AddHeaderOption("Single Event weights")
+  iWeightSingleCollarOID        = AddSliderOption("Collar", iWeightSingleCollar, "{0}")
+  iWeightSingleGagOID           = AddSliderOption("Gag", iWeightSingleGag, "{0}")
+  iWeightSingleArmbinderOID     = AddSliderOption("Armbinder", iWeightSingleArmbinder, "{0}")
+  iWeightSingleCuffsOID         = AddSliderOption("Cuffs", iWeightSingleCuffs, "{0}")
+  iWeightSingleHarnessOID       = AddSliderOption("Harness", iWeightSingleHarness, "{0}")
+  iWeightSingleBeltOID          = AddSliderOption("Belt", iWeightSingleBelt, "{0}")
+  iWeightSingleGlovesBootsOID   = AddSliderOption("Gloves and Boots", iWeightSingleGlovesBoots, "{0}")
+  iWeightSingleAnkleChainsOID   = AddSliderOption("Ankle Chains", iWeightSingleAnkleChains, "{0}");(!Mods.iWeightSingleAnkleChains) as int)
+  iWeightSingleBlindfoldOID     = AddSliderOption("Blindfold", iWeightSingleBlindfold, "{0}",1)
+  iWeightSingleYokeOID          = AddSliderOption("Yoke", iWeightSingleYoke, "{0}", 1)
+  iWeightSingleBootsOID         = AddSliderOption("Boots", iWeightSingleBoots, "{0}", 1);(!Mods.iWeightSingleBoots) as int)
+  iWeightSingleHoodOID          = AddSliderOption("Hoods", iWeightSingleHood, "{0}", 1);(!Mods.iWeightSingleHood) as int)
+  AddEmptyOption() ; spacer
+
+  AddHeaderOption("Multiple Event weights")
+  iWeightMultiPonyOID           = AddSliderOption("Pony suit", iWeightMultiPony, "{0}")
+  iWeightMultiRedBNCOID         = AddSliderOption("Red Ebonite suit", iWeightMultiRedBNC, "{0}")
+  iWeightMultiSeveralOID        = AddSliderOption("Several single items", iWeightMultiSeveral, "{0}")
+  iWeightMultiTransparentOID    = AddSliderOption("DCUR Transparent Suit", iWeightMultiTransparent, "{0}")
+  iWeightMultiRubberOID         = AddSliderOption("DCUR Rubber Suit", iWeightMultiRubber, "{0}")
+  AddEmptyOption() ; spacer
+
+  AddHeaderOption("Unique Collar Event weights")
+  iWeightPetcollarOID               = AddSliderOption("Pet Collar", iWeightPetcollar, "{0}", (!Mods.modLoadedPetCollar) as int)
+  iWeightCursedCollarOID            = AddSliderOption("Cursed Collar", iWeightCursedCollar, "{0}", (!Mods.modLoadedCursedLoot) as int)
+  iWeightSlaveCollarOID             = AddSliderOption("Slave Collar", iWeightSlaveCollar, "{0}", (!Mods.modLoadedCursedLoot) as int)
+  iWeightSlutCollarOID              = AddSliderOption("Slut Collar", iWeightSlutCollar, "{0}", (!Mods.modLoadedCursedLoot) as int)
+  iWeightRubberDollCollarOID        = AddSliderOption("Rubber Doll Collar", iWeightRubberDollCollar, "{0}", (!Mods.modLoadedCursedLoot) as int)
+  iWeightDeviousPunishEquipmentBannnedCollarOID     = AddSliderOption("Banned Collar", iWeightDeviousPunishEquipmentBannnedCollar, "{0}", (!Mods.modLoadedDeviousPunishEquipment) as int)
+  iWeightDeviousPunishEquipmentProstitutedCollarOID = AddSliderOption("Prostituted Collar", iWeightDeviousPunishEquipmentProstitutedCollar, "{0}", (!Mods.modLoadedDeviousPunishEquipment) as int)
+  iWeightDeviousPunishEquipmentNakedCollarOID       = AddSliderOption("Naked Collar", iWeightDeviousPunishEquipmentNakedCollar, "{0}",(!Mods.modLoadedDeviousPunishEquipment) as int)
+  iWeightStripCollarOID             = AddSliderOption("Strip Collar", iWeightStripCollar, "{0}", (!Mods.modLoadedCursedLoot) as int)
+  AddEmptyOption() ; spacer
+
+  ;AddHeaderOption("Event weights")
+      ;AddEmptyOption() ; spacer
+
+  SetCursorPosition(1) ; switched sides
+
+  AddHeaderOption("Theme weights")
+  ;iWeightDDRegularOID           = AddSliderOption("Single DD Items", iWeightDDRegular, "{0}", 1);(!Mods.iWeightDDRegular) as int)
+  iWeightDDZazVelOID            = AddSliderOption("Single DD-Zaz Items", iWeightDDZazVel, "{0}", 1);(!Mods.iWeightDDZazVel) as int)
+  iWeightZazRegOID              = AddSliderOption("Single Zaz Items", iWeightZazReg, "{0}", 1);(!Mods.iWeightZazReg) as int)
+  AddEmptyOption() ; spacer
+
+  iWeightEboniteRegularOID      = AddSliderOption("Black Ebonite", iWeightEboniteRegular, "{0}", 1)
+  iWeightEboniteRedOID          = AddSliderOption("Red Ebonite", iWeightEboniteRed, "{0}" , 1)
+  iWeightEboniteWhiteOID        = AddSliderOption("White Ebonite", iWeightEboniteWhite, "{0}", 1)
+  iWeightZazMetalBrownOID       = AddSliderOption("Brown Metal Zaz", iWeightZazMetalBrown, "{0}", 1);(!Mods.iWeightZazMetalBrown) as int)
+  iWeightZazMetalBlackOID       = AddSliderOption("Black Metal Zaz", iWeightZazMetalBlack, "{0}", 1);(!Mods.iWeightZazMetalBlack) as int)
+  iWeightZazLeatherOID          = AddSliderOption("Leather Zaz", iWeightZazLeather, "{0}", 1);(!Mods.iWeightZazLeather) as int)
+  iWeightZazRopeOID             = AddSliderOption("Rope Zaz", iWeightZazRope, "{0}", 1);(!Mods.iWeightZazRope) as int)
+  iWeightCDGoldOID              = AddSliderOption("CD Gold", iWeightCDGold, "{0}", 1);(!Mods.iWeightCDGold) as int)
+  iWeightCDSilverOID            = AddSliderOption("CD Silver", iWeightCDSilver, "{0}", 1);(!Mods.iWeightCDSilver) as int)
+  AddEmptyOption() ; spacer
+
+  AddHeaderOption("Plugs and stuff")
+  iWeightPlugsOID               = AddSliderOption("Plugs", iWeightPlugs, "{0}")
+  iWeightPiercingsOID           = AddSliderOption("Piercings", iWeightPiercings, "{0}")
+  AddEmptyOption() ; spacer
+  iWeightPiercingsSoulGemOID    = AddSliderOption("iWeightPiercingsSoulGem", iWeightPiercingsSoulGem, "{0}", 1);(!Mods.iWeightPiercingsSoulGem) as int)
+  iWeightPiercingsShockOID      = AddSliderOption("iWeightPiercingsShock", iWeightPiercingsShock, "{0}", 1);(!Mods.iWeightPiercingsShock) as int)
+  iWeightPlugSoulGemOID         = AddSliderOption("Soul Gem Plug", iWeightPlugSoulGem, "{0}")
+  iWeightPlugInflatableOID      = AddSliderOption("Inflatable Plug", iWeightPlugInflatable, "{0}")
+  iWeightPlugChargingOID        = AddSliderOption("Charging Plug", iWeightPlugCharging, "{0}")
+  iWeightPlugShockOID           = AddSliderOption("Shock Plug", iWeightPlugShock, "{0}")
+  iWeightPlugTrainingOID        = AddSliderOption("Training Plug", iWeightPlugTraining, "{0}")
+  iWeightPlugCDEffectOID        = AddSliderOption("CD Special Plugs", iWeightPlugCDEffect, "{0}", (!Mods.modLoadedCD) as int)
+  iWeightPlugCDClassOID         = AddSliderOption("CD Class Plugs", iWeightPlugCDSpecial, "{0}", (!Mods.modLoadedCD) as int)
+  iWeightPlugWoodOID            = AddSliderOption("Wood Plugs", iWeightPlugWood, "{0}", 1);(!Mods.iWeightPlugWood) as int)
+  iWeightPlugDashaOID           = AddSliderOption("Devious Toys Plugs", iWeightPlugDasha, "{0}", 1);(!Mods.iWeightPlugDasha) as int)
+  AddEmptyOption() ; spacer
+
+  AddHeaderOption("Belts")
+  iWeightBeltPunishmentOID      = AddSliderOption("Punishment Belt", iWeightBeltPunishment, "{0}")
+  iWeightBeltRegularOID         = AddSliderOption("Regular Belt", iWeightBeltRegular, "{0}")
+  AddEmptyOption() ; spacer
+  iWeightBeltPaddedOID                  = AddSliderOption("Padded Belt", iWeightBeltPadded, "{0}")
+  iWeightBeltIronOID                    = AddSliderOption("Iron Belt",  iWeightBeltIron, "{0}")
+  iWeightBeltRegulationsImperialOID     = AddSliderOption("Imperial Belt", iWeightBeltRegulationsImperial, "{0}", (!Mods.modLoadedDeviousRegulations) as int)
+  iWeightBeltRegulationsStormCloakOID   = AddSliderOption("StormCloak Belt", iWeightBeltRegulationsStormCloak, "{0}", (!Mods.modLoadedDeviousRegulations) as int)
+  iWeightBeltShameOID                   = AddSliderOption("Shame belt", iWeightBeltShame, "{0}", (!Mods.modLoadedCursedLoot) as int)
+  iWeightBeltCDOID                      = AddSliderOption("CD belt", iWeightBeltCD, "{0}", (!Mods.modLoadedCD) as int)
+  AddEmptyOption() ; spacer
+
+  AddHeaderOption("Boots")
+  iWeightBootsSlaveOID        = AddSliderOption("iWeightBootsSlave", iWeightBootsSlave, "{0}", 1);(!Mods.iWeightBootsSlave) as int)
+  iWeightBootsRestrictiveOID  = AddSliderOption("iWeightBootsRestrictive", iWeightBootsRestrictive, "{0}", 1);(!Mods.iWeightBootsRestrictive) as int)
+  iWeightBootsPonyOID         = AddSliderOption("iWeightBootsPony", iWeightBootsPony, "{0}", 1);(!Mods.iWeightBootsPony) as int)
+  ; punishment boots from that one guys mod
+  AddEmptyOption() ; spacer
+
+  AddHeaderOption("Tattoos")
+  iWeightSlutTattooOID    = AddSliderOption("iWeightSlutTattoo", iWeightSlutTattoo, "{0}", 1);(!Mods.iWeightSlutTattoo) as int)
+  iWeightSlaveTattooOID   = AddSliderOption("iWeightSlaveTattoo", iWeightSlaveTattoo, "{0}", 1);(!Mods.iWeightSlaveTattoo) as int)
+  iWeightWhoreTattooOID   = AddSliderOption("iWeightWhoreTattoo", iWeightWhoreTattoo, "{0}", 1);(!Mods.iWeightWhoreTattoo) as int)
+endFunction
+
+function ShowVulnerabilityPage(Bool bSecure)
+  AddHeaderOption("General Options")
+  iMinEnslaveVulnerableOID        = AddSliderOption("Minimum Enslavement Vulnerability", iMinEnslaveVulnerable, "Level {0}")
+  iMinApproachArousalOID          = AddSliderOption("Minimum NPC Arousal", gMinApproachArousal.GetValueInt(), "{0}%")
+  iMaxEnslaveMoralityOID          = AddSliderOption("Maximum Morality (enslave)", iMaxEnslaveMorality, "Level {0}")
+  iMaxSolicitMoralityOID          = AddSliderOption("Maximum Morality (sex)", iMaxSolicitMorality, "Level {0}")
+  bIsVulNakedOID                  = AddToggleOption("Nudity Vulnerability", bIsVulNaked)
+  bIsNonChestArmorIgnoredNakedOID = AddToggleOption("Alt Armor Slot Protection", bIsNonChestArmorIgnoredNaked)
+  ;bChastityToggleOID              = AddToggleOption("Chastity Protection", bChastityToggle); deprecated: duplicate
+  bVulnerableLOSOID               = AddToggleOption("Line of sight", bVulnerableLOS)
+  iWeaponProtectionLevelOID       = AddSliderOption("Weapon Protection Level", iWeaponProtectionLevel, "Level {0}")
+  iRelationshipProtectionLevelOID = AddSliderOption("Relationship Protection Level", iRelationshipProtectionLevel, "Level {0}")
+  bVulnerableFurnitureOID         = AddToggleOption("Xaz Furniture", bVulnerableFurniture)
+  bAttackersGuardsOID             = AddToggleOption("Guards Toggle",  bAttackersGuards)
+  bAltBodySlotSearchWorkaroundOID = AddToggleOption("Alternate body slot search", bAltBodySlotSearchWorkaround)
+  AddEmptyOption() ; spacer
+
+  AddHeaderOption("Nighttime Options")
+  fNightReqArousalModifierOID      = AddSliderOption("Night Arousal Modifier", fNightReqArousalModifier, "{1}", 0);(!Mods.fNightReqArousalModifier) as int)
+  fNightDistanceModifierOID        = AddSliderOption("Night Distance Modifier", fNightDistanceModifier, "{1}", 1);(!Mods.fNightDistanceModifier) as int)
+  fNightChanceModifierOID          = AddSliderOption("Night Approach Chance Modifier", fNightChanceModifier, "{1}", 0);(!Mods.fNightChanceModifier) as int
+  iNightReqConfidenceReductionOID  = AddSliderOption("iNightReqConfidenceReduction", iNightReqConfidenceReduction, "{0}", 0);(!Mods.iNightReqConfidenceReduction) as int)
+  bNightAddsToVulnerableOID        = AddToggleOption("Night Makes More Vulnerable", bNightAddsToVulnerable, 0);(!Mods.bNightAddsToVulnerable) as int)
+  AddEmptyOption() ; spacer
+
+  AddHeaderOption("Vulnerable items")
+  bVulnerableGagOID         = AddToggleOption("Gag", bVulnerableGag)
+  bVulnerableCollarOID      = AddToggleOption("Collar", bVulnerableCollar)
+  bVulnerableArmbinderOID   = AddToggleOption("Armbinder+Yoke", bVulnerableArmbinder)
+  bVulnerableBlindfoldOID   = AddToggleOption("BlindFold", bVulnerableBlindfold)
+  bVulnerableBukkakeOID     = AddToggleOption("Semen", bVulnerableBukkake)
+  bVulnerableSlaveBootsOID  = AddToggleOption("SlaveBoots",  bVulnerableSlaveBoots)
+  bVulnerableHarnessOID     = AddToggleOption("Harness", bVulnerableHarness)
+  bVulnerablePiercedOID     = AddToggleOption("Piercings", bVulnerablePierced)
+  bVulnerableSlaveTattooOID = AddToggleOption("Slave Tattoos", bVulnerableSlaveTattoo)
+  bVulnerableSlutTattooOID  = AddToggleOption("Slut Tattoos", bVulnerableSlutTattoo)
+
+  SetCursorPosition(1) ; switch sides
+
+  ;AddHeaderOption("Vulnerability Protection")
+  AddHeaderOption("Chastity General")
+  bChastityToggleOID            = AddToggleOption("Chastity Enable", bChastityToggle)
+  fChastityPartialModifierOID   = AddSliderOption("Approach chance (partial) Modifier", fChastityPartialModifier, "{1}")
+  fChastityCompleteModifierOID  = AddSliderOption("Approach chance (full) Modifier", fChastityCompleteModifier, "{1}")
+  ; sliders for weight adjustment: partial and total chastity chances
+  AddEmptyOption() ; spacer
+
+  AddHeaderOption("Chastity items")
+  bChastityGagOID        = AddToggleOption("DD Gag (Blocking)", bChastityGag)
+  bChastityBraOID        = AddToggleOption("DD Bra", bChastityBra)
+  bChastityLockingZazOID = AddToggleOption("Restrict Zaz to locking items only", bChastityLockingZaz, 1)
+  bChastityZazGagOID     = AddToggleOption("Zaz Gag (Blocking)", bChastityZazGag)
+  bChastityZazBeltOID    = AddToggleOption("Zaz Belts", bChastityZazBelt)
+  AddEmptyOption() ; spacer
+  AddEmptyOption() ; spacer
+
+  AddHeaderOption("Fame Makes vulnerable")
+  iReqLevelSLSFSlaveIncreaseVulnerableOID  = AddSliderOption("SLSF Slave Increases vulnerable", iReqLevelSLSFSlaveIncreaseVulnerable, "{0}", (!Mods.modLoadedFameFramework) as int)
+  iReqLevelSLSFExhibIncreaseVulnerableOID  = AddSliderOption("SLSF Exhibition Increases vulnerable", iReqLevelSLSFExhibIncreaseVulnerable, "{0}", (!Mods.modLoadedFameFramework) as int)
+  iReqLevelSLSFSlutIncreaseVulnerableOID   = AddSliderOption("SLSF Slut Increases vulnerable", iReqLevelSLSFSlutIncreaseVulnerable, "{0}", (!Mods.modLoadedFameFramework) as int)
+  ;AddEmptyOption() ; spacer
+
+  ;AddHeaderOption("Fame Makes vulnerable")
+  iReqLevelSLSFSlaveMakeVulnerableOID  = AddSliderOption("SLSF Slave Makes vulnerable", iReqLevelSLSFSlaveMakeVulnerable, "{0}", (!Mods.modLoadedFameFramework) as int)
+  iReqLevelSLSFExhibMakeVulnerableOID  = AddSliderOption("SLSF Exhibition Makes vulnerable", iReqLevelSLSFExhibMakeVulnerable, "{0}", (!Mods.modLoadedFameFramework) as int)
+  iReqLevelSLSFSlutMakeVulnerableOID   = AddSliderOption("SLSF Slut Makes vulnerable", iReqLevelSLSFSlutMakeVulnerable, "{0}", (!Mods.modLoadedFameFramework) as int)
+  AddEmptyOption() ; spacer
+
+  AddHeaderOption("Vulnerable only while naked")
+  bNakedReqGagOID         = AddToggleOption("Gag", bNakedReqGag, (!bIsVulNaked) as int)
+  bNakedReqCollarOID      = AddToggleOption("Collar", bNakedReqCollar, (!bIsVulNaked) as int)
+  bNakedReqArmbinderOID   = AddToggleOption("Armbinder+Yoke", bNakedReqArmbinder, 1)
+  bNakedReqBlindfoldOID   = AddToggleOption("BlindFold", bNakedReqBlindfold, 1)
+  bNakedReqBukkakeOID     = AddToggleOption("Semen", bNakedReqBukkake, (!bIsVulNaked) as int)
+  bNakedReqSlaveBootsOID  = AddToggleOption("SlaveBoots",  bNakedReqSlaveBoots, 1)
+  bNakedReqHarnessOID     = AddToggleOption("Harness", bNakedReqHarness, (!bIsVulNaked) as int)
+  bNakedReqPiercedOID     = AddToggleOption("Piercings", bNakedReqPierced, (!bIsVulNaked) as int)
+  bNakedReqSlaveTattooOID = AddToggleOption("Slave Tattoos", bNakedReqSlaveTattoo)
+  bNakedReqSlutTattooOID  = AddToggleOption("Slut Tattoos", bNakedReqSlutTattoo)
+endFunction
+
+function ShowEnslavementPage(Bool bSecure)
+  AddHeaderOption("General enslavement options")
+  bGuardDialogueToggleOID       = AddToggleOption("Guard dialogue", bGuardDialogueToggle)
+  bEnslaveLockoutDCUROID        = AddToggleOption("Cursed loot Blocking item lock", bEnslaveLockoutDCUR, (!Mods.modLoadedCursedLoot) as int)
+  bEnslaveFollowerLockToggleOID = AddToggleOption("Nearby Follower Lock", bEnslaveFollowerLockToggle)
+
+  AddHeaderOption("Enslavement Toggle Local")
+  bMariaEnslaveToggleOID      = AddToggleOption("Maria local", bMariaEnslaveToggle, (!Mods.modLoadedMariaEden) as int)
+  bSlaverunEnslaveToggleOID   = AddToggleOption("Slaverun Enslavement", bSlaverunEnslaveToggle, (!(Mods.modLoadedSlaverun || Mods.modLoadedSlaverunR)) as int)
+  bSDEnslaveToggleOID         = AddToggleOption("SD+ local", bSDEnslaveToggle, (!Mods.modLoadedSD) as int)
+
+  AddHeaderOption("Enslavement Toggle Distance (Given)")
+  bWCDistanceToggleOID        = AddToggleOption("Wolfclub", bWCDistanceToggle, (!Mods.modLoadedWolfclub) as int)
+  bSDDistanceToggleOID        = AddToggleOption("SD+", bSDDistanceToggle, (!Mods.modLoadedSD) as int)
+  bDCPirateEnslaveToggleOID   = AddToggleOption("Devious Cidhna (Pirate)", bDCPirateEnslaveToggle, (!Mods.modLoadedDeviousCidhna) as int)
+  bMariaDistanceToggleOID     = AddToggleOption("Maria's Eden (regular)", bMariaDistanceToggle, (!Mods.modLoadedMariaEden) as int)
+
+  AddHeaderOption("Enslavement Toggle Distance (Sold)")
+  bCDEnslaveToggleOID         = AddToggleOption("Captured Dreams", bCDEnslaveToggle, (!Mods.modLoadedCD) as int)
+  bSSAuctionEnslaveToggleOID  = AddToggleOption("Simple Slavery auction", bSSAuctionEnslaveToggle, (!Mods.modLoadedSimpleSlavery) as int)
+  bMariaKhajitEnslaveToggleOID= AddToggleOption("Maria's Eden (sold to khajit)", bMariaKhajitEnslaveToggle, (!Mods.modLoadedMariaEden) as int)
+
+  AddheaderOption("Enslavement Quest Lock-out")
+  bEnslaveLockoutCLDollOID    = AddToggleOption("Cursed loot doll collar", bEnslaveLockoutCLDoll, (!Mods.modLoadedCursedLoot) as int)
+  bEnslaveLockoutTIROID       = AddToggleOption("Trapped in rubber suit", bEnslaveLockoutTIR, (!Mods.modLoadedTrappedInRubber) as int)
+  bEnslaveLockoutSDDreamOID   = AddToggleOption("SD+ Dreamworld", bEnslaveLockoutSDDream, (!Mods.modLoadedSD) as int)
+  bEnslaveLockoutSRROID       = AddToggleOption("Slaverun Reloaded", bEnslaveLockoutSRR, (!Mods.modLoadedSlaverunR) as int)
+  bEnslaveLockoutCDOID        = AddToggleOption("CD", bEnslaveLockoutCD, 1); (!Mods.modLoadedCD) as int)
+  bEnslaveLockoutMiasLairOID  = AddToggleOption("MiasLair", bEnslaveLockoutMiasLair, 1); (!Mods.modLoadedMiasLair) as int)
+  bEnslaveLockoutAngrimOID    = AddToggleOption("Angrim", bEnslaveLockoutAngrim, 1); (!Mods.modLoadedAngrim) as int)
+  bEnslaveLockoutFTDOID       = AddToggleOption("FTD", bEnslaveLockoutFTD, 1); (!Mods.modLoadedFromTheDeep) as int)
+
+  ; weight side
+  SetCursorPosition(1) ; switch sides
+
+  AddHeaderOption("Enslavement Conversation Weights(type)")
+  iEnslaveWeightLocalOID    = AddSliderOption("Local", iEnslaveWeightLocal);, !Mods.canRunLocal())
+  iEnslaveWeightGivenOID    = AddSliderOption("Given", iEnslaveWeightGiven)
+  iEnslaveWeightSoldOID     = AddSliderOption("Sold", iEnslaveWeightSold)
+
+  ; this is silly, we don't really need to drop them to zero if we check if the mod is loaded
+  AddHeaderOption("Enslavement Weights (local)")
+  iEnslaveWeightSDOID           = AddSliderOption("SD+ Weight", iEnslaveWeightSD, "{0}", (!Mods.modLoadedSD) as int)
+  iEnslaveWeightMariaOID        = AddSliderOption("Maria's Eden Weight", iEnslaveWeightMaria, "{0}", (!Mods.modLoadedMariaEden) as int)
+  iEnslaveWeightSlaverunOID     = AddSliderOption("Slaverun Weight", iEnslaveWeightSlaverun, "{0}",  (!(Mods.modLoadedSlaverun || Mods.modLoadedSlaverunR)) as int)
+
+  AddHeaderOption("Enslavement Weights(distance)")
+
+  iDistanceWeightCDOID            = AddSliderOption("CD Weight", iDistanceWeightCD, "{0}", (!Mods.modLoadedCD) as int)
+  iDistanceWeightMariaOID         = AddSliderOption("Maria Weight", iDistanceWeightMaria, "{0}", 1)
+  iDistanceWeightMariaKOID        = AddSliderOption("Maria (Kahjit) Weight", iDistanceWeightMariaK, "{0}", (!Mods.modLoadedMariaEden) as int)
+  iDistanceWeightSSOID            = AddSliderOption("Simple Slavery Weight", iDistanceWeightSS, "{0}", (!Mods.modLoadedSimpleSlavery) as int)
+  iDistanceWeightSDOID            = AddSliderOption("SD+ Weight", iDistanceWeightSD, "{0}", (!Mods.modLoadedSD) as int)
+  iDistanceWeightWCOID            = AddSliderOption("Wolfclub Weight", iDistanceWeightWC, "{0}", (!Mods.modLoadedWolfclub) as int)
+  iDistanceWeightDCPirateOID      = AddSliderOption("Devious Cidhna (pirate) Weight", iDistanceWeightDCPirate, "{0}", (!Mods.modLoadedDeviousCidhna) as int)
+  iDistanceWeightDCLDamselOID     = AddSliderOption("Cursed Loot damsel", iDistanceWeightDCLDamsel, "{0}", (!Mods.modLoadedCursedloot) as int)
+  iDistanceWeightDCLBondageAdvOID = AddSliderOption("Cursed loot Bondage Adv", iDistanceWeightDCLBondageAdv, "{0}", (!Mods.modLoadedCursedLoot) as int)
+  iDistanceWeightSlaverunRSoldOID = AddSliderOption("Slaverun reloaded (Sold)", iDistanceWeightSlaverunRSold, "{0}", (!Mods.modLoadedSlaverunR) as int)
+  iDistanceWeightSLUTSEnslaveOID  = AddSliderOption("SLUTS enslavement", iDistanceWeightSLUTSEnslave, "{0}", (!Mods.modLoadedSLUTS) as int)
+  iDistanceWeightIOMEnslaveOID    = AddSliderOption("Isle of mara enslavement", iDistanceWeightIOMEnslave, "{0}", (!Mods.modLoadedIsleofMara) as int)
+  iDistanceWeightDCLLeonOID       = AddSliderOption("Cursed loot Leon", iDistanceWeightDCLLeon, "{0}", (!Mods.modLoadedCursedLoot) as int)
+  iDistanceWeightDCVampireOID     = AddSliderOption("Devious Cidhna (Vampires) Weight", iDistanceWeightDCVampire, "{0}", (!Mods.modLoadedDeviousCidhna) as int)
+  iDistanceWeightDCBanditsOID     = AddSliderOption("Devious Cidhna (Bandits) Weight", iDistanceWeightDCBandits, "{0}", (!Mods.modLoadedDeviousCidhna) as int)
+endFunction
+
+function ShowFollowerDialoguePage(Bool bSecure)
+  ;UpdateFollowerPage()
+  ;SetCursorFillMode(TOP_TO_BOTTOM) ; probably not needed, since I never change it, assumption: mod scope
+                                    ; Not needed.  Set in OnPageReset().
+  ;SetCursorPosition(0) ; left side first
+  ;  AddHeaderOption("loading follower list ... " )
+
+  ; get array of nearby followers
+
+  SetCursorPosition(0) ; left side first
+  AddHeaderOption("General")
+  bFollowerDialogueToggleOID            = AddToggleOption("Follower dialogue", bFollowerDialogueToggle.GetValueInt(), 0)
+  bSecondBusyCheckWorkaroundOID         = AddToggleOption("Remembers if you shot them", bSecondBusyCheckWorkaround, 1)
+  AddEmptyOption() ; spacer
+
+  gForceGreetItemFindOID                = AddToggleOption("Follower Approaches Directly (Item found)", gForceGreetItemFind.GetValueInt())
+  bFollowerDungeonEnterRequiredOID      = AddToggleOption("Finding Item Requires Dungeon", bFollowerDungeonEnterRequired, 1);(!Mods.bFollowerDungeonEnterRequired) as int)
+  fFollowerFindMinContainersOID         = AddSliderOption("Minimum containers", fFollowerFindMinContainers, "{1}", 1);(!Mods.fFollowerFindMinContainers) as int)
+  fFollowerFindChanceMaxPercentageOID   = AddSliderOption("Max chance follower found an item", fFollowerFindChanceMaxPercentage, "{1}");(!Mods.fFollowerFindChanceMaxPercentage) as int)
+  iFollowerFindChanceMaxContainersOID   = AddSliderOption("Containers needed for Max", iFollowerFindChanceMaxContainers, "{0}");(!Mods.iFollowerFindChanceMaxContainers) as int)
+  fFollowerItemApproachExpOID           = AddSliderOption("Finding Item Curve Exponent", fFollowerItemApproachExp, "{1}");
+  AddEmptyOption() ; spacer
+
+  iFollowerMinVulnerableApproachableOID   = AddSliderOption("Vulnerable required for sex approach", iFollowerMinVulnerableApproachable, "{0}", 1);(!Mods.iFollowerMinVulnerableApproachable) as int)
+  iFollowerRelationshipLimitOID           = AddSliderOption("Non-Follower Relationship lower limit", iFollowerRelationshipLimit.GetValueInt(), "Level {0}")
+
+  gFollowerArousalMinOID                  = AddSliderOption("Follower Sex Arousal Min", gFollowerArousalMin.GetValueInt(), "{0}");(!Mods.gFollowerArousalMin) as int)
+  fFollowerSexApproachChanceMaxPercentageOID = AddSliderOption("Max Approach Chance", fFollowerSexApproachChanceMaxPercentage, "{0}");
+  fFollowerSexApproachExpOID              = AddSliderOption("Approach Curve Exponent", fFollowerSexApproachExp, "{1}");(
+  AddEmptyOption() ; spacer
+
+
+  SetCursorPosition(1) ; now for right-hand side
+
+  FormList followers = Mods.PreviousFollowers  ; old unreliable method
+  ;actor[] followers = new followers
+
+  actorNames = new string[15] ; don't remove it locks to 1 name
+  if followers != None
+    int size = followers.GetSize()
+    if size == 0
+      actorNames[0] == "<no follower>"
+    else
+      int i = 0
+      actor test_actor
+      while i < followers.GetSize()
+         test_actor = followers.GetAt(i) as Actor
+        if test_actor != None
+          actorNames[i] = test_actor.GetDisplayName()
+        ;else
+        ;  i += 100
+        endif
+        i += 1
+      endWhile
+    endif
+  else
+    ;Debug.Trace("[crde] mcm:followers is none")
+    return
+  endif
+  currentFollower = None
+  int f_size = followers.GetSize()
+  ;if followers == None ; assume can never be none, formlist
+  if f_size <=  lastChosenFollower
+    lastChosenFollower = 0 ; reset if the size changed
+  endif
+  if f_size >= 1
+    currentFollower = followers.GetAt(lastChosenFollower) as actor
+  endif
+  ;Debug.trace("[crde] mcm: followers count:" + f_size)
+
+  ;AddHeaderOption("Follower Select:")
+  ; list of followers
+
+  ;if (lastChosenFollower == 0 && actorNames.length == 0)
+  if (f_size <= 0)
+    aFollowerSelectOID  = AddMenuOption("Follower: <None>", 0)
+  else
+    aFollowerSelectOID  = AddMenuOption("Follower:", actorNames[lastChosenFollower], 0)
+  endif
+
+  AddEmptyOption() ; spacer
+
+  bAddFollowerManuallyOID = AddTextOption("Add Follower Manually", "Push Here")
+  ; get follower, if NONE
+  if currentFollower == None
+    AddEmptyOption() ; spacer
+    AddHeaderOption("No follower selected") ; used to be ,1
+
+    AddEmptyOption() ; spacer
+    AddTextOption("Followers need time to be added","")
+    AddTextOption("If you have a follower and they","")
+    AddTextOption("haven't shown up, exit the menu","")
+    AddTextOption("and wait ~30 seconds for DEC to find them","")
+
+  else
+    ; follower dom
+    ; follower sub
+    ; follower thinks player is...
+    AddHeaderOption("Name: " + currentFollower.GetDisplayName(), 0)
+    tFollowerteleportToPlayerOID  = AddTextOption("Teleport follower to player", "Push Here")
+    AddHeaderOption("Follower details: ",0)
+
+    fFollowerSpecEnjoysDomOID         = AddSliderOption("Follower Enjoys Being Dom", StorageUtil.GetFloatValue(currentFollower, "crdeFollEnjoysDom"), "{1}")
+    fFollowerSpecEnjoysSubOID         = AddSliderOption("Follower Enjoys Being Sub", StorageUtil.GetFloatValue(currentFollower, "crdeFollEnjoysSub") , "{1}")
+    fFollowerSpecThinksPlayerDomOID   = AddSliderOption("Follower Thinks Player Dom", StorageUtil.GetFloatValue(currentFollower, "crdeThinksPCEnjoysDom"), "{1}")
+    fFollowerSpecThinksPlayerSubOID   = AddSliderOption("Follower Thinks Player Sub", StorageUtil.GetFloatValue(currentFollower, "crdeThinksPCEnjoysSub"), "{1}")
+    fFollowerSpecContainersCountOID   = AddSliderOption("Followers containers discovered", StorageUtil.GetIntValue(currentFollower, "crdeFollContainersSearched"), "{1}")
+    fFollowerSpecFrustrationOID       = AddSliderOption("Followers level of Frustration", StorageUtil.GetFloatValue(currentFollower, "crdeFollowerFrustration"), "{1}")
+
+  endif
+  debug.trace("[crde] mcm: last follower:" + lastChosenFollower)
+endFunction
+
+function ShowIntimidationDefensePage(Bool bSecure)
+  AddHeaderOption("Confidence options")
+  bConfidenceToggleOID                  = AddToggleOption("Confidence Check", bConfidenceToggle)
+  iWeightConfidenceArousalOverrideOID   = AddSliderOption("Confidence Override Arousal", iWeightConfidenceArousalOverride, "{0}")
+
+  AddHeaderOption("Intimidate options")
+  bIntimidateToggleOID              = AddToggleOption("Intimidate", gIntimidateToggle.GetValueInt()) ; intimidation main toggle
+  bIntimidateWeaponFullToggleOID    = AddToggleOption("Intimidate Gag Block", bIntimidateGagFullToggle, 1)
+  bIntimidateWeaponFullToggleOID    = AddToggleOption("Intimidate Weapon Block", bIntimidateWeaponFullToggle, 1);
+  ; gag prevention
+  ; weapon protects 100% toggle
+
+  AddHeaderOption("Modifiers ")
+  ; more to come here later
+endFunction
+
+function ShowDebugSettingsPage(Bool bSecure)
+  AddHeaderOption("Workarounds")
+  bArousalFunctionWorkaroundOID         = AddToggleOption("Aroused function alternative", bArousalFunctionWorkaround)
+  bSecondBusyCheckWorkaroundOID         = AddToggleOption("Second busy check", bSecondBusyCheckWorkaround)
+  bIgnoreZazOnNPCOID                    = AddToggleOption("Ignore Zaz on NPC Slaves", bIgnoreZazOnNPC)
+  AddEmptyOption() ; spacer
+
+  AddHeaderOption("Debug Toggle")
+  bDebugModeOID                         = AddToggleOption("Debug Info Enable", bDebugMode)
+  bDebugConsoleModeOID                  = AddToggleOption("Debug In Console", bDebugConsoleMode )
+  gUnfinishedDialogueToggleOID          = AddToggleOption("Unfinished Dialogue", gUnfinishedDialogueToggle.GetValueInt() as bool )
+  bDebugLoudApproachFailOID             = AddToggleOption("Louder Approach Fail", bDebugLoudApproachFail )
+
+  AddHeaderOption("Debug visibility control")
+  bDebugRollVisOID                      = AddToggleOption("Rolling information/results", bDebugRollVis )
+  bDebugStateVisOID                     = AddToggleOption("State information", bDebugStateVis )
+  bDebugStatusVisOID                    = AddToggleOption("Status information", bDebugStatusVis )
+
+  SetCursorPosition(1) ; switch sides
+
+  AddHeaderOption("Useful Fixes/Debug Commands")
+  bResetDHLPOID                 = AddToggleOption("Reset/resume DHLP suspend and approach", bResetDHLP)
+  bRefreshSDMasterOID           = AddToggleOption("Refresh SD Masters", bRefreshSDMaster)
+  bRefreshModDetectOID          = AddToggleOption("Refresh detected mods", Mods.bRefreshModDetect)
+  bSetValidRaceOID              = AddToggleOption("Set Valid Race", bSetValidRace)
+  bPrintSexlabStatusOID         = AddToggleOption("Print Block/permit sexlab status", bPrintSexlabStatus)
+  bPrintVulnerabilityStatusOID  = AddToggleOption("Print vulnerability status", bPrintVulnerabilityStatus)
+  bTestTattoosOID               = AddToggleOption("Tattoo test", bTestTattoos)
+  bTestTimeTestOID              = AddToggleOption("Component time test", bTestTimeTest)
+  ;AddEmptyOption()
+
+  AddHeaderOption("building/testing, not meant for regular use")
+  bAbductionTestOID         = AddToggleOption("Pony Button", bAbductionTest);, (!Mods.modLoadedMariaEden) as int)
+  bInitTestOID              = AddToggleOption("SD Dream test", bInitTest, (!Mods.modLoadedSD) as int)
+  bTestButton1OID           = AddToggleOption("Remove Broken Item Test", bTestButton1)
+  bTestButton2OID           = AddToggleOption("Broken DDi NPC reset test", bTestButton2)
+  bTestButton3OID           = AddToggleOption("DD Key check", bTestButton3);, (!Mods.modLoadedSlaveTats) as int)
+  bTestButton4OID           = AddToggleOption("Bed teleport test", bTestButton4, (!Mods.modLoadedCursedLoot) as int)
+  bTestButton5OID           = AddToggleOption("Add Item test", bTestButton5);, (!Mods.modLoadedIsleofMara) as int)
+  bCDTestOID                = AddToggleOption("CD item test", bCDTest, (!Mods.modLoadedSlaverunR) as int)
+  bTestButton6OID           = AddToggleOption("SD distant start", bTestButton6, (!Mods.modLoadedSD) as int)
+  bTestButton7OID           = AddToggleOption("Temporary test", bTestButton7);, (!Mods.modLoadedPrisonOverhaulPatch) as int)
+endFunction
+
+function ShowDfwCompatibilityPage(Bool bSecure)
+  int iFlags = OPTION_FLAG_NONE
+  If (bSecure)
+    iFlags = OPTION_FLAG_DISABLED
+  EndIf
+
+  AddHeaderOption("Devious Framework (DFW) Compatibility")
+  AddToggleOptionST("ST_DFW_PREFER",    "Prefer DFW Behaviour",          bPreferDfw)
+  AddSliderOptionST("ST_DFW_SECURE",    "Security Level",                iSettingSecurity,         a_flags=iFlags)
+  AddSliderOptionST("ST_DFW_PER_VUL",   "Percent Modify Vulnerability",  iPercentDfwVulnerability, a_flags=iFlags)
+  AddEmptyOption()
+
+  AddHeaderOption("Vulnerability Requirements")
+  AddSliderOptionST("ST_DFW_MIN_SEX",   "Minimum Vulnerability Sex",     iMinVulnerabilitySex,     a_flags=iFlags)
+  AddSliderOptionST("ST_DFW_MIN_ENSL",  "Minimum Vulnerability Enslave", iMinVulnerabilityEnslave, a_flags=iFlags)
+  AddSliderOptionST("ST_DFW_PERC_SEX",  "Percent Vulnerability Sex",     iPercentVulnerabilitySex,     a_flags=iFlags)
+  AddSliderOptionST("ST_DFW_PERC_ENSL", "Percent Vulnerability Enslave", iPercentVulnerabilityEnslave, a_flags=iFlags)
+  AddEmptyOption()
+
+  SetCursorPosition(1) ; switch sides
+
+  AddHeaderOption("Behaviour Changes")
+  AddSliderOptionST("ST_SEX_CHANCE_ENSLAVED", "Sex Reduction When Enslaved", iPercentSexWhenEnslaved, a_flags=iFlags)
+endFunction
+
+
+;***********************************************************************************************
+;***                                   OID OPTION HANDLING                                   ***
+;***********************************************************************************************
 ; @implements SKI_ConfigBase
 event OnOptionSelect(int a_option)
   {Called when the user selects a non-dialog option}
-  
+
   if (a_option == gCRDEEnableOID)
     bool new_value = gCRDEEnable.GetValueInt() == 0
     gCRDEEnable.SetValueInt( new_value as int)
@@ -746,7 +903,7 @@ event OnOptionSelect(int a_option)
   elseIf (a_option == bIsNonChestArmorIgnoredNakedOID) ;bIsNonChestArmorIgnoredNaked
     bIsNonChestArmorIgnoredNaked = !bIsNonChestArmorIgnoredNaked
     SetToggleOptionValue(a_option, bIsNonChestArmorIgnoredNaked)
-  elseif a_option == bHookAnySexlabEventOID 
+  elseif a_option == bHookAnySexlabEventOID
     bHookAnySexlabEvent = !bHookAnySexlabEvent
     SetToggleOptionValue(a_option, bHookAnySexlabEvent)
   elseif a_option == bHookReqVictimStatusOID ;bFxFAlwaysAggressive
@@ -755,7 +912,7 @@ event OnOptionSelect(int a_option)
   elseif a_option == bFxFAlwaysAggressiveOID ;bFxFAlwaysAggressive
     bFxFAlwaysAggressive = !bFxFAlwaysAggressive
     SetToggleOptionValue(a_option, bFxFAlwaysAggressive)
-   
+
   elseIf (a_option == bDebugModeOID)
     bDebugMode = !bDebugMode
     SetToggleOptionValue(a_option, bDebugMode)
@@ -765,7 +922,7 @@ event OnOptionSelect(int a_option)
   elseif (a_option == bChastityToggleOID)
     bChastityToggle = !bChastityToggle
     SetToggleOptionValue(a_option, bChastityToggle)
-  
+
   elseif (a_option == bChastityGagOID)
     bChastityGag = ! bChastityGag
     SetToggleOptionValue(a_option, bChastityGag)
@@ -778,7 +935,7 @@ event OnOptionSelect(int a_option)
   elseif (a_option == bChastityZazGagOID)
     bChastityZazGag = ! bChastityZazGag
     SetToggleOptionValue(a_option, bChastityZazGag)
-    
+
   elseif (a_option == bVulnerableGagOID)
     bVulnerableGag = ! bVulnerableGag
     SetToggleOptionValue(a_option, bVulnerableGag)
@@ -793,17 +950,17 @@ event OnOptionSelect(int a_option)
     SetToggleOptionValue(a_option, bVulnerableBlindfold)
   elseif (a_option == bVulnerableLOSOID)
     bVulnerableLOS = ! bVulnerableLOS
-    SetToggleOptionValue(a_option, bConfidenceToggleOID) 
+    SetToggleOptionValue(a_option, bConfidenceToggleOID)
   elseif (a_option == bConfidenceToggleOID)
     bConfidenceToggle = ! bConfidenceToggle
-    SetToggleOptionValue(a_option, bConfidenceToggle) 
+    SetToggleOptionValue(a_option, bConfidenceToggle)
   elseif (a_option == bFollowerDialogueToggleOID)
     ;bFollowerDialogueToggle = ! bFollowerDialogueToggle
     bFollowerDialogueToggle.SetValueInt( ( bFollowerDialogueToggle.GetValueInt() == 0) as int )
     SetToggleOptionValue(a_option, bFollowerDialogueToggle.GetValueInt())
   elseif (a_option == bVulnerableFurnitureOID)
     bVulnerableFurniture = ! bVulnerableFurniture
-    SetToggleOptionValue(a_option, bVulnerableFurniture) ; 
+    SetToggleOptionValue(a_option, bVulnerableFurniture) ;
   elseif (a_option == bVulnerableBukkakeOID)
     bVulnerableBukkake = ! bVulnerableBukkake
     SetToggleOptionValue(a_option, bVulnerableBukkake)
@@ -818,7 +975,7 @@ event OnOptionSelect(int a_option)
     SetToggleOptionValue(a_option, bVulnerablePierced)
   elseif (a_option == bVulnerableSlaveTattooOID)
     bVulnerableSlaveTattoo = ! bVulnerableSlaveTattoo
-    SetToggleOptionValue(a_option, bVulnerableSlaveTattoo)  
+    SetToggleOptionValue(a_option, bVulnerableSlaveTattoo)
   elseif (a_option == bVulnerableSlutTattooOID)
     bVulnerableSlutTattoo = ! bVulnerableSlutTattoo
     SetToggleOptionValue(a_option, bVulnerableSlutTattoo)
@@ -850,18 +1007,18 @@ event OnOptionSelect(int a_option)
     SetToggleOptionValue(a_option, bNakedReqPierced)
   elseif (a_option == bNakedReqSlaveTattooOID)
     bNakedReqSlaveTattoo = ! bNakedReqSlaveTattoo
-    SetToggleOptionValue(a_option, bNakedReqSlaveTattoo)  
+    SetToggleOptionValue(a_option, bNakedReqSlaveTattoo)
   elseif (a_option == bNakedReqSlutTattooOID)
     bNakedReqSlutTattoo = ! bNakedReqSlutTattoo
     SetToggleOptionValue(a_option, bNakedReqSlutTattoo)
   elseif (a_option == bAttackersGuardsOID)
     bAttackersGuards = ! bAttackersGuards
-    SetToggleOptionValue(a_option, bAttackersGuards) ; 
+    SetToggleOptionValue(a_option, bAttackersGuards) ;
   elseif (a_option == bEnslaveFollowerLockToggleOID)
     bEnslaveFollowerLockToggle = ! bEnslaveFollowerLockToggle
     SetToggleOptionValue(a_option, bEnslaveFollowerLockToggle)
 
-    
+
   elseif (a_option == bSDEnslaveToggleOID)
     bSDEnslaveToggle = ! bSDEnslaveToggle
     SetToggleOptionValue(a_option, bSDEnslaveToggle)
@@ -877,11 +1034,11 @@ event OnOptionSelect(int a_option)
   elseif (a_option == bSSAuctionEnslaveToggleOID); long distance stuff too
     bSSAuctionEnslaveToggle = ! bSSAuctionEnslaveToggle
     SetToggleOptionValue(a_option, bSSAuctionEnslaveToggle)
-  ;elseif (a_option == bCDEnslaveToggleOID) 
+  ;elseif (a_option == bCDEnslaveToggleOID)
   ;  bCDEnslaveToggle = ! bCDEnslaveToggle
   ;  SetToggleOptionValue(a_option, bCDEnslaveToggle)
   elseif (a_option == bMariaKhajitEnslaveToggleOID )
-    bMariaKhajitEnslaveToggle = ! bMariaKhajitEnslaveToggle 
+    bMariaKhajitEnslaveToggle = ! bMariaKhajitEnslaveToggle
     SetToggleOptionValue(a_option, bMariaKhajitEnslaveToggle )
 
 ; distance enslave toggle
@@ -905,11 +1062,11 @@ event OnOptionSelect(int a_option)
   elseif (a_option == bEnslaveLockoutSRROID)
     bEnslaveLockoutSRR = ! bEnslaveLockoutSRR
     SetToggleOptionValue(a_option, bEnslaveLockoutSRR)
-    
+
   elseif (a_option == bEnslaveLockoutTIROID)
     bEnslaveLockoutTIR = ! bEnslaveLockoutTIR
     SetToggleOptionValue(a_option, bEnslaveLockoutTIR)
-  elseif (a_option == bEnslaveLockoutCDOID) 
+  elseif (a_option == bEnslaveLockoutCDOID)
     bEnslaveLockoutCD = ! bEnslaveLockoutCD
     SetToggleOptionValue(a_option, bEnslaveLockoutCD)
   elseif (a_option == bEnslaveLockoutSDDreamOID) ;bEnslaveLockoutSDDream
@@ -926,14 +1083,14 @@ event OnOptionSelect(int a_option)
     SetToggleOptionValue(a_option, bEnslaveLockoutFTD)
 
   elseif (a_option == bGuardDialogueToggleOID)
-    bGuardDialogueToggle = (gGuardDialogueToggle.GetValueInt() == 0) 
+    bGuardDialogueToggle = (gGuardDialogueToggle.GetValueInt() == 0)
     gGuardDialogueToggle.SetValueInt( bGuardDialogueToggle as int ) ; expr: 0->1(true) 1->0(false)
     SetToggleOptionValue(a_option, bGuardDialogueToggle)
-  ;bEnslaveLockoutDCUROID  
+  ;bEnslaveLockoutDCUROID
   elseif (a_option == bEnslaveLockoutDCUROID)
     bEnslaveLockoutDCUR = ! bEnslaveLockoutDCUR
     SetToggleOptionValue(a_option, bEnslaveLockoutDCUR)
-  
+
   elseif (a_option == bIntimidateToggleOID); long distance stuff too
     bIntimidateToggle = (gIntimidateToggle.GetValueInt() == 0)
     gIntimidateToggle.SetValueInt( bIntimidateToggle as int) ; expr: 0->1(true) 1->0(false)
@@ -944,20 +1101,20 @@ event OnOptionSelect(int a_option)
   elseif (a_option == bIntimidateWeaponFullToggleOID); long distance stuff too
     bIntimidateWeaponFullToggle = ! bIntimidateWeaponFullToggle
     SetToggleOptionValue(a_option, bIntimidateWeaponFullToggle)
-  
+
   ; tests
   elseif (a_option == bPrintSexlabStatusOID)
     bPrintSexlabStatus = ! bPrintSexlabStatus
     SetToggleOptionValue(a_option, bPrintSexlabStatus)
   elseif (a_option == bPrintVulnerabilityStatusOID)
     bPrintVulnerabilityStatus = ! bPrintVulnerabilityStatus
-    if bPrintVulnerabilityStatus 
+    if bPrintVulnerabilityStatus
       Debug.MessageBox("This feature is unmaintained, but still may be useful. You have to leave the menu and sit still for it to work.")
     endif
     SetToggleOptionValue(a_option, bPrintVulnerabilityStatus)
   elseif (a_option == bResetDHLPOID)
     bResetDHLP = ! bResetDHLP
-    if bResetDHLP 
+    if bResetDHLP
       ;Debug.MessageBox("DEC Approach is reset, leave this button on for it to reset one cycle after being approached (use: testing)")
       Mods.PlayMonScript.resetDHLPSuspend()
     endif
@@ -966,7 +1123,7 @@ event OnOptionSelect(int a_option)
     bRefreshSDMaster = ! bRefreshSDMaster
     ;SetToggleOptionValue(a_option, bRefreshSDMaster)
     Mods.PlayMonScript.refreshSDMaster()
-    
+
   elseif a_option == bRefreshModDetectOID
     Mods.bRefreshModDetect = ! Mods.bRefreshModDetect
     SetToggleOptionValue(a_option, Mods.bRefreshModDetect)
@@ -974,21 +1131,21 @@ event OnOptionSelect(int a_option)
 
   elseif a_option == bSetValidRaceOID
     ;bSetValidRace = ! bSetValidRace
-    ;if Mods.bRefreshModDetect 
+    ;if Mods.bRefreshModDetect
     ;  Debug.MessageBox("Exit the menu and wait next to the NPC you want to set valid race for.")
     ;endif
     Mods.PlayMonScript.appointValidRace()
     SetToggleOptionValue(a_option, bSetValidRace)
-  elseif a_option == bTestTattoosOID 
+  elseif a_option == bTestTattoosOID
     bTestTattoos = ! bTestTattoos
-    SetToggleOptionValue(a_option, bTestTattoos)  
+    SetToggleOptionValue(a_option, bTestTattoos)
   elseif a_option == bTestTimeTestOID
     bTestTimeTest = ! bTestTimeTest
     SetToggleOptionValue(a_option, bTestTimeTest)
   elseif (a_option == bAbductionTestOID)
     bAbductionTest = ! bAbductionTest
-    SetToggleOptionValue(a_option, bAbductionTest)  
-  
+    SetToggleOptionValue(a_option, bAbductionTest)
+
   ;debug
   elseif a_option == bArousalFunctionWorkaroundOID
     bArousalFunctionWorkaround = ! bArousalFunctionWorkaround
@@ -1002,12 +1159,12 @@ event OnOptionSelect(int a_option)
   elseif a_option == bIgnoreZazOnNPCOID ;bIgnoreZazOnNPCOID
     bIgnoreZazOnNPC = ! bIgnoreZazOnNPC
     SetToggleOptionValue(a_option, bIgnoreZazOnNPC)
-  
+
   elseif a_option == gUnfinishedDialogueToggleOID
     ;gUnfinishedDialogueToggle = ! gUnfinishedDialogueToggle
     gUnfinishedDialogueToggle.SetValueInt((gUnfinishedDialogueToggle.GetValueInt() == 0) as int) ; toggle based on == equivilence
     SetToggleOptionValue(a_option, gUnfinishedDialogueToggle.GetValueInt() as bool)
-    
+
   elseif (a_option == bDebugLoudApproachFailOID); long distance stuff too
     bDebugLoudApproachFail = ! bDebugLoudApproachFail
     SetToggleOptionValue(a_option, bDebugLoudApproachFail)
@@ -1046,15 +1203,14 @@ event OnOptionSelect(int a_option)
     SetToggleOptionValue(a_option, bTestButton6)
   elseif (a_option == bTestButton7OID); long distance stuff too
     bTestButton7 = ! bTestButton7
-    
+
     SetToggleOptionValue(a_option, bTestButton7)
 
   elseif (a_option == bNightAddsToVulnerableOID)
     bNightAddsToVulnerable = ! bNightAddsToVulnerable
     SetToggleOptionValue(a_option, bNightAddsToVulnerable)
 
-
-  elseif a_option == gForceGreetItemFindOID 
+  elseif a_option == gForceGreetItemFindOID
     gForceGreetItemFind.SetValueInt( (gForceGreetItemFind.GetValueInt() == 0) as int )
     SetToggleOptionValue(a_option, gForceGreetItemFind.GetValueInt() as bool)
   elseif a_option == bFollowerDungeonEnterRequiredOID
@@ -1067,12 +1223,12 @@ event OnOptionSelect(int a_option)
   elseif a_option == bSDGeneralLockoutOID
     bSDGeneralLockout = ! bSDGeneralLockout
     SetToggleOptionValue(a_option, bSDGeneralLockout)
-    
+
   elseif a_option == tFollowerteleportToPlayerOID
     currentFollower.MoveTo(Mods.player)
-  elseif a_option == bAddFollowerManuallyOID  
+  elseif a_option == bAddFollowerManuallyOID
     ;bAddFollowerManually = ! bAddFollowerManually
-    ;if bAddFollowerManually 
+    ;if bAddFollowerManually
     ;  Debug.MessageBox("Exit the menu and wait next to the NPC you swant to add to your followers list.")
     ;endif
     Mods.PlayMonScript.addPermanentFollower()
@@ -1083,7 +1239,7 @@ event OnOptionSelect(int a_option)
   ;elseif (a_option == dddOID); long distance stuff too
     ;ddd = ! ddd
     ;SetToggleOptionValue(a_option, ddd)
-  
+
 endEvent
 
 
@@ -1097,7 +1253,7 @@ event OnOptionSliderOpen(int a_option)
     SetSliderDialogRange(1, 60)
     SetSliderDialogInterval(1)
   elseif (a_option == fEventTimeoutOID)
-    SetSliderDialogStartValue(fEventTimeoutHours);fEventTimeout * 24)
+    SetSliderDialogStartValue((fEventTimeout * 24) as int)
     ;SetSliderDialogDefaultValue(10)
     SetSliderDialogRange(0, 96)
     SetSliderDialogInterval(0.5)
@@ -1171,18 +1327,18 @@ event OnOptionSliderOpen(int a_option)
     SetSliderDialogDefaultValue(8)
     SetSliderDialogRange(0, 100)
     SetSliderDialogInterval(1)
-    
+
   elseif (a_option == iSearchRangeOID)
     SetSliderDialogStartValue(gSearchRange.GetValueInt())
     SetSliderDialogDefaultValue(4096)
     SetSliderDialogRange(64, 32768)
     SetSliderDialogInterval(64)
-    
+
   elseif (a_option == iApproachDurationOID)
     SetSliderDialogStartValue(iApproachDuration)
     SetSliderDialogDefaultValue(30)
     SetSliderDialogRange(5, 600)
-    SetSliderDialogInterval(5)  
+    SetSliderDialogInterval(5)
   elseif (a_option == iNPCSearchCountOID)
     SetSliderDialogStartValue(iNPCSearchCount)
     SetSliderDialogDefaultValue(6)
@@ -1217,36 +1373,36 @@ event OnOptionSliderOpen(int a_option)
     SetSliderDialogDefaultValue(2)
     SetSliderDialogRange(-3, 4)
     SetSliderDialogInterval(1)
-  
+
   elseif a_option == iWeightConfidenceArousalOverrideOID
-		SetSliderDialogStartValue(iWeightConfidenceArousalOverride)
+    SetSliderDialogStartValue(iWeightConfidenceArousalOverride)
     SetSliderDialogRange(0, 150)
     SetSliderDialogInterval( 1 )
   elseif a_option == iReqLevelSLSFExhibIncreaseVulnerableOID
-		SetSliderDialogStartValue(iReqLevelSLSFExhibIncreaseVulnerable)
+    SetSliderDialogStartValue(iReqLevelSLSFExhibIncreaseVulnerable)
     SetSliderDialogRange(0, 150)
     SetSliderDialogInterval( 1 )
   elseif a_option == iReqLevelSLSFExhibMakeVulnerableOID
-		SetSliderDialogStartValue(iReqLevelSLSFExhibMakeVulnerable)
+    SetSliderDialogStartValue(iReqLevelSLSFExhibMakeVulnerable)
     SetSliderDialogRange(0, 150)
     SetSliderDialogInterval( 1 )
   elseif a_option == iReqLevelSLSFSlutIncreaseVulnerableOID
-		SetSliderDialogStartValue(iReqLevelSLSFSlutIncreaseVulnerable)
+    SetSliderDialogStartValue(iReqLevelSLSFSlutIncreaseVulnerable)
     SetSliderDialogRange(0, 150)
     SetSliderDialogInterval( 1 )
   elseif a_option == iReqLevelSLSFSlutMakeVulnerableOID
-		SetSliderDialogStartValue(iReqLevelSLSFSlutMakeVulnerable)
+    SetSliderDialogStartValue(iReqLevelSLSFSlutMakeVulnerable)
     SetSliderDialogRange(0, 150)
     SetSliderDialogInterval( 1 )
   elseif a_option == iReqLevelSLSFSlaveIncreaseVulnerableOID
-		SetSliderDialogStartValue(iReqLevelSLSFSlaveIncreaseVulnerable)
+    SetSliderDialogStartValue(iReqLevelSLSFSlaveIncreaseVulnerable)
     SetSliderDialogRange(0, 150)
     SetSliderDialogInterval( 1 )
   elseif a_option == iReqLevelSLSFSlaveMakeVulnerableOID
-		SetSliderDialogStartValue(iReqLevelSLSFSlaveMakeVulnerable)
+    SetSliderDialogStartValue(iReqLevelSLSFSlaveMakeVulnerable)
     SetSliderDialogRange(0, 150)
     SetSliderDialogInterval( 1 )
-  
+
   elseif (a_option == fModifierSlaverChancesOID)
     SetSliderDialogStartValue(fModifierSlaverChances)
     SetSliderDialogDefaultValue(3.0)
@@ -1262,7 +1418,7 @@ event OnOptionSliderOpen(int a_option)
     SetSliderDialogDefaultValue(2.0)
     SetSliderDialogRange(0.1, 15.0)
     SetSliderDialogInterval( 0.1 )
-    
+
   elseif (a_option == iEnslaveWeightSDOID)
     SetSliderDialogStartValue(iEnslaveWeightSD)
     SetSliderDialogDefaultValue(55)
@@ -1303,7 +1459,7 @@ event OnOptionSliderOpen(int a_option)
   elseif (a_option == iDistanceWeightCDOID)
     SetSliderDialogStartValue(iDistanceWeightCD)
     SetSliderDialogRange(0, 150)
-    SetSliderDialogInterval( 1 ) 
+    SetSliderDialogInterval( 1 )
   elseif (a_option == iDistanceWeightSSOID)
     SetSliderDialogStartValue(iDistanceWeightSS)
     SetSliderDialogRange(0, 150)
@@ -1316,7 +1472,7 @@ event OnOptionSliderOpen(int a_option)
     SetSliderDialogStartValue(iDistanceWeightDCPirate)
     SetSliderDialogRange(0, 150)
     SetSliderDialogInterval( 1 )
-    
+
   elseif (a_option == iDistanceWeightDCLDamselOID)
     SetSliderDialogStartValue(iDistanceWeightDCLDamsel)
     SetSliderDialogRange(0, 150)
@@ -1341,18 +1497,18 @@ event OnOptionSliderOpen(int a_option)
     SetSliderDialogStartValue(iDistanceWeightDCLLeon)
     SetSliderDialogRange(0, 150)
     SetSliderDialogInterval( 1 )
-    
+
   elseif a_option == iDistanceWeightDCVampireOID
-		SetSliderDialogStartValue(iDistanceWeightDCVampire)
+    SetSliderDialogStartValue(iDistanceWeightDCVampire)
     SetSliderDialogDefaultValue(0)
     SetSliderDialogRange(0, 150)
     SetSliderDialogInterval( 1 )
   elseif a_option == iDistanceWeightDCBanditsOID
-		SetSliderDialogStartValue(iDistanceWeightDCBandits)
+    SetSliderDialogStartValue(iDistanceWeightDCBandits)
     SetSliderDialogDefaultValue(0)
     SetSliderDialogRange(0, 150)
-    SetSliderDialogInterval( 1 ) 
-    
+    SetSliderDialogInterval( 1 )
+
   elseif (a_option == iEnslaveWeightLocalOID)
     SetSliderDialogStartValue(iEnslaveWeightLocal)
     SetSliderDialogDefaultValue(25)
@@ -1370,403 +1526,398 @@ event OnOptionSliderOpen(int a_option)
     SetSliderDialogInterval( 1 )
 
   elseif a_option == iWeightSingleCollarOID
-		SetSliderDialogStartValue(iWeightSingleCollar)
+    SetSliderDialogStartValue(iWeightSingleCollar)
     SetSliderDialogRange(0, 150)
     SetSliderDialogInterval( 1 )
   elseif a_option == iWeightSingleGagOID
-		SetSliderDialogStartValue(iWeightSingleGag)
+    SetSliderDialogStartValue(iWeightSingleGag)
     SetSliderDialogRange(0, 150)
     SetSliderDialogInterval( 1 )
   elseif a_option == iWeightSingleArmbinderOID
-		SetSliderDialogStartValue(iWeightSingleArmbinder)
+    SetSliderDialogStartValue(iWeightSingleArmbinder)
     SetSliderDialogRange(0, 150)
     SetSliderDialogInterval( 1 )
   elseif a_option == iWeightSingleCuffsOID
-		SetSliderDialogStartValue(iWeightSingleCuffs)
+    SetSliderDialogStartValue(iWeightSingleCuffs)
     SetSliderDialogRange(0, 150)
     SetSliderDialogInterval( 1 )
   elseif a_option == iWeightSingleBlindfoldOID
-		SetSliderDialogStartValue(iWeightSingleBlindfold)
+    SetSliderDialogStartValue(iWeightSingleBlindfold)
     SetSliderDialogRange(0, 150)
     SetSliderDialogInterval( 1 )
   elseif a_option == iWeightSingleHarnessOID
-		SetSliderDialogStartValue(iWeightSingleHarness)
+    SetSliderDialogStartValue(iWeightSingleHarness)
     SetSliderDialogRange(0, 150)
     SetSliderDialogInterval( 1 )
   elseif a_option == iWeightSingleBeltOID
-		SetSliderDialogStartValue(iWeightSingleBelt)
+    SetSliderDialogStartValue(iWeightSingleBelt)
     SetSliderDialogRange(0, 150)
     SetSliderDialogInterval( 1 )
   elseif a_option == iWeightSingleGlovesBootsOID
-		SetSliderDialogStartValue(iWeightSingleGlovesBoots)
+    SetSliderDialogStartValue(iWeightSingleGlovesBoots)
     SetSliderDialogRange(0, 150)
     SetSliderDialogInterval( 1 )
   elseif a_option == iWeightSingleYokeOID
-		SetSliderDialogStartValue(iWeightSingleYoke)
+    SetSliderDialogStartValue(iWeightSingleYoke)
     SetSliderDialogRange(0, 150)
     SetSliderDialogInterval( 1 )
   elseif a_option == iWeightPiercingsOID
-		SetSliderDialogStartValue(iWeightPiercings)
+    SetSliderDialogStartValue(iWeightPiercings)
     SetSliderDialogRange(0, 150)
     SetSliderDialogInterval( 1 )
   elseif a_option == iWeightPlugsOID
-		SetSliderDialogStartValue(iWeightPlugs)
+    SetSliderDialogStartValue(iWeightPlugs)
     SetSliderDialogRange(0, 150)
     SetSliderDialogInterval( 1 )
   elseif a_option == iWeightEboniteRegularOID
-		SetSliderDialogStartValue(iWeightEboniteRegular)
+    SetSliderDialogStartValue(iWeightEboniteRegular)
     SetSliderDialogRange(0, 150)
     SetSliderDialogInterval( 1 )
   elseif a_option == iWeightEboniteRedOID
-		SetSliderDialogStartValue(iWeightEboniteRed)
+    SetSliderDialogStartValue(iWeightEboniteRed)
     SetSliderDialogRange(0, 150)
     SetSliderDialogInterval( 1 )
   elseif a_option == iWeightEboniteWhiteOID
-		SetSliderDialogStartValue(iWeightEboniteWhite)
+    SetSliderDialogStartValue(iWeightEboniteWhite)
     SetSliderDialogRange(0, 150)
     SetSliderDialogInterval( 1 )
   elseif a_option == iWeightZazMetalBrownOID
-		SetSliderDialogStartValue(iWeightZazMetalBrown)
+    SetSliderDialogStartValue(iWeightZazMetalBrown)
     SetSliderDialogRange(0, 150)
     SetSliderDialogInterval( 1 )
   elseif a_option == iWeightZazMetalBlackOID
-		SetSliderDialogStartValue(iWeightZazMetalBlack)
+    SetSliderDialogStartValue(iWeightZazMetalBlack)
     SetSliderDialogRange(0, 150)
     SetSliderDialogInterval( 1 )
   elseif a_option == iWeightZazLeatherOID
-		SetSliderDialogStartValue(iWeightZazLeather)
+    SetSliderDialogStartValue(iWeightZazLeather)
     SetSliderDialogRange(0, 150)
     SetSliderDialogInterval( 1 )
   elseif a_option == iWeightZazRopeOID
-		SetSliderDialogStartValue(iWeightZazRope)
+    SetSliderDialogStartValue(iWeightZazRope)
     SetSliderDialogRange(0, 150)
     SetSliderDialogInterval( 1 )
   elseif a_option == iWeightCDGoldOID
-		SetSliderDialogStartValue(iWeightCDGold)
+    SetSliderDialogStartValue(iWeightCDGold)
     SetSliderDialogRange(0, 150)
     SetSliderDialogInterval( 1 )
   elseif a_option == iWeightCDSilverOID
-		SetSliderDialogStartValue(iWeightCDSilver)
+    SetSliderDialogStartValue(iWeightCDSilver)
     SetSliderDialogRange(0, 150)
     SetSliderDialogInterval( 1 )
   elseif a_option == iWeightDDRegularOID
-		SetSliderDialogStartValue(iWeightDDRegular)
+    SetSliderDialogStartValue(iWeightDDRegular)
     SetSliderDialogRange(0, 150)
     SetSliderDialogInterval( 1 )
   elseif a_option == iWeightDDZazVelOID
-		SetSliderDialogStartValue(iWeightDDZazVel)
+    SetSliderDialogStartValue(iWeightDDZazVel)
     SetSliderDialogRange(0, 150)
     SetSliderDialogInterval( 1 )
   elseif a_option == iWeightZazRegOID
-		SetSliderDialogStartValue(iWeightZazReg)
+    SetSliderDialogStartValue(iWeightZazReg)
     SetSliderDialogRange(0, 150)
     SetSliderDialogInterval( 1 )
   elseif a_option == iWeightMultiPonyOID
-		SetSliderDialogStartValue(iWeightMultiPony)
+    SetSliderDialogStartValue(iWeightMultiPony)
     SetSliderDialogRange(0, 150)
     SetSliderDialogInterval( 1 )
   elseif a_option == iWeightMultiRedBNCOID
-		SetSliderDialogStartValue(iWeightMultiRedBNC)
+    SetSliderDialogStartValue(iWeightMultiRedBNC)
     SetSliderDialogRange(0, 150)
     SetSliderDialogInterval( 1 )
   elseif a_option == iWeightMultiSeveralOID
-		SetSliderDialogStartValue(iWeightMultiSeveral)
+    SetSliderDialogStartValue(iWeightMultiSeveral)
     SetSliderDialogRange(0, 150)
     SetSliderDialogInterval( 1 )
   elseif a_option == iWeightMultiTransparentOID
-		SetSliderDialogStartValue(iWeightMultiTransparent)
+    SetSliderDialogStartValue(iWeightMultiTransparent)
     SetSliderDialogRange(0, 150)
     SetSliderDialogInterval( 1 )
   elseif a_option == iWeightMultiRubberOID
-		SetSliderDialogStartValue(iWeightMultiRubber)
+    SetSliderDialogStartValue(iWeightMultiRubber)
     SetSliderDialogRange(0, 150)
     SetSliderDialogInterval( 1 )
   elseif a_option == iWeightPiercingsSoulGemOID
-		SetSliderDialogStartValue(iWeightPiercingsSoulGem)
+    SetSliderDialogStartValue(iWeightPiercingsSoulGem)
     SetSliderDialogRange(0, 150)
     SetSliderDialogInterval( 1 )
   elseif a_option == iWeightPiercingsShockOID
-		SetSliderDialogStartValue(iWeightPiercingsShock)
-    
+    SetSliderDialogStartValue(iWeightPiercingsShock)
+
     SetSliderDialogRange(0, 150)
     SetSliderDialogInterval( 1 )
   elseif a_option == iWeightPlugSoulGemOID
-		SetSliderDialogStartValue(iWeightPlugSoulGem)
+    SetSliderDialogStartValue(iWeightPlugSoulGem)
     SetSliderDialogRange(0, 150)
     SetSliderDialogInterval( 1 )
   elseif a_option == iWeightPlugWoodOID
-		SetSliderDialogStartValue(iWeightPlugWood)
+    SetSliderDialogStartValue(iWeightPlugWood)
     SetSliderDialogRange(0, 150)
     SetSliderDialogInterval( 1 )
   elseif a_option == iWeightPlugInflatableOID
-		SetSliderDialogStartValue(iWeightPlugInflatable)
+    SetSliderDialogStartValue(iWeightPlugInflatable)
     SetSliderDialogRange(0, 150)
     SetSliderDialogInterval( 1 )
   elseif a_option == iWeightPlugTrainingOID
-		SetSliderDialogStartValue(iWeightPlugTraining)
+    SetSliderDialogStartValue(iWeightPlugTraining)
     SetSliderDialogRange(0, 150)
     SetSliderDialogInterval( 1 )
   elseif a_option == iWeightPlugCDClassOID
-		SetSliderDialogStartValue(iWeightPlugCDSpecial)
+    SetSliderDialogStartValue(iWeightPlugCDSpecial)
     SetSliderDialogRange(0, 150)
     SetSliderDialogInterval( 1 )
   elseif a_option == iWeightPlugCDEffectOID
-		SetSliderDialogStartValue(iWeightPlugCDEffect)
+    SetSliderDialogStartValue(iWeightPlugCDEffect)
     SetSliderDialogRange(0, 150)
     SetSliderDialogInterval( 1 )
   elseif a_option == iWeightPlugChargingOID
-		SetSliderDialogStartValue(iWeightPlugCharging)
+    SetSliderDialogStartValue(iWeightPlugCharging)
     SetSliderDialogRange(0, 150)
     SetSliderDialogInterval( 1 )
   elseif a_option == iWeightPlugDashaOID
-		SetSliderDialogStartValue(iWeightPlugDasha)
+    SetSliderDialogStartValue(iWeightPlugDasha)
     SetSliderDialogRange(0, 150)
     SetSliderDialogInterval( 1 )
   elseif a_option == iWeightBeltPunishmentOID
-		SetSliderDialogStartValue(iWeightBeltPunishment)
+    SetSliderDialogStartValue(iWeightBeltPunishment)
     SetSliderDialogRange(0, 150)
     SetSliderDialogInterval( 1 )
   elseif a_option == iWeightBeltRegularOID
-		SetSliderDialogStartValue(iWeightBeltRegular)
+    SetSliderDialogStartValue(iWeightBeltRegular)
     SetSliderDialogRange(0, 150)
     SetSliderDialogInterval( 1 )
   elseif a_option == iWeightBeltShameOID
-		SetSliderDialogStartValue(iWeightBeltShame)
+    SetSliderDialogStartValue(iWeightBeltShame)
     SetSliderDialogRange(0, 150)
     SetSliderDialogInterval( 1 )
   elseif a_option == iWeightBeltCDOID
-		SetSliderDialogStartValue(iWeightBeltCD)
+    SetSliderDialogStartValue(iWeightBeltCD)
     SetSliderDialogRange(0, 150)
     SetSliderDialogInterval( 1 )
   elseif a_option == iWeightBeltRegulationsImperialOID
-		SetSliderDialogStartValue(iWeightBeltRegulationsImperial)
+    SetSliderDialogStartValue(iWeightBeltRegulationsImperial)
     SetSliderDialogRange(0, 150)
     SetSliderDialogInterval( 1 )
   elseif a_option == iWeightBeltRegulationsStormCloakOID
-		SetSliderDialogStartValue(iWeightBeltRegulationsStormCloak)
+    SetSliderDialogStartValue(iWeightBeltRegulationsStormCloak)
     SetSliderDialogRange(0, 150)
     SetSliderDialogInterval( 1 )
   elseif a_option == iWeightUniqueCollarsOID
-		SetSliderDialogStartValue(iWeightUniqueCollars)
-    SetSliderDialogRange(0, 150)
-    SetSliderDialogInterval( 1 )  
-  elseif a_option == iWeightRandomCDOID
-		SetSliderDialogStartValue(iWeightRandomCD)
+    SetSliderDialogStartValue(iWeightUniqueCollars)
     SetSliderDialogRange(0, 150)
     SetSliderDialogInterval( 1 )
-    
-    
+  elseif a_option == iWeightRandomCDOID
+    SetSliderDialogStartValue(iWeightRandomCD)
+    SetSliderDialogRange(0, 150)
+    SetSliderDialogInterval( 1 )
+
   elseif a_option == iWeightDeviousPunishEquipmentBannnedCollarOID
-		SetSliderDialogStartValue(iWeightDeviousPunishEquipmentBannnedCollar)
+    SetSliderDialogStartValue(iWeightDeviousPunishEquipmentBannnedCollar)
     SetSliderDialogRange(0, 150)
     SetSliderDialogInterval( 1 )
   elseif a_option == iWeightDeviousPunishEquipmentProstitutedCollarOID
-		SetSliderDialogStartValue(iWeightDeviousPunishEquipmentProstitutedCollar)
+    SetSliderDialogStartValue(iWeightDeviousPunishEquipmentProstitutedCollar)
     SetSliderDialogRange(0, 150)
     SetSliderDialogInterval( 1 )
   elseif a_option == iWeightDeviousPunishEquipmentNakedCollarOID
-		SetSliderDialogStartValue(iWeightDeviousPunishEquipmentNakedCollar)
+    SetSliderDialogStartValue(iWeightDeviousPunishEquipmentNakedCollar)
     SetSliderDialogRange(0, 150)
     SetSliderDialogInterval( 1 )
-    
+
   elseif a_option == iWeightBeltPaddedOID
-		SetSliderDialogStartValue(iWeightBeltPadded)
+    SetSliderDialogStartValue(iWeightBeltPadded)
     SetSliderDialogDefaultValue(0)
     SetSliderDialogRange(0, 150)
     SetSliderDialogInterval( 1 )
   elseif a_option == iWeightBeltIronOID
-		SetSliderDialogStartValue(iWeightBeltIron)
-    SetSliderDialogDefaultValue(0)
-    SetSliderDialogRange(0, 150)
-    SetSliderDialogInterval( 1 )    
-  elseif a_option == iWeightPlugShockOID
-		SetSliderDialogStartValue(iWeightPlugShock)
+    SetSliderDialogStartValue(iWeightBeltIron)
     SetSliderDialogDefaultValue(0)
     SetSliderDialogRange(0, 150)
     SetSliderDialogInterval( 1 )
-  
+  elseif a_option == iWeightPlugShockOID
+    SetSliderDialogStartValue(iWeightPlugShock)
+    SetSliderDialogDefaultValue(0)
+    SetSliderDialogRange(0, 150)
+    SetSliderDialogInterval( 1 )
+
   elseif a_option == iWeightSingleBootsOID
-		SetSliderDialogStartValue(iWeightSingleBoots)
+    SetSliderDialogStartValue(iWeightSingleBoots)
     SetSliderDialogDefaultValue(0)
     SetSliderDialogRange(0, 150)
     SetSliderDialogInterval( 1 )
   elseif a_option == iWeightSingleAnkleChainsOID
-		SetSliderDialogStartValue(iWeightSingleAnkleChains)
+    SetSliderDialogStartValue(iWeightSingleAnkleChains)
     SetSliderDialogDefaultValue(0)
     SetSliderDialogRange(0, 150)
     SetSliderDialogInterval( 1 )
   elseif a_option == iWeightSingleHoodOID
-		SetSliderDialogStartValue(iWeightSingleHood)
+    SetSliderDialogStartValue(iWeightSingleHood)
     SetSliderDialogDefaultValue(0)
     SetSliderDialogRange(0, 150)
     SetSliderDialogInterval( 1 )
   elseif a_option == iWeightBootsSlaveOID
-		SetSliderDialogStartValue(iWeightBootsSlave)
+    SetSliderDialogStartValue(iWeightBootsSlave)
     SetSliderDialogDefaultValue(0)
     SetSliderDialogRange(0, 150)
     SetSliderDialogInterval( 1 )
   elseif a_option == iWeightBootsRestrictiveOID
-		SetSliderDialogStartValue(iWeightBootsRestrictive)
+    SetSliderDialogStartValue(iWeightBootsRestrictive)
     SetSliderDialogDefaultValue(0)
     SetSliderDialogRange(0, 150)
     SetSliderDialogInterval( 1 )
   elseif a_option == iWeightBootsPonyOID
-		SetSliderDialogStartValue(iWeightBootsPony)
+    SetSliderDialogStartValue(iWeightBootsPony)
     SetSliderDialogDefaultValue(0)
     SetSliderDialogRange(0, 150)
     SetSliderDialogInterval( 1 )
   elseif a_option == iWeightStripCollarOID
-		SetSliderDialogStartValue(iWeightStripCollar)
+    SetSliderDialogStartValue(iWeightStripCollar)
     SetSliderDialogDefaultValue(0)
     SetSliderDialogRange(0, 150)
     SetSliderDialogInterval( 1 )
   elseif a_option == iWeightSlutTattooOID
-		SetSliderDialogStartValue(iWeightSlutTattoo)
+    SetSliderDialogStartValue(iWeightSlutTattoo)
     SetSliderDialogDefaultValue(0)
     SetSliderDialogRange(0, 150)
     SetSliderDialogInterval( 1 )
   elseif a_option == iWeightSlaveTattooOID
-		SetSliderDialogStartValue(iWeightSlaveTattoo)
+    SetSliderDialogStartValue(iWeightSlaveTattoo)
     SetSliderDialogDefaultValue(0)
     SetSliderDialogRange(0, 150)
     SetSliderDialogInterval( 1 )
   elseif a_option == iWeightWhoreTattooOID
-		SetSliderDialogStartValue(iWeightWhoreTattoo)
+    SetSliderDialogStartValue(iWeightWhoreTattoo)
     SetSliderDialogDefaultValue(0)
     SetSliderDialogRange(0, 150)
     SetSliderDialogInterval( 1 )
-    
+
   elseif a_option == fNightReqArousalModifierOID
-		;SetSliderDialogStartValue(fNightReqArousalModifier)
- 		SetSliderDialogStartValue(1.0)
+    ;SetSliderDialogStartValue(fNightReqArousalModifier)
+    SetSliderDialogStartValue(1.0)
     SetSliderDialogDefaultValue(1)
     SetSliderDialogRange(0.1, 10)
     SetSliderDialogInterval( 0.1 )
   elseif a_option == fNightDistanceModifierOID
-		SetSliderDialogStartValue(1.0)
+    SetSliderDialogStartValue(1.0)
     SetSliderDialogDefaultValue(1)
     SetSliderDialogRange(0.1, 10)
     SetSliderDialogInterval( 0.1 )
   elseif a_option == fNightChanceModifierOID
-		;SetSliderDialogStartValue(fNightChanceModifier)
-		SetSliderDialogStartValue(1.0)
+    ;SetSliderDialogStartValue(fNightChanceModifier)
+    SetSliderDialogStartValue(1.0)
     SetSliderDialogDefaultValue(1)
     SetSliderDialogRange(0.1, 10)
     SetSliderDialogInterval( 0.1 )
-    
+
   elseif a_option == iNightReqConfidenceReductionOID
-		SetSliderDialogStartValue(iNightReqConfidenceReduction)
+    SetSliderDialogStartValue(iNightReqConfidenceReduction)
     SetSliderDialogDefaultValue(0)
     SetSliderDialogRange(-3, 4)
     SetSliderDialogInterval( 1 )
-    
 
-  
   elseif a_option == fFollowerSpecEnjoysDomOID
-		SetSliderDialogStartValue(fFollowerSpecEnjoysDom)
+    SetSliderDialogStartValue(fFollowerSpecEnjoysDom)
     SetSliderDialogDefaultValue(0)
     SetSliderDialogRange(-20, 50)
     SetSliderDialogInterval( 0.1 )
   elseif a_option == fFollowerSpecEnjoysSubOID
-		SetSliderDialogStartValue(fFollowerSpecEnjoysSub)
+    SetSliderDialogStartValue(fFollowerSpecEnjoysSub)
     SetSliderDialogDefaultValue(0)
     SetSliderDialogRange(-20, 50)
     SetSliderDialogInterval( 0.1 )
   elseif a_option == fFollowerSpecThinksPlayerDomOID
-		SetSliderDialogStartValue(fFollowerSpecThinksPlayerDom)
+    SetSliderDialogStartValue(fFollowerSpecThinksPlayerDom)
     SetSliderDialogDefaultValue(0)
     SetSliderDialogRange(-20, 50)
     SetSliderDialogInterval( 0.1 )
   elseif a_option == fFollowerSpecThinksPlayerSubOID
-		SetSliderDialogStartValue(fFollowerSpecThinksPlayerSub)
+    SetSliderDialogStartValue(fFollowerSpecThinksPlayerSub)
     SetSliderDialogDefaultValue(0)
     SetSliderDialogRange(-20, 50)
     SetSliderDialogInterval( 0.1 )
   elseif a_option == fFollowerSpecContainersCountOID
-		SetSliderDialogStartValue(fFollowerSpecContainersCount)
+    SetSliderDialogStartValue(fFollowerSpecContainersCount)
     SetSliderDialogDefaultValue(0)
     SetSliderDialogRange(-20, 50)
     SetSliderDialogInterval( 0.1 )
-    
+
   elseif a_option == fFollowerSpecFrustrationOID
-		SetSliderDialogStartValue(fFollowerSpecFrustration)
+    SetSliderDialogStartValue(fFollowerSpecFrustration)
     SetSliderDialogDefaultValue(0)
     SetSliderDialogRange(-20, 50)
     SetSliderDialogInterval( 0.1 )
 
 
-    
+
   elseif a_option == gFollowerArousalMinOID
-		SetSliderDialogStartValue(gFollowerArousalMin.GetValueInt())
+    SetSliderDialogStartValue(gFollowerArousalMin.GetValueInt())
     SetSliderDialogRange(0, 101)
-    SetSliderDialogInterval( 1 )  
+    SetSliderDialogInterval( 1 )
   elseif a_option == fFollowerSexApproachExpOID
-		SetSliderDialogStartValue(fFollowerSexApproachExp)
+    SetSliderDialogStartValue(fFollowerSexApproachExp)
     SetSliderDialogRange(1, 10)
     SetSliderDialogInterval( 0.1 )
   elseif a_option == fFollowerSexApproachChanceMaxPercentageOID
-		SetSliderDialogStartValue(fFollowerSexApproachChanceMaxPercentage)
+    SetSliderDialogStartValue(fFollowerSexApproachChanceMaxPercentage)
     SetSliderDialogRange(0, 100)
     SetSliderDialogInterval( 1 )
 
-    
+
   elseif a_option == fFollowerFindMinContainersOID
-		SetSliderDialogStartValue(fFollowerFindMinContainers)
+    SetSliderDialogStartValue(fFollowerFindMinContainers)
     SetSliderDialogRange(-20, 50)
     SetSliderDialogInterval( 1 )
   elseif a_option == fFollowerFindChanceMaxPercentageOID
-		SetSliderDialogStartValue(fFollowerFindChanceMaxPercentage)
+    SetSliderDialogStartValue(fFollowerFindChanceMaxPercentage)
     SetSliderDialogRange(0, 100)
     SetSliderDialogInterval( 1 )
   elseif a_option == iFollowerFindChanceMaxContainersOID
-		SetSliderDialogStartValue(iFollowerFindChanceMaxContainers)
+    SetSliderDialogStartValue(iFollowerFindChanceMaxContainers)
     SetSliderDialogRange(0, 150)
     SetSliderDialogInterval( 1 )
-  elseif a_option == iFollowerMinVulnerableApproachableOID 
-		SetSliderDialogStartValue(iFollowerMinVulnerableApproachable)
+  elseif a_option == iFollowerMinVulnerableApproachableOID
+    SetSliderDialogStartValue(iFollowerMinVulnerableApproachable)
     SetSliderDialogRange(0, 150)
     SetSliderDialogInterval( 1 )
   elseif a_option == iFollowerRelationshipLimitOID
-		SetSliderDialogStartValue(iFollowerRelationshipLimit.GetValueInt())
+    SetSliderDialogStartValue(iFollowerRelationshipLimit.GetValueInt())
     SetSliderDialogRange(1, 5)
     SetSliderDialogInterval( 1 )
   elseif a_option == fFollowerItemApproachExpOID
-		SetSliderDialogStartValue(fFollowerItemApproachExp)
+    SetSliderDialogStartValue(fFollowerItemApproachExp)
     SetSliderDialogRange(1, 10)
     SetSliderDialogInterval( 0.1 )
-    
-  endIf ; 
-  
-  
+
+  endIf
+
 ; template
 ;  elseif (a_option == zzzOID)
 ;    SetSliderDialogStartValue(zzz)
-;    
+;
 ;    SetSliderDialogRange(0, 150)
 ;    SetSliderDialogInterval( 1 )
 
 endEvent
 
-;iChanceEnslavementConvo  Auto  
-;iChanceVulEnslavementConvo  Auto  
-;iChanceSexConvo  Auto  
-;iSexEventKey  Auto 
-;iSexEventDevice  Auto  
-;iRapeEventDevice  Auto  
-;iRapeEventEnslave  Auto  
+;iChanceEnslavementConvo  Auto
+;iChanceVulEnslavementConvo  Auto
+;iChanceSexConvo  Auto
+;iSexEventKey  Auto
+;iSexEventDevice  Auto
+;iRapeEventDevice  Auto
+;iRapeEventEnslave  Auto
 
 
 ; @implements SKI_ConfigBase
 event OnOptionSliderAccept(int a_option, float a_value)
   {Called when the user accepts a new slider value}
-    
+
   if (a_option == fEventIntervalOID)
     fEventInterval = a_value
     SetSliderOptionValue(a_option, a_value, "{0} seconds")
   elseif (a_option == fEventTimeoutOID)
-    fEventTimeout = (a_value as float) / (24)
-    fEventTimeoutHours = a_value as float
-    SetSliderOptionValue(a_option, fEventTimeoutHours, "{1} Game Hours")
+    fEventTimeout = a_value / (24)
+    SetSliderOptionValue(a_option, a_value, "{1} Game Hours")
   elseif (a_option == iChanceEnslavementConvoOID)
     iChanceEnslavementConvo = a_value as int
     SetSliderOptionValue(a_option, a_value, "{0}%")
@@ -1805,11 +1956,11 @@ event OnOptionSliderAccept(int a_option, float a_value)
     SetSliderOptionValue(a_option, a_value, "{0}")
   elseif (a_option == iWeightSlutCollarOID)
     iWeightSlutCollar = a_value as int
-    SetSliderOptionValue(a_option, a_value, "{0}") 
+    SetSliderOptionValue(a_option, a_value, "{0}")
   elseif (a_option == iWeightRubberDollCollarOID)
     iWeightRubberDollCollar = a_value as int
-    SetSliderOptionValue(a_option, a_value, "{0}")  
-   
+    SetSliderOptionValue(a_option, a_value, "{0}")
+
   elseif (a_option == iApproachDurationOID)
     iApproachDuration = a_value as int
     SetSliderOptionValue(a_option, a_value, "{0} Game Mins")
@@ -1839,11 +1990,11 @@ event OnOptionSliderAccept(int a_option, float a_value)
   elseif (a_option == iRelationshipProtectionLevelOID)
     iRelationshipProtectionLevel = a_value as int
     SetSliderOptionValue(a_option, a_value, "Level {0}")
-  
+
   elseif a_option == iWeightConfidenceArousalOverrideOID
     iWeightConfidenceArousalOverride = a_value as int
     SetSliderOptionValue(a_option, a_value, "{0}")
-    
+
   elseif a_option == iReqLevelSLSFExhibIncreaseVulnerableOID
     iReqLevelSLSFExhibIncreaseVulnerable = a_value as int
     SetSliderOptionValue(a_option, a_value, "{0}")
@@ -1862,14 +2013,14 @@ event OnOptionSliderAccept(int a_option, float a_value)
   elseif a_option == iReqLevelSLSFSlaveMakeVulnerableOID
     iReqLevelSLSFSlaveMakeVulnerable = a_value as int
     SetSliderOptionValue(a_option, a_value, "{0}")
-  
+
   elseif (a_option == fChastityPartialModifierOID)
     fChastityPartialModifier = a_value as int
     SetSliderOptionValue(a_option, a_value, "{1}")
   elseif (a_option == fChastityCompleteModifierOID)
     fChastityCompleteModifier = a_value as int
     SetSliderOptionValue(a_option, a_value, "{1}")
-    
+
   elseif (a_option == fModifierSlaverChancesOID)
     fModifierSlaverChances = a_value as float
     SetSliderOptionValue(a_option, a_value, "{1}")
@@ -1882,7 +2033,7 @@ event OnOptionSliderAccept(int a_option, float a_value)
   elseif (a_option == iEnslaveWeightSlaverunOID)
     iEnslaveWeightSlaverun = a_value as int
     SetSliderOptionValue(a_option, a_value, "{0}")
-  
+
   elseif (a_option == iDistanceWeightCDOID)
     iDistanceWeightCD = a_value as int
     SetSliderOptionValue(a_option, a_value, "{0}")
@@ -1900,17 +2051,17 @@ event OnOptionSliderAccept(int a_option, float a_value)
     SetSliderOptionValue(a_option, a_value, "{0}")
   elseif (a_option == iDistanceWeightWCOID)
     iDistanceWeightWC = a_value as int
-    SetSliderOptionValue(a_option, a_value, "{0}"); 
+    SetSliderOptionValue(a_option, a_value, "{0}");
   elseif (a_option == iDistanceWeightDCPirateOID)
     iDistanceWeightDCPirate = a_value as int
     SetSliderOptionValue(a_option, a_value, "{0}")
-    
+
   elseif (a_option == iDistanceWeightDCLDamselOID)
     iDistanceWeightDCLDamsel = a_value as int
     SetSliderOptionValue(a_option, a_value, "{0}")
   elseif (a_option == iDistanceWeightDCLBondageAdvOID)
     iDistanceWeightDCLBondageAdv = a_value as int
-    SetSliderOptionValue(a_option, a_value, "{0}")  
+    SetSliderOptionValue(a_option, a_value, "{0}")
   elseif (a_option == iDistanceWeightSlaverunRSoldOID)
     iDistanceWeightSlaverunRSold = a_value as int
     SetSliderOptionValue(a_option, a_value, "{0}")
@@ -1928,8 +2079,8 @@ event OnOptionSliderAccept(int a_option, float a_value)
     SetSliderOptionValue(a_option, a_value, "{0}")
   elseif a_option == iDistanceWeightDCBanditsOID
     iDistanceWeightDCBandits = a_value as int
-    SetSliderOptionValue(a_option, a_value, "{0}")  
-    
+    SetSliderOptionValue(a_option, a_value, "{0}")
+
   elseif (a_option == iEnslaveWeightLocalOID)
     iEnslaveWeightLocal = a_value as int
     SetSliderOptionValue(a_option, a_value, "{0}")
@@ -1939,7 +2090,7 @@ event OnOptionSliderAccept(int a_option, float a_value)
   elseif (a_option == iEnslaveWeightSoldOID)
     iEnslaveWeightSold = a_value as int
     SetSliderOptionValue(a_option, a_value, "{0}")
-    
+
   elseif a_option == iWeightSingleCollarOID
     iWeightSingleCollar = a_value as int
     SetSliderOptionValue(a_option, a_value, "{0}")
@@ -2075,10 +2226,10 @@ event OnOptionSliderAccept(int a_option, float a_value)
     SetSliderOptionValue(a_option, a_value, "{0}")
   elseif a_option == iWeightUniqueCollarsOID
     iWeightUniqueCollars = a_value as int
-    SetSliderOptionValue(a_option, a_value, "{0}")     
+    SetSliderOptionValue(a_option, a_value, "{0}")
   elseif a_option == iWeightRandomCDOID
     iWeightRandomCD = a_value as int
-    SetSliderOptionValue(a_option, a_value, "{0}")     
+    SetSliderOptionValue(a_option, a_value, "{0}")
   elseif a_option == iWeightDeviousPunishEquipmentBannnedCollarOID
     iWeightDeviousPunishEquipmentBannnedCollar = a_value as int
     SetSliderOptionValue(a_option, a_value, "{0}")
@@ -2097,7 +2248,7 @@ event OnOptionSliderAccept(int a_option, float a_value)
   elseif a_option == iWeightPlugShockOID
     iWeightPlugShock = a_value as int
     SetSliderOptionValue(a_option, a_value, "{0}")
-   
+
   elseif a_option == iWeightSingleBootsOID
     iWeightSingleBoots = a_value as int
     SetSliderOptionValue(a_option, a_value, "{0}")
@@ -2127,21 +2278,21 @@ event OnOptionSliderAccept(int a_option, float a_value)
     SetSliderOptionValue(a_option, a_value, "{0}")
   elseif a_option == iWeightWhoreTattooOID
     iWeightWhoreTattoo = a_value as int
-    SetSliderOptionValue(a_option, a_value, "{0}") 
-   
+    SetSliderOptionValue(a_option, a_value, "{0}")
+
   elseif a_option == fNightReqArousalModifierOID
-    fNightReqArousalModifier = a_value as float
+    fNightReqArousalModifier = a_value
     SetSliderOptionValue(a_option, a_value, "{1}")
   elseif a_option == fNightDistanceModifierOID
-    fNightDistanceModifier = a_value as float
+    fNightDistanceModifier = a_value
     SetSliderOptionValue(a_option, a_value, "{1}")
   elseif a_option == fNightChanceModifierOID
-    fNightChanceModifier = a_value as float
+    fNightChanceModifier = a_value
     SetSliderOptionValue(a_option, a_value, "{1}")
   elseif a_option == iNightReqConfidenceReductionOID
     iNightReqConfidenceReduction = a_value as int
     SetSliderOptionValue(a_option, a_value, "{0}")
-   
+
   elseif a_option == fFollowerSpecEnjoysDomOID
     fFollowerSpecEnjoysDom = a_value as Float
     StorageUtil.SetFloatValue(currentFollower, "crdeFollEnjoysDom", a_value)
@@ -2165,11 +2316,11 @@ event OnOptionSliderAccept(int a_option, float a_value)
   elseif a_option == fFollowerSpecFrustrationOID
     fFollowerSpecFrustration = a_value as Float
     StorageUtil.SetFloatValue(currentFollower, "crdeFollowerFrustration", a_value)
-    SetSliderOptionValue(a_option, a_value, "{1}")   
-   
+    SetSliderOptionValue(a_option, a_value, "{1}")
+
   elseif a_option == gFollowerArousalMinOID
     gFollowerArousalMin.SetValueInt( a_value as int )
-    SetSliderOptionValue(a_option, a_value, "{0}") 
+    SetSliderOptionValue(a_option, a_value, "{0}")
     reevaluateSexApproachParabolicModifier()
   elseif a_option == fFollowerSexApproachExpOID ;
     fFollowerSexApproachExp = a_value as float
@@ -2191,7 +2342,7 @@ event OnOptionSliderAccept(int a_option, float a_value)
     iFollowerFindChanceMaxContainers = a_value as int
     SetSliderOptionValue(a_option, a_value, "{0}")
     reevaluateitemParabolicModifier()
-  elseif a_option == iFollowerMinVulnerableApproachableOID 
+  elseif a_option == iFollowerMinVulnerableApproachableOID
     iFollowerMinVulnerableApproachable = a_value as int
     SetSliderOptionValue(a_option, a_value, "{0}")
   elseif a_option == iFollowerRelationshipLimitOID
@@ -2201,8 +2352,8 @@ event OnOptionSliderAccept(int a_option, float a_value)
     fFollowerItemApproachExp = a_value as int
     SetSliderOptionValue(a_option, a_value, "{1}")
     reevaluateitemParabolicModifier()
-   
-  endIf ; 
+
+  endIf
 
 endEvent
 ;tempalte
@@ -2234,7 +2385,7 @@ endEvent
 ; @implements SKI_ConfigBase
 event OnOptionHighlight(int a_option)
   {Called when the user highlights an option}
-  
+
   if (a_option == iWeightSingleDDOID)
     SetInfoText("Relative chance of equipping a single standard Devious Device")
   elseIf (a_option == iWeightMultiDDOID)
@@ -2271,14 +2422,14 @@ event OnOptionHighlight(int a_option)
     SetInfoText("The number of NPCs the mod will look through to find someone to attack the player")
   elseIf (a_option == fModifierSlaverChancesOID)
     SetInfoText("Modifier than increases chance Slaver will approach the player (1 is same, 0 is no slaver, 2 is half chance,ect)")
-    
+
   elseif a_option == bHookAnySexlabEventOID
     SetInfoText("Toggles Deviously enslaved to catch sexlab sessions started by other mods and run events on them (rape, adding DD items, enslave, ect)")
-  elseif a_option == bHookReqVictimStatusOID 
+  elseif a_option == bHookReqVictimStatusOID
     SetInfoText("Toggles if player's victim status from sexlab should be a requirement for postsex. If ON, player must be sexlab \"Victim\" to get post-sex events from DEC")
   elseif a_option == bFxFAlwaysAggressiveOID ;bFxFAlwaysAggressive
     SetInfoText("Toggles if Female attackers, while attacking a Female player, always use aggressive animations in rape situations. If off, aggressive is not specified so there are more animations.")
-    
+
   elseif a_option == iMinEnslaveVulnerableOID
     SetInfoText("Sets the minimum Vulnerability required for NPCs to approach the player for enslavement, check the support thread for Vulnerability explanation")
   elseif a_option == iMinApproachArousalOID
@@ -2289,9 +2440,9 @@ event OnOptionHighlight(int a_option)
     SetInfoText("Sets the upper limit of what relationship is allowed for NPCs to have and still attack you.")
   elseif a_option == iMaxSolicitMoralityOID
     SetInfoText("Sets the maximum Morality required for the NPCs to solicit sex from you")
-  elseif a_option == bConfidenceToggleOID 
+  elseif a_option == bConfidenceToggleOID
     SetInfoText("Toggles the requirement that the attacker must be confident enough to attack you based on your vulnerability")
-  elseif a_option == bFollowerDialogueToggleOID 
+  elseif a_option == bFollowerDialogueToggleOID
     SetInfoText("Toggles if follower dialogue can show up")
   elseif a_option == iReqLevelSLSFExhibIncreaseVulnerableOID
     SetInfoText("(Sexlab Fame Framework) The Required amount of Fame as an exhibitionist before it starts making you more vulnerable")
@@ -2304,11 +2455,11 @@ event OnOptionHighlight(int a_option)
   elseif a_option == iReqLevelSLSFSlaveIncreaseVulnerableOID
     SetInfoText("(Sexlab Fame Framework) The Required amount of Fame as an submissive slave before it starts making you more vulnerable")
   elseif a_option == iReqLevelSLSFSlaveMakeVulnerableOID
-    SetInfoText("(Sexlab Fame Framework) The Required amount of Fame as an submissive slave before you are considered vulnerable from it alone") 
-   
+    SetInfoText("(Sexlab Fame Framework) The Required amount of Fame as an submissive slave before you are considered vulnerable from it alone")
+
   elseif a_option == bIsVulNakedOID
     SetInfoText("Toggles whether Nudity itself counts as a low level vulnerability (LVL 1)")
-  elseif a_option == bIsNonChestArmorIgnoredNakedOID 
+  elseif a_option == bIsNonChestArmorIgnoredNakedOID
     SetInfoText("Toggles whether wearing Armor on any other part than the chest protects you from being considered Naked (IE: Armoured helmet: no longer nude) legacy nudity detection")
   elseIf (a_option == bVulnerableGagOID)
     SetInfoText("Toggles whether DD gags as a vulnerable item")
@@ -2324,13 +2475,13 @@ event OnOptionHighlight(int a_option)
     SetInfoText("Toggles whether DD gags as an item that counts to chastity")
   elseIf (a_option == bChastityBraOID)
     SetInfoText("Toggles whether DD chastity Bras as an item that counts to chastity")
-  elseif (a_option == bChastityToggleOID )          
+  elseif (a_option == bChastityToggleOID )
     SetInfoText("Toggles whether the Chastity system is engaged")
   elseif (a_option == fChastityPartialModifierOID )
     SetInfoText("Modifies (devisor) the chance of being approached for sex and enslavement while wearing a incomplete set of chastity items")
   elseif (a_option == fChastityCompleteModifierOID )
     SetInfoText("Modifies (devisor) the chance of being approached for sex and enslavement while wearing a complete set of chastity items")
-    
+
   elseif a_option == bVulnerableSlaveTattooOID
     SetInfoText("Toggles whether being marked with slave tattoos is considered a vulnerability (turns on slavetats detection)")
   elseif a_option == bVulnerableSlutTattooOID
@@ -2344,12 +2495,12 @@ event OnOptionHighlight(int a_option)
     SetInfoText("Sets the Max vulnerable level that a weapon or college robe prevents being approached for sex/enslavement")
   elseIf (a_option == bVulnerableFurnitureOID)
     SetInfoText("Allows the player to be considered vulnerable when locked in Xaz furniture")
-    
+
   elseIf a_option == bGuardDialogueToggleOID
     SetInfoText("Toggles whether the guard dialogue shows, and if they will approach the player")
   elseif a_option == bEnslaveLockoutDCUROID
     SetInfoText("Toggles whether certain Cursed loot items, that have block genetic keywords, but are also removable, prevent the player from being enslaved. If off, these items will be removed and enslavement will commence as normal instead.")
-    
+
   elseIf a_option == bEnslaveFollowerLockToggleOID
     SetInfoText("Toggle if having a nearby follower stops the player from being enslaved")
 
@@ -2359,8 +2510,8 @@ event OnOptionHighlight(int a_option)
     SetInfoText("Toggles whether the mod lets the player be enslaved from dialogue into slaverun slave quest")
   elseif (a_option == bAttackersGuardsOID)
     SetInfoText("Toggles whether guards are considered valid to attack player (off means no guard attacks)")
-    
-  elseif a_option == bWCDistanceToggleOID || a_option == bMariaDistanceToggleOID || a_option == bMariaKhajitEnslaveToggleOID  || a_option == bSDDistanceToggleOID || a_option == bSSAuctionEnslaveToggleOID  || a_option == bCDEnslaveToggleOID || a_option == bDCPirateEnslaveToggleOID 
+
+  elseif a_option == bWCDistanceToggleOID || a_option == bMariaDistanceToggleOID || a_option == bMariaKhajitEnslaveToggleOID  || a_option == bSDDistanceToggleOID || a_option == bSSAuctionEnslaveToggleOID  || a_option == bCDEnslaveToggleOID || a_option == bDCPirateEnslaveToggleOID
     SetInfoText("Toggles if the enslave outcome will show up (if it doesn't work, try turning slider to zero)")
   elseif (a_option == iEnslaveWeightLocalOID)
     SetInfoText("Weight of the chance to be enslaved by the person who approaches you")
@@ -2368,7 +2519,7 @@ event OnOptionHighlight(int a_option)
     SetInfoText("Weight of the chance you will be given to someone else in the world")
   elseif (a_option == iEnslaveWeightSoldOID)
     SetInfoText("Weight of the chance to be sold by the person who approaches you, to be a slave to someone else")
-    
+
   elseif a_option == bEnslaveLockoutCLDollOID
     SetInfoText("Locks the player out of being enslaved while wearing Deviously cursed loot's Rubber doll collar")
   elseif a_option == bEnslaveLockoutSRROID
@@ -2378,7 +2529,7 @@ event OnOptionHighlight(int a_option)
   elseif (a_option == bEnslaveLockoutCDOID)
     SetInfoText("Locks the player out of being enslaved through DE while taking part in CD expansion")
   elseif (a_option == bEnslaveLockoutSDDreamOID)
-    SetInfoText("Locks the player out of being attacked while in the SD Dream world")  
+    SetInfoText("Locks the player out of being attacked while in the SD Dream world")
     ;bEnslaveLockoutSDDream
   elseif (a_option == bEnslaveLockoutFTDOID)
     SetInfoText("Locks the player out of being enslaved through while taking part in the FTD quest line")
@@ -2390,45 +2541,45 @@ event OnOptionHighlight(int a_option)
     SetInfoText("Toggles if the player can not intimidate while wearing a gag (on is impossible, off is still possible)")
   elseif (a_option == bIntimidateWeaponFullToggleOID)
     SetInfoText("Toggles if having a weapon at the ready guarentees intimidation success")
-   
-  elseif a_option == bArousalFunctionWorkaroundOID 
+
+  elseif a_option == bArousalFunctionWorkaroundOID
     SetInfoText("Switches arousal detection to using the old function rather than the faction, slower but properly inits the NPC's arousal for now.")
   elseif a_option == bSecondBusyCheckWorkaroundOID ;bAltBodySlotSearchWorkaround
     SetInfoText("Forces the mod to check if the player is busy twice, adding a second check at the last second to catch changes that might have happened later.")
   elseif a_option == bAltBodySlotSearchWorkaroundOID ;bAltBodySlotSearchWorkaround
     SetInfoText("Searches all armor slots for body keywords and Sexlab Aroused nude status")
-  elseif a_option == bIgnoreZazOnNPCOID 
+  elseif a_option == bIgnoreZazOnNPCOID
     SetInfoText("Ignores non-restrictive Zaz items on NPCs when considering them as slaves")
-   
-  elseif a_option == bDebugRollVisOID 
+
+  elseif a_option == bDebugRollVisOID
     SetInfoText("Prints out the rolling information on random selection")
-  elseif a_option == bDebugStateVisOID 
+  elseif a_option == bDebugStateVisOID
     SetInfoText("Prints the state of the script, such as if script is waiting for something or busy with approach")
-  elseif a_option == bDebugStatusVisOID 
-    SetInfoText("Prints the vulnerable/enslave status and the reason for status")  
-  elseif a_option == gUnfinishedDialogueToggleOID 
-    SetInfoText("Allows unfinished dialogue trees to appear in-game")  
+  elseif a_option == bDebugStatusVisOID
+    SetInfoText("Prints the vulnerable/enslave status and the reason for status")
+  elseif a_option == gUnfinishedDialogueToggleOID
+    SetInfoText("Allows unfinished dialogue trees to appear in-game")
   elseif a_option == bDebugLoudApproachFailOID ;bDebugLoudApproachFail
-    SetInfoText("A failed approach now brings up a messagebox instead of quietly displaying in the console")  
-    
-  elseif a_option == bPrintSexlabStatusOID 
+    SetInfoText("A failed approach now brings up a messagebox instead of quietly displaying in the console")
+
+  elseif a_option == bPrintSexlabStatusOID
     SetInfoText("Prints the sexlab configuration")
-  elseif a_option == bPrintVulnerabilityStatusOID        
+  elseif a_option == bPrintVulnerabilityStatusOID
     SetInfoText("Prints out vulnerability debug information")
-  elseif a_option == bResetDHLPOID  
+  elseif a_option == bResetDHLPOID
     SetInfoText("Resets and resumes the DHLP suspension system allowing the mod to continue WARNING: deviously enslaved is not the only mod that uses this, don't use unless you're sure DE is what caused the suspend")
-    
-  elseif a_option == bRefreshSDMasterOID  
+
+  elseif a_option == bRefreshSDMasterOID
     SetInfoText("Refreshes the next master that will be chosen for distance SD outcome, prints the previous and next after refreshing.")
   elseif a_option == bRefreshModDetectOID  ;bRefreshModDetect
     SetInfoText("Refreshes the Mod detection manually, rechecking which available mods we can use")
-   
+
   elseif a_option == bSetValidRaceOID
     SetInfoText("Searches for nearby NPCs and allows you to pick one to set their race as valid for approach. THIS FEATURE REQUIRES UIEXTENSIONS")
-  elseif a_option == bTestTattoosOID  
+  elseif a_option == bTestTattoosOID
     SetInfoText("Checks if the tattoos worn by the player count as tattoos for vulnerability. REMINDER: I hard coded tattoos, if they don't count TELL ME and I'll fix it")
 
-  elseif a_option == bTestTimeTestOID  
+  elseif a_option == bTestTimeTestOID
     SetInfoText("Performs a time test on the heaviest parts of this mod, since the time required is heavily reliant on input (nearby NPCs, gear on player, number of optional mods) these times can vary wildly.")
 
   elseif (a_option == bAbductionTestOID || a_option == bInitTestOID ||\
@@ -2528,21 +2679,21 @@ event OnOptionHighlight(int a_option)
   elseif a_option == iWeightRandomCDOID
     SetInfoText("Weight for getting a collection of CD items")
 
-  
+
   elseif a_option == iWeightConfidenceArousalOverrideOID
     SetInfoText("The NPC arousal required to bypass the confidence requirement")
-    
+
   elseif a_option == iWeightDeviousPunishEquipmentBannnedCollarOID
     SetInfoText("Weight for getting the Force nude and punishment Banned Collar")
   elseif a_option == iWeightDeviousPunishEquipmentProstitutedCollarOID
     SetInfoText("Weight for getting the Force nude and punishment Prostituted Collar")
   elseif a_option == iWeightDeviousPunishEquipmentNakedCollarOID
     SetInfoText("Weight for getting the Force nude and punishment Naked Collar")
-    
+
   elseif a_option == iWeightBeltPaddedOID
     SetInfoText("Weight for getting DD Padded Chastity Belt")
   elseif a_option == iWeightBeltIronOID
-    SetInfoText("Weight for getting DD Iron Chastity Belt")  
+    SetInfoText("Weight for getting DD Iron Chastity Belt")
   elseif a_option == iWeightPlugShockOID
     SetInfoText("Weight for getting a DDx Shock Vag Plug")
 
@@ -2577,10 +2728,10 @@ event OnOptionHighlight(int a_option)
     SetInfoText("Shifts the required confidnece during night time hours =(RequiredConfidence - this)")
   elseif a_option == bNightAddsToVulnerableOID
     SetInfoText("If toggled on, adds +1 to player's vulnerability during nighttime.")
-    
+
   elseif a_option == tFollowerteleportToPlayerOID
     SetInfoText("Teleports the follower to the player's side in the case they got lost.")
-    
+
   elseif a_option == fFollowerSpecEnjoysDomOID
     SetInfoText("The value of how much your follower enjoys being dominant.")
   elseif a_option == fFollowerSpecEnjoysSubOID
@@ -2598,9 +2749,9 @@ event OnOptionHighlight(int a_option)
     SetInfoText("Toggle if your follower shall approach you directly if they find an item. If off, they will bring it up if you approach them instead")
   elseif a_option == gFollowerArousalMinOID
     SetInfoText("Minimum arousal level needed before follower will use your bound body for sex")
-  elseif a_option == bFollowerDungeonEnterRequiredOID 
+  elseif a_option == bFollowerDungeonEnterRequiredOID
     SetInfoText("Toggles whether your Follower can find items without having visited a dungeon first, and if containers only count inside of a dungeon")
-  elseif a_option == bUseSexlabGenderOID 
+  elseif a_option == bUseSexlabGenderOID
     SetInfoText("Toggles using sexlab actor genders instead of vanilla skyrim assigned genders for NPCs")
   elseif a_option == fFollowerFindMinContainersOID
     SetInfoText("Percent chance your follower finds an item")
@@ -2628,99 +2779,295 @@ event OnOptionHighlight(int a_option)
   elseif a_option == iRapeEventDeviceOID
     SetInfoText("Chance of getting items after DEC started sex when the player is not enslaved yet")
 
-    
+
   else ; catch all; the stuff I forgot and then some
     SetInfoText("Catchall tooltip: typing hints is tedious, if you want to know what this does ask in the support thread, and/or report which option is missing the tooltip")
   endIf ; fFollowerItemApproachExpOID
-
 endEvent
 
 
-;Bool Property bCRDEEnable  Auto  
+;***********************************************************************************************
+;***                                STATE OPTION HANDLING                                    ***
+;***********************************************************************************************
+State ST_DFW_PREFER
+   Event OnSelectST()
+      bPreferDfw = !bPreferDfw
+      SetToggleOptionValueST(bPreferDfw)
+   EndEvent
+
+   Event OnDefaultST()
+      bPreferDfw = false
+      SetToggleOptionValueST(bPreferDfw)
+   EndEvent
+
+   Event OnHighlightST()
+      SetInfoText("Use Devious Framework (DFW) features when available.\n" +\
+                  "For example possible aggressors may be taken from the DFW nearby actor list.\n" +\
+                  "If this is turned off Deviously Enslaved Continued will always scan for nearby actors itself.")
+   EndEvent
+EndState
+
+State ST_DFW_SECURE
+   Event OnSliderOpenST()
+      SetSliderDialogStartValue(iSettingSecurity)
+      SetSliderDialogDefaultValue(100)
+      SetSliderDialogRange(1, 100)
+      SetSliderDialogInterval(1)
+   EndEvent
+
+   Event OnSliderAcceptST(Float fValue)
+      iSettingSecurity = fValue As int
+      SetSliderOptionValueST(iSettingSecurity)
+   EndEvent
+
+   Event OnDefaultST()
+      iSettingSecurity = 100
+      SetSliderOptionValueST(iSettingSecurity)
+   EndEvent
+
+   Event OnHighlightST()
+      SetInfoText("This is the maximum DFW vulnerability the player can be at and still change the settings.\n" +\
+                  "Recommend: DFW Night (" + _qDfwMcm.iVulnerabilityNight + ") so you can change settings at night.\n" +\
+                  "Note: Hidden (or covered) restraints also lock the settings.  100 never locks the settings.")
+   EndEvent
+EndState
+
+State ST_DFW_PER_VUL
+   Event OnSliderOpenST()
+      SetSliderDialogStartValue(iPercentDfwVulnerability)
+      SetSliderDialogDefaultValue(100)
+
+
+      SetSliderDialogRange(0, 300)
+      SetSliderDialogInterval(1)
+   EndEvent
+
+   Event OnSliderAcceptST(Float fValue)
+      iPercentDfwVulnerability = fValue As int
+      SetSliderOptionValueST(iPercentDfwVulnerability)
+   EndEvent
+
+   Event OnDefaultST()
+      iPercentDfwVulnerability = 100
+      SetSliderOptionValueST(iPercentDfwVulnerability)
+   EndEvent
+
+   Event OnHighlightST()
+      SetInfoText("This is an adjustment of the DFW vulnerability to apply before using it in this mod.\n" +\
+                  "This lets each mod to adjust the vulnerability slightly to allow fine tuning.\n" +\
+                  "Recommend: 100% - Adjust vulnerability in DFW if you can.  Use this only for fine tuning.")
+   EndEvent
+EndState
+
+State ST_DFW_MIN_SEX
+   Event OnSliderOpenST()
+      SetSliderDialogStartValue(iMinVulnerabilitySex)
+      SetSliderDialogDefaultValue(15)
+      SetSliderDialogRange(0, 100)
+      SetSliderDialogInterval(1)
+   EndEvent
+
+   Event OnSliderAcceptST(Float fValue)
+      iMinVulnerabilitySex = fValue As int
+      SetSliderOptionValueST(iMinVulnerabilitySex)
+   EndEvent
+
+   Event OnDefaultST()
+      iMinVulnerabilitySex = 15
+      SetSliderOptionValueST(iMinVulnerabilitySex)
+   EndEvent
+
+   Event OnHighlightST()
+      SetInfoText("The minimum DFW vulnerability the player must be at before being considered for sex.")
+   EndEvent
+EndState
+
+State ST_DFW_MIN_ENSL
+   Event OnSliderOpenST()
+      SetSliderDialogStartValue(iMinVulnerabilityEnslave)
+      SetSliderDialogDefaultValue(40)
+      SetSliderDialogRange(0, 100)
+      SetSliderDialogInterval(1)
+   EndEvent
+
+   Event OnSliderAcceptST(Float fValue)
+      iMinVulnerabilityEnslave = fValue As int
+      SetSliderOptionValueST(iMinVulnerabilityEnslave)
+   EndEvent
+
+   Event OnDefaultST()
+      iMinVulnerabilityEnslave = 40
+      SetSliderOptionValueST(iMinVulnerabilityEnslave)
+   EndEvent
+
+   Event OnHighlightST()
+      SetInfoText("The minimum DFW vulnerability the player must be at before being considered for enslavement.")
+   EndEvent
+EndState
+
+State ST_DFW_PERC_SEX
+   Event OnSliderOpenST()
+      SetSliderDialogStartValue(iPercentVulnerabilitySex)
+      SetSliderDialogDefaultValue(20)
+      SetSliderDialogRange(0, 100)
+      SetSliderDialogInterval(1)
+   EndEvent
+
+   Event OnSliderAcceptST(Float fValue)
+      iPercentVulnerabilitySex = fValue As int
+      SetSliderOptionValueST(iPercentVulnerabilitySex)
+   EndEvent
+
+   Event OnDefaultST()
+      iPercentVulnerabilitySex = 20
+      SetSliderOptionValueST(iPercentVulnerabilitySex)
+   EndEvent
+
+   Event OnHighlightST()
+      SetInfoText("Add this % of current DFW vulnerability to the chance of sex attacks.\n" +\
+                  "E.g. Set to 20 with vulnerability 50 the maximum roll value is increased by 10%.\n" +\
+                  "Note: Other factors also affect the roll and the maximum value allowed.")
+   EndEvent
+EndState
+
+State ST_DFW_PERC_ENSL
+   Event OnSliderOpenST()
+      SetSliderDialogStartValue(iPercentVulnerabilityEnslave)
+      SetSliderDialogDefaultValue(10)
+      SetSliderDialogRange(0, 100)
+      SetSliderDialogInterval(1)
+   EndEvent
+
+   Event OnSliderAcceptST(Float fValue)
+      iPercentVulnerabilityEnslave = fValue As int
+      SetSliderOptionValueST(iPercentVulnerabilityEnslave)
+   EndEvent
+
+   Event OnDefaultST()
+      iPercentVulnerabilityEnslave = 10
+      SetSliderOptionValueST(iPercentVulnerabilityEnslave)
+   EndEvent
+
+   Event OnHighlightST()
+      SetInfoText("Add this % of current DFW vulnerability to the chance of enslavement attacks.\n" +\
+                  "E.g. Set to 10 with vulnerability 50 the maximum roll value is increased by 5%.\n" +\
+                  "Note: Other factors also affect the roll and the maximum value allowed.")
+   EndEvent
+EndState
+
+State ST_SEX_CHANCE_ENSLAVED
+   Event OnSliderOpenST()
+      SetSliderDialogStartValue(iPercentSexWhenEnslaved)
+      SetSliderDialogDefaultValue(10)
+      SetSliderDialogRange(0, 300)
+      SetSliderDialogInterval(1)
+   EndEvent
+
+   Event OnSliderAcceptST(Float fValue)
+      iPercentSexWhenEnslaved = fValue As int
+      SetSliderOptionValueST(iPercentSexWhenEnslaved)
+   EndEvent
+
+   Event OnDefaultST()
+      iPercentSexWhenEnslaved = 10
+      SetSliderOptionValueST(iPercentSexWhenEnslaved)
+   EndEvent
+
+   Event OnHighlightST()
+      SetInfoText("When the player is enslaved she is very vulnerable, causing sex to happen very often.\n" +\
+                  "The chance of sex will be reduced to this percentage when the player is enslaved according to DFW.\n" +\
+                  "E.g. if they player would have a 10% chance of sex and this is set to 10 the chance would be 1%.")
+   EndEvent
+EndState
+
+
+;***********************************************************************************************
+;***                                 EXTERNAL PROPERTIES                                     ***
+;***********************************************************************************************
+;Bool Property bCRDEEnable  Auto
 GlobalVariable Property gCRDEEnable Auto
 int gCRDEEnableOID
 
-Bool Property bDebugMode  Auto  
+Bool Property bDebugMode  Auto
 int bDebugModeOID
-Bool Property bDebugConsoleMode  Auto  
+Bool Property bDebugConsoleMode  Auto
 int bDebugConsoleModeOID
 
-Float Property fEventInterval  Auto  
+Float Property fEventInterval  Auto
 int fEventIntervalOID
 
-Float Property fEventTimeout  Auto  
-Float fEventTimeoutHours
+Float Property fEventTimeout  Auto
 int fEventTimeoutOID
 
-Int Property iGenderPref  Auto  
+Int Property iGenderPref  Auto
 int iGenderPrefOID
-Int Property iGenderPrefMaster Auto  
+Int Property iGenderPrefMaster Auto
 int iGenderPrefMasterOID
-bool Property bUseSexlabGender Auto  
+bool Property bUseSexlabGender Auto
 int bUseSexlabGenderOID
-int aFollowerSelectOID 
+int aFollowerSelectOID
 
 
-Int Property iChanceEnslavementConvo  Auto  
+Int Property iChanceEnslavementConvo  Auto
 int iChanceEnslavementConvoOID
 
-Int Property iChanceVulEnslavementConvo  Auto  
+Int Property iChanceVulEnslavementConvo  Auto
 int iChanceVulEnslavementConvoOID
 
-Int Property iChanceSexConvo  Auto  
+Int Property iChanceSexConvo  Auto
 int iChanceSexConvoOID
 
-Int Property iSexEventKey  Auto 
-int iSexEventKeyOID 
+Int Property iSexEventKey  Auto
+int iSexEventKeyOID
 
-Int Property iSexEventDevice  Auto  
+Int Property iSexEventDevice  Auto
 int iSexEventDeviceOID
 
-Int Property iRapeEventDevice  Auto  
+Int Property iRapeEventDevice  Auto
 int iRapeEventDeviceOID
 
-Int Property iRapeEventEnslave  Auto  
+Int Property iRapeEventEnslave  Auto
 int iRapeEventEnslaveOID
 
-Bool Property bIsVulNaked  Auto  
-int bIsVulNakedOID 
-Bool Property bIsNonChestArmorIgnoredNaked  Auto  
-int bIsNonChestArmorIgnoredNakedOID 
+Bool Property bIsVulNaked  Auto
+int bIsVulNakedOID
+Bool Property bIsNonChestArmorIgnoredNaked  Auto
+int bIsNonChestArmorIgnoredNakedOID
 
-bool Property bHookAnySexlabEvent Auto 
+bool Property bHookAnySexlabEvent Auto
 int bHookAnySexlabEventOID
-bool Property bHookReqVictimStatus Auto 
-int bHookReqVictimStatusOID 
-bool Property bFxFAlwaysAggressive Auto 
+bool Property bHookReqVictimStatus Auto
+int bHookReqVictimStatusOID
+bool Property bFxFAlwaysAggressive Auto
 int bFxFAlwaysAggressiveOID ;bFxFAlwaysAggressive
 
 string[] Property genderList Auto
 ;string[] Property genderListMaster Auto ;can reuse
 
 Int Property iWeightSingleDD Auto
-int iWeightSingleDDOID 
+int iWeightSingleDDOID
 Int Property iWeightMultiDD Auto
-int iWeightMultiDDOID 
+int iWeightMultiDDOID
 Int Property iWeightPetcollar Auto
 int iWeightPetcollarOID
 Int Property iWeightCursedCollar Auto
-int iWeightCursedCollarOID  
+int iWeightCursedCollarOID
 Int Property iWeightSlaveCollar Auto
-int iWeightSlaveCollarOID  
+int iWeightSlaveCollarOID
 Int Property iWeightSlutCollar Auto
-int iWeightSlutCollarOID  
+int iWeightSlutCollarOID
 Int Property iWeightRubberDollCollar Auto
-int iWeightRubberDollCollarOID  
+int iWeightRubberDollCollarOID
 
 float Property fModifierSlaverChances Auto
 float fModifierSlaverChancesOID
 
 Int Property iSearchRange Auto     ; deprecated, if I get the global to work, since we can use globals in condition (CK)
 GlobalVariable Property gSearchRange Auto
-int iSearchRangeOID  
+int iSearchRangeOID
 
 Int Property iNPCSearchCount Auto
-int iNPCSearchCountOID 
+int iNPCSearchCountOID
 int property iApproachDuration auto
 int iApproachDurationOID
 bool Property bAttackersGuards Auto
@@ -2754,9 +3101,9 @@ Int  iReqLevelSLSFSlaveIncreaseVulnerableOID
 Int Property  iReqLevelSLSFSlaveMakeVulnerable Auto
 Int  iReqLevelSLSFSlaveMakeVulnerableOID
 
-int Property iWeaponProtectionLevel Auto 
+int Property iWeaponProtectionLevel Auto
 int iWeaponProtectionLevelOID
-int Property iRelationshipProtectionLevel Auto 
+int Property iRelationshipProtectionLevel Auto
 int iRelationshipProtectionLevelOID
 
 bool Property bVulnerableLOS Auto
@@ -2768,10 +3115,10 @@ bool Property bVulnerableGag Auto
 bool Property bVulnerableCollar Auto
 bool Property bVulnerableArmbinder Auto
 bool Property bVulnerableBlindfold Auto
-Int  bVulnerableGagOID 
-Int  bVulnerableCollarOID 
-Int  bVulnerableArmbinderOID 
-Int  bVulnerableBlindfoldOID 
+Int  bVulnerableGagOID
+Int  bVulnerableCollarOID
+Int  bVulnerableArmbinderOID
+Int  bVulnerableBlindfoldOID
 bool Property bVulnerableBukkake Auto
 Int bVulnerableBukkakeOID
 bool Property bVulnerableSlaveBoots Auto
@@ -2795,10 +3142,10 @@ bool Property bNakedReqGag Auto
 bool Property bNakedReqCollar Auto
 bool Property bNakedReqArmbinder Auto
 bool Property bNakedReqBlindfold Auto
-Int  bNakedReqGagOID 
-Int  bNakedReqCollarOID 
-Int  bNakedReqArmbinderOID 
-Int  bNakedReqBlindfoldOID 
+Int  bNakedReqGagOID
+Int  bNakedReqCollarOID
+Int  bNakedReqArmbinderOID
+Int  bNakedReqBlindfoldOID
 bool Property bNakedReqBukkake Auto
 Int bNakedReqBukkakeOID
 bool Property bNakedReqSlaveBoots Auto
@@ -2821,13 +3168,13 @@ bool  Property bChastityToggle auto
 int   bChastityToggleOID
 bool  Property bChastityGag Auto
 bool  Property bChastityBra Auto
-Int   bChastityGagOID 
-Int   bChastityBraOID 
+Int   bChastityGagOID
+Int   bChastityBraOID
 int   bChastityLockingZazOID
 bool  Property bChastityLockingZaz Auto Conditional
 bool Property bChastityZazGag Auto Conditional
 bool Property bChastityZazBelt Auto Conditional
-int bChastityZazGagOID  
+int bChastityZazGagOID
 int bChastityZazBeltOID
 float Property fChastityCompleteModifier Auto Conditional
 int fChastityCompleteModifierOID
@@ -2837,30 +3184,30 @@ int fChastityPartialModifierOID
 
 ; enslavement options on/off
 bool Property bEnslaveLockoutDCUR Auto Conditional
-int bEnslaveLockoutDCUROID 
+int bEnslaveLockoutDCUROID
 
 bool Property bEnslaveFollowerLockToggle Auto Conditional
 int bEnslaveFollowerLockToggleOID
 
 ; local toggles
 bool Property bSlaverunEnslaveToggle Auto Conditional
-Int  bSlaverunEnslaveToggleOID 
-bool Property  bSDEnslaveToggle Auto Conditional 
-Int   bSDEnslaveToggleOID 
+Int  bSlaverunEnslaveToggleOID
+bool Property  bSDEnslaveToggle Auto Conditional
+Int   bSDEnslaveToggleOID
 bool Property  bMariaEnslaveToggle Auto Conditional
 int bMariaEnslaveToggleOID
 
 ; enslavement options long distance
 bool Property bWCDistanceToggle Auto Conditional
-Int  bWCDistanceToggleOID 
+Int  bWCDistanceToggleOID
 bool Property bMariaDistanceToggle Auto Conditional
 int bMariaDistanceToggleOID
 bool Property bMariaKhajitEnslaveToggle Auto Conditional
-Int  bMariaKhajitEnslaveToggleOID 
-bool Property bSDDistanceToggle Auto Conditional 
+Int  bMariaKhajitEnslaveToggleOID
+bool Property bSDDistanceToggle Auto Conditional
 int bSDDistanceToggleOID
 bool Property bSSAuctionEnslaveToggle Auto Conditional
-Int  bSSAuctionEnslaveToggleOID 
+Int  bSSAuctionEnslaveToggleOID
 bool Property bCDEnslaveToggle Auto Conditional
 Int  bCDEnslaveToggleOID
 bool Property bDCPirateEnslaveToggle Auto Conditional
@@ -2876,7 +3223,7 @@ Int  iEnslaveWeightSDOID
 Int  iEnslaveWeightMariaOID
 Int  iEnslaveWeightSlaverunOID
 Int  iEnslaveWeightCDOID
-Int  iEnslaveWeightSSOID 
+Int  iEnslaveWeightSSOID
 
 ; enslave type weights
 Int Property  iEnslaveWeightLocal Auto
@@ -2897,22 +3244,22 @@ Int Property  iDistanceWeightMariaK Auto
 Int  iDistanceWeightMariaKOID
 Int Property  iDistanceWeightSD Auto
 Int  iDistanceWeightSDOID
-Int Property iDistanceWeightSS Auto 
+Int Property iDistanceWeightSS Auto
 Int iDistanceWeightSSOID
-Int Property iDistanceWeightDCPirate Auto 
+Int Property iDistanceWeightDCPirate Auto
 Int iDistanceWeightDCPirateOID
 
-Int Property iDistanceWeightDCLDamsel Auto 
+Int Property iDistanceWeightDCLDamsel Auto
 Int iDistanceWeightDCLDamselOID
-Int Property iDistanceWeightDCLBondageAdv Auto 
+Int Property iDistanceWeightDCLBondageAdv Auto
 Int iDistanceWeightDCLBondageAdvOID
-Int Property iDistanceWeightSlaverunRSold Auto 
+Int Property iDistanceWeightSlaverunRSold Auto
 Int iDistanceWeightSlaverunRSoldOID
-Int Property iDistanceWeightSLUTSEnslave Auto 
+Int Property iDistanceWeightSLUTSEnslave Auto
 Int iDistanceWeightSLUTSEnslaveOID
-Int Property iDistanceWeightIOMEnslave Auto 
+Int Property iDistanceWeightIOMEnslave Auto
 Int iDistanceWeightIOMEnslaveOID
-Int Property iDistanceWeightDCLLeon Auto 
+Int Property iDistanceWeightDCLLeon Auto
 int iDistanceWeightDCLLeonOID
 Int Property  iDistanceWeightDCVampire Auto
 Int iDistanceWeightDCVampireOID
@@ -2920,12 +3267,12 @@ Int Property  iDistanceWeightDCBandits Auto
 Int iDistanceWeightDCBanditsOID
 
 ; enslave lock-out bEnslaveLockoutSRROID
-bool Property  bEnslaveLockoutCLDoll Auto 
+bool Property  bEnslaveLockoutCLDoll Auto
 int bEnslaveLockoutCLDollOID
-bool Property  bEnslaveLockoutSRR Auto 
+bool Property  bEnslaveLockoutSRR Auto
 int bEnslaveLockoutSRROID
 
-bool Property  bEnslaveLockoutTIR Auto 
+bool Property  bEnslaveLockoutTIR Auto
 int bEnslaveLockoutTIROID
 bool Property  bEnslaveLockoutCD Auto
 Int  bEnslaveLockoutCDOID
@@ -2938,7 +3285,7 @@ Int  bEnslaveLockoutAngrimOID
 bool Property  bEnslaveLockoutFTD Auto
 Int  bEnslaveLockoutFTDOID
 
-;guard dialogue 
+;guard dialogue
 bool Property bGuardDialogueToggle Auto Conditional           ; deprecated
 GlobalVariable Property gGuardDialogueToggle Auto Conditional
 int bGuardDialogueToggleOID
@@ -2966,14 +3313,14 @@ int bIgnoreZazOnNPCOID;bIgnoreZazOnNPCOID
 bool Property bDebugRollVis Auto
 bool Property bDebugStateVis Auto
 bool Property bDebugStatusVis Auto
-int bDebugRollVisOID 
-int bDebugStateVisOID     
+int bDebugRollVisOID
+int bDebugStateVisOID
 int bDebugStatusVisOID
 
 GlobalVariable Property gUnfinishedDialogueToggle Auto Conditional
 int gUnfinishedDialogueToggleOID
 bool Property bDebugLoudApproachFail Auto
-int bDebugLoudApproachFailOID 
+int bDebugLoudApproachFailOID
 
 bool Property bPrintSexlabStatus Auto
 int bPrintSexlabStatusOID
@@ -2986,7 +3333,7 @@ int bRefreshSDMasterOID ;bRefreshModDetect
 bool Property bSetValidRace Auto
 int bSetValidRaceOID
 ;bool Property bRefreshModDetect Auto
-int bRefreshModDetectOID 
+int bRefreshModDetectOID
 
 bool Property bTestTattoos Auto
 int bTestTattoosOID
@@ -3184,7 +3531,7 @@ Int  fFollowerFindChanceMaxPercentageOID
 Int Property   iFollowerFindChanceMaxContainers Auto
 Int  iFollowerFindChanceMaxContainersOID
 Int Property   iFollowerMinVulnerableApproachable Auto
-Int  iFollowerMinVulnerableApproachableOID 
+Int  iFollowerMinVulnerableApproachableOID
 GlobalVariable Property   iFollowerRelationshipLimit Auto
 Int  iFollowerRelationshipLimitOID
 
@@ -3205,3 +3552,5 @@ int bSDGeneralLockoutOID
 
 bool property bAddFollowerManually Auto
 int bAddFollowerManuallyOID
+
+

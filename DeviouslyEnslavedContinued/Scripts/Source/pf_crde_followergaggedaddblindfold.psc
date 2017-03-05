@@ -7,9 +7,10 @@ Function Fragment_0(ObjectReference akSpeakerRef)
 Actor akSpeaker = akSpeakerRef as Actor
 ;BEGIN CODE
 crdeItemManipulateScript itemscript = (GetOwningQuest() as crdeItemManipulateScript)
-itemscript.equipRandomGag(player)
+Actor aPlayer = Game.GetPlayer()
+itemscript.equipRandomGag(aPlayer)
 Utility.Wait(3)
-itemscript.equipRandomDDBlindfolds(player)
+itemscript.equipRandomDDBlindfolds(aPlayer)
 ;END CODE
 EndFunction
 ;END FRAGMENT
