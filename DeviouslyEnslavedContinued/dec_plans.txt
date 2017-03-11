@@ -399,6 +399,10 @@ more recent (not mothballed either):
   rewrite those adjust functions to accept cielings
   Does follower hit detection care about shouts yet?
   Slavetats: detect those tattoos that count as weapons
+
+  We need to swap zbf keywords for zad keywords, or add them as additional: looks like kimy has finally scrapped ZAZ from cursed loot
+  Sex through PAHE and PAHHSH counts as sex we should allow enslavment and items for
+  Follower with DCUR gag could talk to player, sigh
   
   always: new followers system needs to be tested more
   
