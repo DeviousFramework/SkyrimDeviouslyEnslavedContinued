@@ -1137,11 +1137,11 @@ bool function isSlave(actor actorRef)
       return true
     endif
   endif
-;slaverunRMainQuest
 	if modLoadedSlaverun == true && actorRef.isInFaction(slaverunSlaveFaction) 
     debugmsg("debug: " + actorRef.GetDisplayName() + " is a Slaverun slave", 3)
 		return true
   endif
+  ; should this get reduced out to separate function? we might want it for follower interaction
 	if modLoadedParadiseHalls == true 
     if actorRef.isInFaction(paradiseRespectfulFaction)
       debugmsg("debug: " + actorRef.GetDisplayName() + " is in the paradise hall faction and respectful", 3)
@@ -1152,57 +1152,40 @@ bool function isSlave(actor actorRef)
     endif
   endif
 	if  modLoadedMiasLair == true  ; too long
-		if ( actorRef.isInFaction(miasSlaveFaction) == true || actorRef.isInFaction(miasTrainingFaction) ||\
-		     actorRef.isInFaction(miasBeginnerFaction) == true || actorRef.isInFaction(miasChainedSlave)) ; come on guys, just make one faction and a quest or something
+		if actorRef.isInFaction(miasBeginnerFaction) == true || actorRef.isInFaction(miasChainedSlave) ; come on guys, just make one faction and a quest or something
    		debugmsg("debug: " + actorRef.GetDisplayName() + " is mias lair slave", 3)
 			return true
 		endif
   endif
-  if modLoadedFromTheDeep
-    if actorRef.isInFaction(ftdSlaveFaction) || actorRef.isInFaction(ftdDagonSlaveFaction) ; ignore servants, they can fuck you
-      debugmsg("debug: " + actorRef.GetDisplayName() + " is from the deeps slave", 3)
-      return true
-    endif
+  if modLoadedFromTheDeep && actorRef.isInFaction(ftdSlaveFaction) || actorRef.isInFaction(ftdDagonSlaveFaction) 
+    debugmsg("debug: " + actorRef.GetDisplayName() + " is from the deeps slave", 3)
+    return true
   endif
-  if modLoadedDarkwind
-    if actorRef.isInFaction(darkwindSlaveFaction)
-      debugmsg("debug: " + actorRef.GetDisplayName() + " is a darkwind slave", 3)
-      return true
-    endif
+  if modLoadedDarkwind && actorRef.isInFaction(darkwindSlaveFaction)  
+    debugmsg("debug: " + actorRef.GetDisplayName() + " is a darkwind slave", 3)
+    return true
   endif
-  if modLoadedTITD
-    if actorRef.IsInFaction(TITDSlaveFaction)
-      debugmsg("debug: " + actorRef.GetDisplayName() + " is a thingsinthedark slave", 3)
-      return true
-    endif
+  if modLoadedTITD && actorRef.IsInFaction(TITDSlaveFaction)
+    debugmsg("debug: " + actorRef.GetDisplayName() + " is a thingsinthedark slave", 3)
+    return true
   endif
-  if modLoadedSGOMSE
-    if  ( actorRef.isEquipped(sgomseCowBelt) || actorRef.isEquipped(sgomseCowCollar))
+  if modLoadedSGOMSE && ( actorRef.isEquipped(sgomseCowBelt) || actorRef.isEquipped(sgomseCowCollar))
       debugmsg("debug: " + actorRef.GetDisplayName() + " is a SGOMSE slave", 3)
       return true
-    endIf
   endif
-  if modLoadedPetCollar 
-    ;if(player.isEquipped(petCollar) == true) ; only catches one armor or official armor, magic effect can catch more (in thoery)
-    if actorRef.HasMagicEffect(petCollarEffect)
-      debugmsg("debug: " + actorRef.GetDisplayName() + " is a petcollar bitch", 3)
-      return true
-    endIf
+  if modLoadedPetCollar && actorRef.HasMagicEffect(petCollarEffect)
+    debugmsg("debug: " + actorRef.GetDisplayName() + " is a petcollar bitch", 3)
+    return true
   endIf
-  if modLoadedForswornStory
-    if actorRef.isInFaction(forswornStoryEnslavedFaction) || player.isInFaction(forswornStorySlaveFaction) ||  actorRef.isInFaction(forswornStoryWhoreFaction)
-      debugmsg("debug: " + actorRef.GetDisplayName() + " is a Forsworn Story slave", 3)
-      return true
-    endif
+  if modLoadedForswornStory && actorRef.isInFaction(forswornStoryEnslavedFaction) || player.isInFaction(forswornStorySlaveFaction) || actorRef.isInFaction(forswornStoryWhoreFaction)
+    debugmsg("debug: " + actorRef.GetDisplayName() + " is a Forsworn Story slave", 3)
+    return true
   endif
-  if modLoadedIsleofMara
-    if actorRef.isInFaction(isleOfMaraSlaveFaction) || actorRef.isInFaction(isleOfMaraPlayerSlaveFaction)
-      debugmsg("debug: " + actorRef.GetDisplayName() + " is a IOM slave", 3)
-      return true
-    endif
+  if modLoadedIsleofMara && (actorRef.isInFaction(isleOfMaraSlaveFaction) || actorRef.isInFaction(isleOfMaraPlayerSlaveFaction))
+    debugmsg("debug: " + actorRef.GetDisplayName() + " is a IOM slave", 3)
+    return true
   endif
 
-  
 	return false
 endFunction
 
