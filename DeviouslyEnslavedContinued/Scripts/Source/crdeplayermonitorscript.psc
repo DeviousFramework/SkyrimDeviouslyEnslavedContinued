@@ -338,6 +338,7 @@ Function clear_force_variables(bool resetAttacker = false)
 	forceGreetSlave       = 0 ; and player is NOW busy, try using these variables as a cancel
   isIndecent            = false
   isLocallyWanted       = false
+  sexFromDEC            = false
   if forceGreetIncomplete
     Mods.dhlpResume()
     forceGreetIncomplete  = false;
