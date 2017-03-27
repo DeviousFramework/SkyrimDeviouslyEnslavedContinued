@@ -260,9 +260,6 @@ Event OnUpdate()
 
       ; moving these to AFTER the other stuff, since it takes so fracking long
       tryDebug() ; moved to save space
-      if !completedApproach ; we only want to print actors when actor approaches, since we reset actors in this
-        NPCMonitorScript.printNearbyValidActors()
-      endif
       
     endif
     
@@ -733,14 +730,6 @@ bool function attemptApproach()
   ; test if player is busy
   isPlayerBusy  = isPlayerBusy()
   if isPlayerBusy ; lets test this sooner, fewer moot cycles
-  ;GetActorRef GetDisplayName
-    ;string name = "<master name>"
-    ;if attackerRefAlias != None
-    ;  name = attackerRefAlias.GetActorRef().GetDisplayName()
-    ;endif
-    ;debugmsg("last npc: " + name, 1) ; moved busy debug to the debug function
-    ;debugmsg("Player is busy ... last npc: " + name + " incomplete status: " + forceGreetIncomplete, 1)
-    ;debugmsg("player became busy during approach, resetting",1) ; commented out because this is now the ONLY check
     clear_force_variables(true) 
     return false ; if busy, nothing else to do here, leave
   elseif forceGreetIncomplete &&  attackerRefAlias != None && attackerRefAlias.GetActorRef() != player  ;forceGreetSex || forceGreetSlave
@@ -795,6 +784,7 @@ bool function attemptApproach()
   endif
   
   ; moved this later, since it takes a long time
+  NPCMonitorScript.printNearbyValidActors() ; hope this won't mess with us
   actor[] nearest = NPCMonitorScript.getClosestRefActor(player)
   actor[] followers = NPCSearchScript.getNearbyFollowers()
   
