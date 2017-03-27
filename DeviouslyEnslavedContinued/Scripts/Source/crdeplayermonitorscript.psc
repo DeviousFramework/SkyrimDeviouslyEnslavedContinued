@@ -75,8 +75,8 @@ Faction                   Property slaNaked Auto
 int Property enslaveDialogue        Auto Conditional ; 0 : any, 1 : Local, 2 : Given, 3 : Sold, 4 : Slaverun, 5+ for other mods later
 int Property enslavedLevel          Auto Conditional ; 0 : free, 1 : enslaved/always useable, 2 : enslaved/use if vuln, 3 : enslaved/freedom unavailable
 int lastEnslavedLevel = 0                   ; not used?
-int Property vulnerability          Auto Conditional ; 0 : free, 1 : collar, 2 : collar+gag/blindfold, 3 : armbinder
-int Property clothingVulnerability  Auto Conditional
+int Property playerVulnerability          Auto Conditional ; 0 : free, 1 : collar, 2 : collar+gag/blindfold, 3 : armbinder
+int Property clothingPlayerVulnerability  Auto Conditional
 ; these notes are out of date
 
 ; here so we can look htem up easier in dialogue condition?
@@ -174,6 +174,9 @@ Float Property  timeoutEnslaveGameTime  = 0.0 auto
 Float           timeoutSexGameTime      = 0.0
 Float           timeoutFollowerApproach = 0.0
 float Property  timeoutFollowerNag      = 0.0 Auto Conditional
+
+float           timeExtraVulnerableEnd  = 0.0   ; if the player is extra vulnerable for a certain amount of time, this is when it should end for the area
+location        timeExtraVulnerableLoc  = None
 
 ImageSpaceModifier property LightFade auto ; fade back to light, to counter the simpleslavery bug for now
 
@@ -283,10 +286,13 @@ Event OnInit()
     Debug.Trace("[crde]in player:mods not finished yet", 1)
     Utility.wait(2) ; in seconds
   endWhile
+  PlayerScript.equipmentChanged = true ; start out checking equipment regardless of what it could be
   ;cdGeneralFactionAlias = Mods.cdGeneralFaction as Alias
   RegisterForModEvent("HookAnimationStart", "crdeSexStartCatch")
   RegisterForModEvent("HookAnimationEnd", "crdeSexHook")
-  RegisterForModEvent("DeviceActorOrgasm", "playerOrgasmsFromDD")
+  RegisterForModEvent("DeviceActorOrgasm", "playerOrgasmsFromDD") ; orgasm
+  RegisterForModEvent("DeviceEdgedActor", "playerEdgedFromDD") ; edged? meaning halfway?
+  RegisterForModEvent("DeviceEvent", "playerHornyFromDD")
 	RegisterForSingleUpdate(1) ; in seconds
 EndEvent
 
@@ -321,10 +327,39 @@ Event playerOrgasmsFromDD(String eventname, string character_name, float argNum,
     actor[] a = NPCSearchScript.getNearbyFollowers() ;getNearbyActors() 
     ; increment all thinks sub by two
     adjustPerceptionPlayerSub( a, 2 )
+    timeExtraVulnerableEnd = Utility.GetCurrentGameTime() + (1/48) ; in days, 24 hours half hour (30 minutes)
+    timeExtraVulnerableLoc = player.GetCurrentLocation()
+    ; increase nearby NPC arousal?
   endif
   
 EndEvent
 
+Event playerEdgedFromDD(String eventname, string character_name, float argNum, Form Sender)
+  debugmsg("dd edge from belt detected: " + character_name)
+  if character_name == player.GetDisplayName()
+    ; mod arousal for all nearby NPCs
+    actor[] a = NPCSearchScript.getNearbyFollowers() ;getNearbyActors() 
+    ; increment all thinks sub by two
+    adjustPerceptionPlayerSub( a, 2 )
+    timeExtraVulnerableEnd = Utility.GetCurrentGameTime() + (1/48) ; in days, 24 hours half hour (30 minutes)
+    timeExtraVulnerableLoc = player.GetCurrentLocation()
+    ; increase nearby NPC arousal?
+  endif
+  
+endEvent
+
+Event playerHornyFromDD(String eventname, string character_name, float argNum, Form Sender)
+  debugmsg("dd horny event detected: " + character_name)
+  if character_name == player.GetDisplayName()
+    ; mod arousal for all nearby NPCs
+    actor[] a = NPCSearchScript.getNearbyFollowers() ;getNearbyActors() 
+    ; increment all thinks sub by two
+    adjustPerceptionPlayerSub( a, 2 )
+    timeExtraVulnerableEnd = Utility.GetCurrentGameTime() + (1/48) ; in days, 24 hours half hour (30 minutes)
+    timeExtraVulnerableLoc = player.GetCurrentLocation()
+  endif
+  
+endEvent
 
 Function clear_force_variables(bool resetAttacker = false)
 	;crdeFGreetStatus.SetValue(0)
@@ -439,19 +474,14 @@ endfunction
 
 ; check if the player has visible (nudity) Bukakke
 function CheckBukkake()
-  ;if isNude  && (player.WornHasKeyword(SexlabAnalCum) || player.WornHasKeyword(SexlabVaginalCum))
   if isNude  && (player.HasMagicEffect(SexLabCumAnalEffect) || player.HasMagicEffect(SexLabCumVaginalEffect))
     wearingBukkake = true
     return none
   endif
-  ;if player.WornHasKeyword(SexlabOralCum)
   if Player.HasMagicEffect(SexLabCumOralEffect)
     wearingBukkake = true
     return none
   endif
-  ;SexLabCumOralEffect Auto   
-  ;SexLabCumVaginalEffect Auto   
-  ;SexLabCumAnalEffect
   wearingBukkake = false
 endFunction
 
@@ -485,8 +515,8 @@ function CheckGuardApproachable()
     ;Faction localFac    = (Mods.xazMain as xazpEscortToPrison).FindCurrentHoldFaction()
     ;localBounty = localFac.GetInfamy() 
     localBounty = (Mods.xazMain as xazpEscortToPrison).FindCurrentHoldFaction().GetInfamy() 
-    isLocallyWanted = (localBounty > 0 && vulnerability > 0) || localBounty > 99 
-    ;if  (localBounty > 0 && vulnerability > 0) || localBounty > 99 
+    isLocallyWanted = (localBounty > 0 && playerVulnerability > 0) || localBounty > 99 
+    ;if  (localBounty > 0 && playerVulnerability > 0) || localBounty > 99 
     ;  isLocallyWanted = true
     ;  ;return true
     ;else
@@ -510,60 +540,29 @@ function CheckGuardApproachable()
   
 endFunction
 
-; 0 not vulnerable, 1 - 4 are levels of vulnerable
-function updateVulnerability(bool isSlaver = false) 
-	debugmsg("updating vulnerability", 1) ; too often used, spam; not anymore, less used
-  isNude(player)            ; sets the script wide variable
-  ; deprecated in 13.4.5, we can now check when the tattos change hands
-  ;if MCM.bVulnerableSlaveTattoo || MCM.bVulnerableSlutTattoo 
-  ;  SlavetatsScript.detectTattoos(); for now
-  ;endif
+; only checks the vulnerability of the player on part of what they wear, 
+;  we can separate this part because we can detect when the player's clothes change dynamically
+function updateEquippedPlayerVulnerability(bool isSlaver = false)
+  debugmsg("updating clothing vulnerability ...", 1) ; too often used, spam; not anymore, less used
   
-  ; where positive fame is 1 for having an INCREASE for each of the three fields
-  ; and negative if 
-  int frameworkFameIncrease = 0
-  int frameworkFameAlways   = 0 
-  int nightAddition         = ((isNight() as int) * (MCM.bNightAddsToVulnerable as int))
-  int totalIncrease = frameworkFameIncrease + nightAddition
-  
-  
-  if Mods.modLoadedFameFramework
-    frameworkFameIncrease = ((Mods.metReqFrameworkIncreaseVuln() > 1) as int)
-    frameworkFameAlways   = Mods.metReqFrameworkMakeVuln()
-    ; might need two functions with different things
-    ; since bitwise is a bitch to work with in this program
-  endif
-  
-  if Mods.modLoadedSlaverunR || Mods.modLoadedSlaverun
-    slaverunInEnforcedLoc = SlaverunScript.PlayerIsInEnforcedLocation()
-  endif
-  
-	; this is seperated because we can now disable certain items, and all items need to be autonomous
-	;elseif(( wearingGag && MCM.bVulnerableGag  ) || (wearingBlindfold && MCM.bVulnerableBlindfold)) && !(MCM.bNakedReqGag && !isNude) ;isNude(player) == true)
-	;	vulnerability = 2
-		;;return None
   bool isTattooVulnerable = (MCM.bVulnerableSlaveTattoo && (SlavetatsScript.wearingSlaveTattoo)); && (isNude || !MCM.bNakedReqSlaveTattoo || isSlaver))) || \
                             (MCM.bVulnerableSlutTattoo && (SlavetatsScript.wearingSlutTattoo)); && (isNude || !MCM.bNakedReqSlutTattoo || isSlaver))) ; and for slave
-    
+
   int heavyItemCount =  (((wearingArmbinder == true && MCM.bVulnerableArmbinder) as int) * 2) + \
                         ((wearingBlindfold && MCM.bVulnerableBlindfold) as int) + \
                         (( wearingGag && MCM.bVulnerableGag  ) as int) +\
                         ((wearingBlockingFull && isNude) as int) +\
                         ((MCM.bVulnerableSlaveBoots && wearingSlaveBoots)as int) +\
-                        ((MCM.bVulnerableFurniture && NPCMonitorScript.checkActorBoundInFurniture(player)) as int *2) +\
                         (player.HasKeyword(Mods.zazKeywordEffectOffsetAnim) as int) +\
                         ((isTattooVulnerable && (isNude || !MCM.bNakedReqSlaveTattoo || isSlaver)) as int) +\
-                        (frameworkFameIncrease > 0) as int +\
-                        (wearingAnkleChains as int)
+                        (wearingAnkleChains as int) 
   if heavyItemCount >= 3
-    clothingVulnerability = 4
-    vulnerability = 4 + totalIncrease
+    clothingPlayerVulnerability = 4
     return 
   endif
   ; TODO: Bug here, try to figure out how we got to this point
-  if((wearingArmbinder == true && MCM.bVulnerableArmbinder) || (MCM.bVulnerableFurniture && NPCMonitorScript.checkActorBoundInFurniture(player)) || player.wornHasKeyword(Mods.zazKeywordEffectOffsetAnim))
-    clothingVulnerability = 3
-		vulnerability = 3 + totalIncrease
+  if((wearingArmbinder == true && MCM.bVulnerableArmbinder)  || player.wornHasKeyword(Mods.zazKeywordEffectOffsetAnim))
+    clothingPlayerVulnerability = 3
     return 
   endif
   if((MCM.bVulnerableCollar && wearingCollar  ) && (MCM.bIsVulNaked == true && isNude) && (!(MCM.bNakedReqCollar && !isNude) || isSlaver)) ||\
@@ -572,23 +571,88 @@ function updateVulnerability(bool isSlaver = false)
     (MCM.bVulnerableSlaveBoots && wearingSlaveBoots)  ||\
     (MCM.bVulnerableGag && wearingGag && (!(MCM.bNakedReqGag && !isNude) || isSlaver)) ||\
     ((wearingCollar && wearingBlockingVaginal && wearingBlockingBra ) && isNude) || \
-    (MCM.bVulnerableBukkake && wearingBukkake && !(MCM.bNakedReqBukkake && !isNude)) ||\
     (isTattooVulnerable && (isNude || !MCM.bNakedReqSlaveTattoo || isSlaver)) ||\
     (wearingAnkleChains)
     
-    clothingVulnerability = 2
-		vulnerability = 2	+ totalIncrease
+    clothingPlayerVulnerability = 2
 		return 
 	endif 
 	if(MCM.bVulnerableCollar && wearingCollar == true && !(MCM.bNakedReqCollar && !isNude)) \
    || (MCM.bIsVulNaked == true && isNude) 
-		clothingVulnerability = 1
-    vulnerability = 1 + totalIncrease
+		clothingPlayerVulnerability = 1
 		return 
 	endif
   
-  clothingVulnerability = 0
-	vulnerability = 0 + ((frameworkFameAlways) as int) + totalIncrease ; moved to last since we need to get down here to know anyway, one less step if v >= 1, 
+  ; stuff that needs to be moved
+;     +\
+;    (frameworkFameIncrease > 0) as int +\
+;    (MCM.bVulnerableBukkake && wearingBukkake && !(MCM.bNakedReqBukkake && !isNude)) ||\
+
+  
+endFunction 
+
+; 0 not vulnerable, range: 1 - 4 are levels of vulnerable for clothing, where several factors can make it rise
+function updatePlayerVulnerability(bool isSlaver = false) 
+  isNude(player)            ; sets the class scope variable
+  
+  ; TODO are we sure everything is here and not in equipped check function?
+  
+  ; where positive fame is 1 for having an INCREASE for each of the three fields
+  ; and negative if 
+  
+  int furnitureLocked             = (MCM.bVulnerableFurniture && NPCMonitorScript.checkActorBoundInFurniture(player)) as int
+  int temporaryVulnerableIncrease = (CurrentGameTime < timeExtraVulnerableEnd && player.GetCurrentLocation() == timeExtraVulnerableLoc) as int
+  int nightAddition               = ((isNight() as int) * (MCM.bNightAddsToVulnerable as int))
+  
+  int frameworkFameIncrease = 0
+  int frameworkFameAlways   = 0 
+  if Mods.modLoadedFameFramework ; && Mods.metReqFrameworkMakeVuln() >= 1
+    frameworkFameIncrease   = ((Mods.metReqFrameworkIncreaseVuln() > 1) as int)
+    frameworkFameAlways     = Mods.metReqFrameworkMakeVuln()
+  endif
+  
+  if Mods.modLoadedSlaverunR || Mods.modLoadedSlaverun
+    slaverunInEnforcedLoc = SlaverunScript.PlayerIsInEnforcedLocation()
+  endif
+  
+  ;if PlayerScript == none
+  ;  debugmsg("playerscript is none")
+  ;endIf ; shouldn't happen anymore, has been long enough most users shouldn't run into this error anymore
+  if PlayerScript.equipmentChanged == true ; equipment has changed
+    updateEquippedPlayerVulnerability(isSlaver)
+    PlayerScript.equipmentChanged = false
+    ;CheckGuardApproachable() 
+    
+  ; the following can happen now in THIS function without checking equippment 
+  ;elseif PlayerScript.sittingInZaz ; else if because we don't need to check if gear was already checked. will get caught regardless
+  ;  updatePlayerVulnerability(isSlaver) 
+  elseif PlayerScript.releasedFromZaz
+    PlayerScript.releasedFromZaz = false
+  ;  updatePlayerVulnerability(isSlaver)
+  
+  elseif isSlaver && playerVulnerability < 2
+    ; ??? confused, did we want to increase vulnerability if they are a slaver and they are only lvl 1? shouldn't this be MCM dependant instead of static?
+    debugmsg("slaver found, double checking playerVulnerability" , 3)
+    updateEquippedPlayerVulnerability(isSlaver)
+  endif
+    
+  CheckBukkake()  ; was originally called AFTER this updatePlayerVulnerability, but always only after an equippment change
+                  ; (old assumption:) player would undress and dress for/after sex
+                  ; I think we can leave this running all the time now
+  int bukkakeVulnerable   = (MCM.bVulnerableBukkake && wearingBukkake && !(MCM.bNakedReqBukkake && !isNude)) as int
+
+  int situationalIncrease = frameworkFameIncrease + nightAddition + temporaryVulnerableIncrease + bukkakeVulnerable + frameworkFameIncrease
+
+
+  playerVulnerability = clothingPlayerVulnerability + situationalIncrease
+  
+  ; extra cases, to compensate for not being in clothing detection anymore:
+  if playerVulnerability > 4
+    playerVulnerability = 4 ; not sure if this is n
+  elseif playerVulnerability == 0 && frameworkFameAlways == 1
+    playerVulnerability = 1
+  endif
+  
 endFunction
 
 ; This gets called by fragments after the approach and dialogue
@@ -720,7 +784,9 @@ endFunction
 ;   also not event, don't put event in the function name unless it's an event
 ; I know this function is huge, but since papyrus doesn't likely inline functions...
 bool function attemptApproach()
-  ; nearest ->  isbusy -> check equip -> roll(need nearest for slave trader modifier) -> enslavelvl -> attempts ->
+  ; isbusy -> enslavelvl -> nearest -> (follower chance)  -> roll(need nearest for slave trader modifier) -> vulnerability check -> attempts
+  ; roll is fastest, busy is second fastest. nearest is slowest. Nearest before roll only because we need nearest for follower,
+  ; this function should be reorganized so that roll is first or second, it's massively faster, no point searching for NPCs if we roll too low.
   
   if( CurrentGameTime <= timeoutGameTime) ; TODO: Move this further up, we shouldn't check if the player is timed out AFTER doing everything that is expensive
     debugmsg("dec is in timeout, going back to sleep for " + (timeoutGameTime - CurrentGameTime) + " mins",1)
@@ -749,32 +815,6 @@ bool function attemptApproach()
   forceGreetSlave = 0
   bool isNight = isNight()
   
-  ;if Mods.modLoadedFameFramework
-    
-  ;endif
-  if PlayerScript == none
-    debugmsg("playerscript is none")
-  endIf
-  if PlayerScript.equipmentChanged == true ; equipment has changed
-    debugmsg("equipment changed: " + PlayerScript.equipmentChanged , 3);debugmsg("New armor detected", 3)
-    CheckDevices()
-    updateVulnerability(isSlaver)
-    CheckBukkake() ; require isNude, called in updateVulnerability()
-    PlayerScript.equipmentChanged = false
-    ;CheckGuardApproachable() 
-  elseif PlayerScript.sittingInZaz ; else if because we don't need to check if gear was already checked. will get caught regardless
-    updateVulnerability(isSlaver)
-  elseif PlayerScript.releasedFromZaz
-    PlayerScript.releasedFromZaz = false
-    updateVulnerability(isSlaver)
-  elseif isSlaver && vulnerability < 2
-    debugmsg("slaver found, double checking vulnerability" , 3)
-
-    updateVulnerability(isSlaver)
-  elseif Mods.modLoadedFameFramework && Mods.metReqFrameworkMakeVuln() >= 1
-    debugmsg("rechecking vulnerability because fame is high enough to always be vulnerable" , 3)
-    updateVulnerability(isSlaver) 
-  endif
   
   follower_attack_cooldown = (CurrentGameTime >= timeoutFollowerApproach + (120 * (1.0/1400.0))) ; this is the cooldown release
   
@@ -953,15 +993,16 @@ bool function attemptApproach()
       
       return true
     endif
-  elseif followers[0] != None
-    ;no followers was the specific reason we're skipping the above
+  elseif followers[0] != None ; no followers nearby
+    if forceGreetFollower
+      clear_force_variables()
+      ;forceGreetFollower = 0 ; forceclear instead
+    endif
     playerContainerOpenCount = 0 ; no followers, nobody saw anything
-    forceGreetFollower = 0
-
   else ; if follower and alone or at home  
     ; STOP the item approach, probably sex approach too
     forceGreetFollower = 0
-  endif  ; EXIT follower approach code
+  endif  
     
   int i = 0
   hasFollowers = false
@@ -986,7 +1027,7 @@ bool function attemptApproach()
   endif
 
   bool isSlaver = Mods.isSlaveTrader(nearest[0]) ; moved up so we can 
-  
+    
   float rollModifier = 1
   if isNight              
     rollModifier     = MCM.fNightChanceModifier    ; this is why god made ternary operators bethesuda
@@ -1002,6 +1043,8 @@ bool function attemptApproach()
     rollSex 	    = (rollSex		      / MCM.fModifierSlaverChances)
   endif
   
+  updatePlayerVulnerability(isSlaver)
+
   ; if wearingPartialChasity
   ; use two variables set by the full check function, then you can test either or
   ; partial results in some increase?
@@ -1041,16 +1084,15 @@ bool function attemptApproach()
   endif
   
   ;old isplayerenslaved location
-  debugmsg("slave lvl: " + enslavedLevel + " vuln lvl: " + vulnerability, 3) 
+  debugmsg("slave lvl: " + enslavedLevel + " vuln lvl: " + playerVulnerability + " weapon: " + wearingWeapon as int , 3) 
   
   if wearingWeapon 
     debugmsg("Player is armed, protected", 3)  
     return false
   endif
   
-  debugmsg(("dhlp: " + Mods.dhlpSuspendStatus + " weapon: " + wearingWeapon), 1)
-  if enslavedLevel != 3 && (vulnerability > 0 || enslavedLevel == 1) && \
-     (wearingWeapon == false || (wearingWeapon && MCM.iWeaponProtectionLevel < vulnerability)) && \
+  if enslavedLevel != 3 && (playerVulnerability > 0 || enslavedLevel == 1) && \
+     (wearingWeapon == false || (wearingWeapon && MCM.iWeaponProtectionLevel < playerVulnerability)) && \
      forceGreetIncomplete == false 
     
     ;updateMaster()
@@ -1066,7 +1108,7 @@ bool function attemptApproach()
       isSlaver          = Mods.isSlaveTrader(nearest[i])
       
       ; reasons confidence can be lower: Actor is really aroused, player has reputation as local whore
-      reqConfidence   = 4 - vulnerability - isNightReduction
+      reqConfidence   = 4 - playerVulnerability - isNightReduction
                           ;- ( nearest[i].GetFactionRank(Mods.sexlabArousedFaction) > 80 ) as int
     
       if ( !MCM.bConfidenceToggle || (actorConfidence >= reqConfidence) || isSlaver \
@@ -1094,8 +1136,8 @@ bool function attemptApproach()
         debugmsg("Not enough time has passed since the last enslave attempt: now:" + CurrentGameTime + " t.o.:" + timeoutEnslaveGameTime, 3)    
       elseif MCM.iEnslaveWeightLocal + MCM.iEnslaveWeightGiven + MCM.iEnslaveWeightSold <= 0
         debugmsg("All enslavement sliders are set to zero", 3)  
-      elseif vulnerability < MCM.iMinEnslaveVulnerable 
-        debugmsg(("Player is not vulnerable enough for enslave, MCM:" + MCM.iMinEnslaveVulnerable + ", Player:" + vulnerability), 3)
+      elseif playerVulnerability < MCM.iMinEnslaveVulnerable 
+        debugmsg(("Player is not vulnerable enough for enslave, MCM:" + MCM.iMinEnslaveVulnerable + ", Player:" + playerVulnerability), 3)
       elseif ((actorMorality > MCM.iMaxEnslaveMorality) && isSlaver == false)
         debugmsg("Attacker is not slaver and Morality is not low enough, Attacker:" + actorMorality + ", Req:" + MCM.iMaxEnslaveMorality, 3)
       elseif isWeaponProtected() == true && isSlaver == false
@@ -1116,7 +1158,7 @@ bool function attemptApproach()
     endif	
 
     ; sex attempt
-    ;if(vulnerability > 0   && CurrentGameTime >= timeoutEnslaveGameTime) && \
+    ;if(playerVulnerability > 0   && CurrentGameTime >= timeoutEnslaveGameTime) && \
     if (actorMorality > MCM.iMaxSolicitMorality) && !isSlaver
       debugmsg("Attacker is not slaver and Morality is not low enough, Attacker:" + actorMorality + ", Req:" + MCM.iMaxEnslaveMorality, 3)
     ;elseif  nearest[0].GetFactionRank(Mods.sexlabArousedFaction) < MCM.iMinApproachArousal && !isSlaver
@@ -1604,14 +1646,14 @@ Event crdeSexHook(int tid, bool HasPlayer);(string eventName, string argString, 
       otherPerson.removeFromFaction(Vars.WantsSex)
       ;debugmsg("victim is " + victim.getDisplayName(), 0)
       CheckBukkake()
-      ;updateVulnerability() 
-      ; reasons why removed: if player is already wearing items then the last vulnerability should suffice except in false neg case, where we don't care as much
-      ; rechecking item and vulnerability is too slow, this code already takes a long time to work
+      ;updatePlayerVulnerability() 
+      ; reasons why removed: if player is already wearing items then the last playerVulnerability should suffice except in false neg case, where we don't care as much
+      ; rechecking item and playerVulnerability is too slow, this code already takes a long time to work
       ; assumption: no other mod will add items to player at end of sex and before this code (false negative)
       
       ; assumption: cannot rape player without going through isActiveInvalid already
       ; yeah but this is now the general event catch, not just for CRDE called
-      ;if  sexFromDEC ;|| (vulnerability >= MCM.iMinEnslaveVulnerable) ; NONslaveending dumbass
+      ;if  sexFromDEC ;|| (playerVulnerability >= MCM.iMinEnslaveVulnerable) ; NONslaveending dumbass
       if NPCMonitorScript.isInvalidRace(otherPerson) == false 
         if enslavedLevel < 1 
           bool enslave_attempt_result = tryEnslavableSexEnd(otherPerson)
@@ -1635,6 +1677,7 @@ Event crdeSexHook(int tid, bool HasPlayer);(string eventName, string argString, 
     sexFromDEC                    = false 
     sexFromDECWithoutAfterAttacks = false
     
+     
   else
     debugmsg("crdeSexhook ERR: sexlab doesn't have player controller or mod is turned off", 2)
   endif
@@ -1835,8 +1878,8 @@ endFunction
 	
 ; need to wait until vulnerability is done before we test weapon because of level setting
 bool function isWeaponProtected()
-  if (MCM.iWeaponProtectionLevel < vulnerability || playerIsNotArmed()) && \
-      ( playerIsNotWearingWizRobes() ) ;MCM.iWeaponProtectionLevel < vulnerability) ; robe variant added to MCM later
+  if (MCM.iWeaponProtectionLevel < playerVulnerability || playerIsNotArmed()) && \
+      ( playerIsNotWearingWizRobes() ) ;MCM.iWeaponProtectionLevel < playerVulnerability) ; robe variant added to MCM later
     wearingWeapon = false
     return false
   endif 
@@ -1883,7 +1926,7 @@ function checkPersuationIntimidateRequirements()
     float oroll = roll as int
     if playerIsNotArmed() == false && MCM.bIntimidateWeaponFullToggle ; for now, can always intimidate with weapon
       hasMetIntimidateReq = true
-    elseif vulnerability == 4 || (wearingGag && MCM.bIntimidateGagFullToggle) 
+    elseif playerVulnerability >= 4 || (wearingGag && MCM.bIntimidateGagFullToggle) 
       hasMetIntimidateReq = false
     else
       if wearingGag        
@@ -1897,9 +1940,9 @@ function checkPersuationIntimidateRequirements()
       ; we still need to modify the chance with gag presence here because there will be two possibilities
       
       
-      if vulnerability == 2 ; if the player has vulnerability 2, / 2
+      if playerVulnerability == 2 ; if the player has playerVulnerability 2, / 2
         roll = roll * 2
-      elseif vulnerability > 2 ; if player has vulnerability 3, / 3 ; we want more than that, but without the weapon protection...
+      elseif playerVulnerability > 2 ; if player has playerVulnerability 3, / 3 ; we want more than that, but without the weapon protection...
         roll = roll * 3
       endif 
       debugmsg("initimidation roll: " + roll + " original: " + oroll, 2)
@@ -2000,15 +2043,15 @@ function printPermitStatus()
 function printVulnerableStatus()
   MCM.bPrintVulnerabilityStatus = false
   CheckDevices()
-  updateVulnerability()
+  updatePlayerVulnerability()
   bool isNight = isNight()
-  debugmsg("slave lvl: " + enslavedLevel + " vuln lvl: " + vulnerability, 3)  
-  Debug.MessageBox("Nude: " + isNude + " Vulnerability: " + vulnerability)
+  debugmsg("slave lvl: " + enslavedLevel + " vuln lvl: " + playerVulnerability, 3)  
+  Debug.MessageBox("Nude: " + isNude + " playerVulnerability: " + playerVulnerability)
   ;Debug.MessageBox("Wornboots: (" + wearingSlaveBoots + ") WornHarness: (" + wearingHarness + ") WornBukkake: (" + wearingBukkake + ")" )
   Debug.MessageBox("Worngag: (" + wearingGag + ") Worn armbidings: (" + wearingArmbinder + ") WornCollar: (" + wearingCollar +")" )
   Debug.MessageBox("Furniture: (" + NPCMonitorScript.checkActorBoundInFurniture(player) + ") Nudity: (" + isNude + ") MCM furniture: (" + MCM.bVulnerableFurniture +")" )
   ; print worn stuff
-  ; print vulnerability
+  ; print playerVulnerability
   bool iswearingblockinggag = (!MCM.bChastityGag || (player.wornhaskeyword( libs.zad_DeviousGag ) && !(player.wornhaskeyword( libs.zad_PermitOral ) || player.wornhaskeyword( libs.zad_DeviousGagPanel ))))
   Debug.MessageBox("gag: (" + player.wornhaskeyword( libs.zad_DeviousGag ) \
        + ") permitoral: (" + player.wornhaskeyword( libs.zad_PermitOral ) \
@@ -2680,7 +2723,7 @@ function timeTest()
   timeCheckDevices = Utility.GetCurrentRealTime() - timeCheckDevices
   
   float timeUpdateVulnerabiltiy = Utility.GetCurrentRealTime()
-  updateVulnerability()
+  updatePlayerVulnerability()
   timeUpdateVulnerabiltiy = Utility.GetCurrentRealTime() - timeUpdateVulnerabiltiy
   
   float timeCheckBukkake = Utility.GetCurrentRealTime()
@@ -2755,7 +2798,7 @@ function timeTest()
                " GetClosestActor: " + timeGetClosestActor +\
                " GetClosestRefActor: " + timeGetClosestRefActor +\
                " CheckDevices: " + timeCheckDevices  +\
-               " UpdateVulnerability: " + timeUpdateVulnerabiltiy  +\
+               " updatePlayerVulnerability: " + timeUpdateVulnerabiltiy  +\
                " CheckBukkake: " + timeCheckBukkake  +\
                " isPlayerEnslaved: " + timePlayerEnslaved  +\
                " Enslave/sex rolling: " + timeRollingWithModifiers +\
