@@ -784,7 +784,7 @@ endFunction
 ;   also not event, don't put event in the function name unless it's an event
 ; I know this function is huge, but since papyrus doesn't likely inline functions...
 bool function attemptApproach()
-  ; isbusy -> enslavelvl -> nearest -> (follower chance)  -> roll(need nearest for slave trader modifier) -> vulnerability check -> attempts
+  ; isbusy -> enslavelvl -> nearest -> (follower chance) -> roll(need nearest for slave trader modifier) -> vulnerability check -> attempts
   ; roll is fastest, busy is second fastest. nearest is slowest. Nearest before roll only because we need nearest for follower,
   ; this function should be reorganized so that roll is first or second, it's massively faster, no point searching for NPCs if we roll too low.
   
@@ -803,18 +803,29 @@ bool function attemptApproach()
     return false ; approach in progress, just don't do anything else here, but no reset
   endif
   
+  ; ROLL for enslave/sex, maybe later I'll re-use the roll for follower? It's still a random number if I don't modify
+  float rollEnslave	= Utility.RandomInt(1,100) / rollModifier
+  ;float rollTalk		= Utility.RandomInt(1,100) ; reimplement when you put in the actual feature
+  float rollSex		  = Utility.RandomInt(1,100) / rollModifier
+  
+  ; pre-check if the roll with slaver modifier still has 0 percent chance, 
+  ;  worth checking early because it would save us lots of CPU time for the cost of very minor math and a few compares
+  if  ( (rollEnslave	/ MCM.fModifierSlaverChances) > MCM.iChanceEnslavementConvo || playerVulnerability < MCM.iMinEnslaveVulnerable )  \
+     && (rollSex     / MCM.fModifierSlaverChances) > MCM.iChanceSexConvo 
+    debugmsg("Rolled too low (pre-check with modifier), stopping",3)
+  endif
+  
   enslavedLevel  = Mods.isPlayerEnslaved() ; run this early so we know to quit early, without resetting the NPC quest so no aliases hopefully
   if enslavedLevel >= 3
     debugmsg("Player is busy slave, cannot be approached, leaving early",1)
     ; maybe stop the NPC quest if this happens? but we only want to stop it once, which means detecting it the first time only
     return false
   endif
+
   
   ;clear_force_variables(); not sure this is needed anymore
-  forceGreetSex = 0
-  forceGreetSlave = 0
-  bool isNight = isNight()
-  
+  forceGreetSex     = 0
+  forceGreetSlave   = 0
   
   follower_attack_cooldown = (CurrentGameTime >= timeoutFollowerApproach + (120 * (1.0/1400.0))) ; this is the cooldown release
   
@@ -1016,27 +1027,21 @@ bool function attemptApproach()
   endWhile
   ;hasFollowers  = NPCSearchScript.getNearbyFollowersInFaction(followers) ; unnecessary, we aren't saving variables here
   
+  ; TODO move this up to the nearest and side checks, no reason to let it sit here this long when we can leave earlier
   if nearest[0] == None
     debugmsg("No nearby NPCs, leaving early", 3)
     return false
-  ;elseif followers[0] != None && MCM.bEnslaveFollowerLockToggle ; moved down to enslave only
-  ;  debugmsg("Nearby NPCs found, but cannot approach with nearby follower", 3)
-  ;  ;forceGreetFollower = 0
-  ;  return false
-  ;else nothing here
   endif
 
   bool isSlaver = Mods.isSlaveTrader(nearest[0]) ; moved up so we can 
-    
-  float rollModifier = 1
+  bool isNight        = isNight()
+  float rollModifier  = 1
   if isNight              
-    rollModifier     = MCM.fNightChanceModifier    ; this is why god made ternary operators bethesuda
+    rollModifier      = MCM.fNightChanceModifier    ; this is why god made ternary operators bethesuda
   endif 
-  
-  float rollEnslave	= Utility.RandomInt(1,100) / rollModifier
-  ;float rollTalk		= Utility.RandomInt(1,100) ; reimplement when you put in the actual feature
-  float rollSex		  = Utility.RandomInt(1,100) / rollModifier
-    
+      
+  ; we're modifying the roll result, making it smaller so it's more likely to fit inside of the line,
+  ;  rather than confuse the user with a moving goal post that won't match their input
   if isSlaver
     rollEnslave   = (rollEnslave	    / MCM.fModifierSlaverChances)
     ;rollTalk 	    = (rollTalk		      / MCM.fModifierSlaverChances)
@@ -1074,14 +1079,6 @@ bool function attemptApproach()
 
   debugmsg("approachroll enslave: " + rollEnslave + " / sex: " + rollSex + " / a: " + nearest[0].GetDisplayName(), 2)
   
-  ; TODO: combine these into faster return sequence, once this is confirmed to be working as intended
-  ; if roll for all posible outcomes are too low, leave early
-  ; roll moved to first since arithmatic should be many times faster than checking if the player is busy and looking for acceptable NPC
-  if rollEnslave > MCM.iChanceEnslavementConvo \
-     && rollSex > MCM.iChanceSexConvo
-    debugmsg("Rolled too low, stopping",3)
-    return false
-  endif
   
   ;old isplayerenslaved location
   debugmsg("slave lvl: " + enslavedLevel + " vuln lvl: " + playerVulnerability + " weapon: " + wearingWeapon as int , 3) 
@@ -1166,7 +1163,6 @@ bool function attemptApproach()
       debugmsg("rolled too low for sex or enslavement, exiting...", 3)
 
     else
-      ;if(rollSex <= MCM.iChanceSexConvo)
       ;busyGameTime = Utility.GetCurrentRealTime() + 20 ;(20 * 24) ; 20 seconds? give it some time to work
       busyGameTime = CurrentGameTime + (approach_duration * (1.0/1400.0)) ; in-game minutes
       checkPersuationIntimidateRequirements()
