@@ -803,9 +803,15 @@ bool function attemptApproach()
     return false ; approach in progress, just don't do anything else here, but no reset
   endif
   
+  bool isNight        = isNight()
+  float rollModifier  = 1
+  if isNight              
+    rollModifier      = MCM.fNightChanceModifier    ; this is why god made ternary operators bethesuda
+  endif 
+  
   ; ROLL for enslave/sex, maybe later I'll re-use the roll for follower? It's still a random number if I don't modify
   float rollEnslave	= Utility.RandomInt(1,100) / rollModifier
-  ;float rollTalk		= Utility.RandomInt(1,100) ; reimplement when you put in the actual feature
+  ;float rollTalk		= Utility.RandomInt(1,100) 
   float rollSex		  = Utility.RandomInt(1,100) / rollModifier
   
   ; pre-check if the roll with slaver modifier still has 0 percent chance, 
@@ -1034,11 +1040,6 @@ bool function attemptApproach()
   endif
 
   bool isSlaver = Mods.isSlaveTrader(nearest[0]) ; moved up so we can 
-  bool isNight        = isNight()
-  float rollModifier  = 1
-  if isNight              
-    rollModifier      = MCM.fNightChanceModifier    ; this is why god made ternary operators bethesuda
-  endif 
       
   ; we're modifying the roll result, making it smaller so it's more likely to fit inside of the line,
   ;  rather than confuse the user with a moving goal post that won't match their input
