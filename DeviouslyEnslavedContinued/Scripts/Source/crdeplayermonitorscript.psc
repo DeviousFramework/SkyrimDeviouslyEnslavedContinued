@@ -330,6 +330,7 @@ Event playerOrgasmsFromDD(String eventname, string character_name, float argNum,
     timeExtraVulnerableEnd = Utility.GetCurrentGameTime() + (1/48) ; in days, 24 hours half hour (30 minutes)
     timeExtraVulnerableLoc = player.GetCurrentLocation()
     ; increase nearby NPC arousal?
+    adjustActorsArousal(a, 20)
   endif
   
 EndEvent
@@ -344,6 +345,8 @@ Event playerEdgedFromDD(String eventname, string character_name, float argNum, F
     timeExtraVulnerableEnd = Utility.GetCurrentGameTime() + (1/48) ; in days, 24 hours half hour (30 minutes)
     timeExtraVulnerableLoc = player.GetCurrentLocation()
     ; increase nearby NPC arousal?
+    adjustActorsArousal(a, 15)
+
   endif
   
 endEvent
@@ -357,6 +360,8 @@ Event playerHornyFromDD(String eventname, string character_name, float argNum, F
     adjustPerceptionPlayerSub( a, 2 )
     timeExtraVulnerableEnd = Utility.GetCurrentGameTime() + (1/48) ; in days, 24 hours half hour (30 minutes)
     timeExtraVulnerableLoc = player.GetCurrentLocation()
+    adjustActorsArousal(a, 10)
+
   endif
   
 endEvent
@@ -1615,7 +1620,8 @@ Event crdeSexHook(int tid, bool HasPlayer);(string eventName, string argString, 
       ; put the player back into their belt
       ItemScript.equipRegularDDItem(player, ItemScript.previousBelt, libs.zad_DeviousBelt)
       return
-    elseif victim == None
+    endif
+    if victim == None
       debugmsg("sexlabhook: player not victim, not started by DEC, mcm override is off, ignoring...", 3)
       return
     endif
@@ -1626,8 +1632,19 @@ Event crdeSexHook(int tid, bool HasPlayer);(string eventName, string argString, 
       ;debugmsg("sexlabhook: sexlab wasn't started by DEC or ALL not set", 3)
       ;return ; don't return yet, we want to alter perception first
       ; do nothing
-    elseif Thread.ActorCount <= 1 ; masterbation or machine rape, either way noone to enslave or add items
-      debugmsg("sexlabhook: not enough actors", 3)
+    elseif Thread.ActorCount <= 1  && player.WornHasKeyword(libs.zad_DeviousBelt)  ; we know the player was involved to get this far, lets increase reputation and temporary vulnerability
+      debugmsg("sexlabhook: masterbation detected while belted", 3)
+      ; mod arousal for all nearby NPCs
+      actor[] a = NPCSearchScript.getNearbyFollowers() ;getNearbyActors() 
+      ; increment all thinks sub by two
+      adjustPerceptionPlayerSub( a, 3 )
+      timeExtraVulnerableEnd = Utility.GetCurrentGameTime() + (1/48) ; in days, 24 hours half hour (30 minutes)
+      timeExtraVulnerableLoc = player.GetCurrentLocation()
+      ; increase nearby NPC arousal?
+      adjustActorsArousal(a, 20)
+
+    ;elseif Thread.ActorCount <= 1
+      ; no events for just player masterbating somewhere, 
     else ; no error, keep going
 
       int playerPos = Thread.GetPlayerPosition()
@@ -1739,6 +1756,20 @@ function adjustPerceptionPlayerDom(actor[] actors, float diffValue)
     if testActor != None
       modThinksPlayerDom(testActor, diffValue)
     endif
+    i += 1
+  endWhile
+endFunction
+
+function adjustActorsArousal(actor[] actors, int diffValue)
+  int i = 0
+  int arousal = 0
+  actor testActor = None
+  while i < actors.length 
+    testActor = actors[i]
+    if testActor != None
+      arousal = testActor.GetFactionRank(Mods.sexlabArousedFaction)    
+      testActor.SetFactionRank(Mods.sexlabArousedFaction, (arousal + diffValue) as int)
+    endif  
     i += 1
   endWhile
 endFunction

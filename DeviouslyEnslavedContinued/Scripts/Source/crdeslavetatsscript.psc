@@ -33,13 +33,14 @@ Scriptname crdeSlaveTatsScript extends Quest ;conditional ;extends ReferenceAlia
 ;   submissive, slutmarks, qayl, ownership, rejected, slavenumber, masochist
 
 ; definitions
-crdeModsMonitorScript Property Mods auto
-crdePlayerMonitorScript Property PlayerMon auto
-;import SlaveTats
-Quest Property SlaveTatsQuest auto
-Keyword Property ClothingCirclet Auto
-actor player 
-GlobalVariable Property modEnabled Auto
+crdeModsMonitorScript   Property  Mods auto
+crdePlayerMonitorScript Property  PlayerMon auto
+;import                           SlaveTats
+Quest                   Property  SlaveTatsQuest auto
+Keyword                 Property  ClothingCirclet Auto
+actor                             player 
+GlobalVariable          Property  modEnabled Auto
+
 bool semaphore
 Bool Property changesHappened auto
 
