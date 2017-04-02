@@ -556,7 +556,7 @@ function updateForms()
   ;modLoadedMoreDevious      = isModActive("DeviousDevice - More Devious Quest.esp")
   ;modLoadedSimpleSlavery    = isModActive("SimpleSlavery.esp")
   ;modLoadedMistakenIdentity = isModActive("MistakenIdentity.esp")
-  ;modLoadedFromtheDeep      = isModActive("zFromTheDeeps.esp")
+  ;modLoadedFromtheDeep      = isModActive("ZaFromTheDeeps.esp")
   ;modLoadedAngrim           = isModActive("AngrimApprentice.esp")
   ;modLoadedDeviousCidhna    = isModActive("Devious Cidhna.esp")
   ;modLoadedSGOMSE           = isModActive("soulgem-oven-100-milk-slave-experience.esp")
@@ -846,14 +846,13 @@ function updateForms()
   modLoadedMistakenIdentity = mistakenIDQuest != None
   ;if   endIf
 
-  ;ftdSlaveFaction       = Game.GetFormFromFile(0x000036CB , "zFromTheDeeps.esp") as Faction ; old:0x000036CB
-  ;ftdServantFaction     = Game.GetFormFromFile(0x7E0036CA , "zFromTheDeeps.esp") as Faction
-  ;ftdDagonSlaveFaction  = Game.GetFormFromFile(0x0500B853 , "zFromTheDeeps.esp") as Faction
+  ;ftdSlaveFaction       = Game.GetFormFromFile(0x000036CB , "ZaFromTheDeeps.esp") as Faction ; old:0x000036CB
+  ;ftdServantFaction     = Game.GetFormFromFile(0x7E0036CA , "ZaFromTheDeeps.esp") as Faction
+  ;ftdDagonSlaveFaction  = Game.GetFormFromFile(0x0500B853 , "ZaFromTheDeeps.esp") as Faction
   modLoadedFromtheDeep  =  Quest.GetQuest("aFTD") != None
   if modLoadedFromtheDeep
-    ftdDagonSlaveFaction  = Game.GetFormFromFile(0x0500B853 , "zFromTheDeepsV2.esp") as Faction
+    ftdDagonSlaveFaction  = Game.GetFormFromFile(0x0500B853 , "ZaFromTheDeepsV2.esp") as Faction
   endif
-  
   
   ;if modLoadedAngrim
   modLoadedAngrim       = (Quest.GetQuest("AngrimBeltQuest") != None)
