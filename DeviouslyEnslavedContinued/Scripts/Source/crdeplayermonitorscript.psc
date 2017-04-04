@@ -1433,7 +1433,8 @@ int function prepareForDoPlayerSex(actor actorRef, bool both = false, bool skip_
     ItemScript.removeDDbyKWD(actorRef, libs.zad_DeviousBelt)
   endif
   
-  if player.WornHasKeyword(libs.zad_DeviousGag) && !knownGag.HasKeyword(libs.zad_BlockGeneric) 
+  ; player is wearing gag
+  if !skip_oral && player.WornHasKeyword(libs.zad_DeviousGag) && !knownGag.HasKeyword(libs.zad_BlockGeneric) 
     if player.WornHasKeyword(libs.zad_PermitOral) || player.WornHasKeyword(libs.zad_DeviousGagPanel)
       debugmsg("gag is panel or permiting",3)
     elseif actorRef.getItemCount(libs.restraintsKey) > 0
@@ -1449,9 +1450,10 @@ int function prepareForDoPlayerSex(actor actorRef, bool both = false, bool skip_
     endif
   endif
   
-  ; if we haven't left already... ;!knownGag.HasKeyword(libs.zad_BlockGeneric)
-  if !skip_oral && actorRef.GetActorBase().GetSex() != 1 && player.WornHasKeyword(libs.zad_DeviousBelt) && !libs.GetWornDeviceFuzzyMatch(player, libs.zad_DeviousBelt).HasKeyword(libs.zad_BlockGeneric);&& and the belt doesn't have a blocking keyword
-
+  ; male attacker, check if they can unlock you
+  ; skip oral was here, huh?
+  if actorRef.GetActorBase().GetSex() == 0 && wearingBlockingVaginal \
+    && !libs.GetWornDeviceFuzzyMatch(player, libs.zad_DeviousBelt).HasKeyword(libs.zad_BlockGeneric)
     if actorRef.getItemCount(libs.chastityKey) > 0
       Debug.Notification(actorRef.GetDisplayName() + " had a chastity key to unlock you!")
       ItemScript.removeDDbyKWD(player, libs.zad_DeviousBelt)
@@ -1464,10 +1466,19 @@ int function prepareForDoPlayerSex(actor actorRef, bool both = false, bool skip_
       return 2; done, set var and leave?
     endif
   endif
+  ; still here? so they couldn't remove your belt... if female lets lock to oral at least
+  if actorRef.GetActorBase().GetSex() == 1
+    ;if Utility.RandomInt(1,100) > 50
+      return 1
+    ;else
+    ;  return 2
+    ;endif
+  endif
+  
   return 0  
 EndFunction
 
-
+; soft specifies if the sex can allow for softer sexual animations, like cuddling
 function doPlayerSex(actor actorRef, bool rape = false, bool soft = false, bool oral_only = false)
 	;timeoutEnslaveGameTime = Utility.GetCurrentGameTime() + MCM.fEventTimeout
   ;debugmsg("Resetting approach at start of doSex",1)
@@ -1498,11 +1509,13 @@ function doPlayerSex(actor actorRef, bool rape = false, bool soft = false, bool 
   debugmsg("prepare result: "+ preSex)
   ; if we removed something, we might as well sex in that area
   if preSex == 2 && Utility.RandomInt(0,100) < 65 
-    animationTags = "vaginal"
+    animationTags = "Vaginal"
   elseif preSex== 2 ; roll failed  
-    animationTags = "anal"
+    animationTags = "Anal"
+  ;elseif actorGender == 1 && (preSex == 1 || oral_only)
+  ;  animationTags = "Cunnilingus"
   elseif preSex == 1 || oral_only
-    animationTags = "oral"
+    animationTags = "Oral"
   endif
   
   ; changed in 13
@@ -1522,12 +1535,12 @@ function doPlayerSex(actor actorRef, bool rape = false, bool soft = false, bool 
     SendModEvent("crdePlayerSexConsentStarting")
   endif 
   
-  string supressTags = "solo"
+  string supressTags = "Solo"
   if soft == false
     supressTags  += ",Cuddling,acrobat,Petting,Foreplay"
   endif
   
-  if playerGender == 1 && actorGender == 1
+  if playerGender == 1 && actorGender == 1 ; both girls
     supressTags += ",handjob,footjob,boobjob" ; seriously now
     ; even oral on a dildo has some embarrassment value, but handjob on dildo is just silly, same with foot and boob, especially since they are kinda... woman focused
   endif
@@ -1536,9 +1549,14 @@ function doPlayerSex(actor actorRef, bool rape = false, bool soft = false, bool 
   if player.wornHasKeyword(libs.zad_DeviousBelt) 
     ; actor has a key, will use ;zzz key
     
-    
-    if !player.wornhaskeyword(libs.zad_PermitVaginal) && actorGender == 0 || ( actorRef.WornHasKeyword(libs.zad_DeviousBelt))
-      supressTags += ",vaginal,pussy,tribadism"
+    ; we know the player is belted, now check if their belt permits vag (are there even any?) and check for female attacker
+    ;  problem we're trying to avoid: suppress tags are both ways, we can't suppress vag for just player
+    ;  we don't want to block vag tag if the player can perform cunnilingus on female attacker though, so we can't block vag tag there or we block vag on both
+    ; preSex != 1 for now we're including the possibility of the player using strapon against attacker who needs service
+    if  (actorRef.WornHasKeyword(libs.zad_DeviousBelt) && !player.wornhaskeyword(libs.zad_PermitVaginal)) 
+      supressTags += ",Vaginal,Pussy,Tribadism,BlowJob"
+    elseif actorGender == 1
+      supressTags += ",Tribadism,BlowJob"
     endif
     if !player.wornhaskeyword(libs.zad_PermitAnal) && actorGender == 0 || ( (actorRef.WornHasKeyword(libs.zad_DeviousBelt) && !actorRef.wornhaskeyword(libs.zad_PermitAnal)))
       supressTags += ",anal"
@@ -1551,9 +1569,9 @@ function doPlayerSex(actor actorRef, bool rape = false, bool soft = false, bool 
     if actorRef.wornhaskeyword(libs.zad_DeviousBra)
       supressTags += ",Breastfeeding"
     endif
-    supressTags += ",oral,mouth"
+    supressTags += ",Oral,Mouth"
     if actorGender == 0
-      supressTags += ",blowjob"
+      supressTags += ",Blowjob"
     endif
   endif
   if player.wornhaskeyword(libs.zad_DeviousBra) && actorGender == 0
@@ -1569,11 +1587,6 @@ function doPlayerSex(actor actorRef, bool rape = false, bool soft = false, bool 
   sslBaseAnimation[] animations = SexLab.GetAnimationsByTag(2, animationTags, TagSuppress = supressTags)
   
   debugmsg(("anim:'" + animationTags +"',supp:'" + supressTags+ "',animsize:" + animations.length), 3)
-  ;String s = ""
-  ;int i = 0
-  ;while i < animations.length
-  ;  s = s + animations[i] ; hope this doesn't bug out
-  ;endwhile
   
   if (playerGender == 1 && actorGender == 1 )
     ; if both player and attacker are female, we want the player to take the 'reciever' or 'female' position
@@ -1581,17 +1594,24 @@ function doPlayerSex(actor actorRef, bool rape = false, bool soft = false, bool 
     sexActors = SexLab.SortActors(sexActors)
   endif
   
+  ; attempting to get around DDi animation filter based on kimy's advice
+  sslBaseAnimation[]  single_animation = new sslBaseAnimation[1]
+  int l = animations.length
+  single_animation[0] = animations[Utility.RandomInt(0,l)]
+  debugmsg("Animation chosen is: " + single_animation[0].name, 3)
+  
+  
 	if rape == true && !(playerGender == 0 && actorGender == 1 ) 
-
-    ;actor victim = player
     sexFromDEC = true
-    SexLab.StartSex(sexActors, animations, player);, None, false);
+    ;SexLab.StartSex(sexActors, animations, player);, None, false);
+    SexLab.StartSex(sexActors, single_animation, player);, None, false);
 	else
     if soft
       sexFromDECWithoutAfterAttacks = true
     endif
     sexFromDEC = true
-    SexLab.StartSex(sexActors, animations);
+    ;SexLab.StartSex(sexActors, animations);
+    SexLab.StartSex(sexActors, single_animation);
 	endif
 endFunction
 
@@ -2044,7 +2064,7 @@ function playRandomPlayerDDStruggle(int r = 0)
   Endif
 EndFunction
 
-; debug, prints what animations we would get from sexlab given tags 
+; debug, prints what animations we would get from sexlab given tags, based on what the player is wearing
 ; this is very old, hasn't been kept uptodate with the sex function so I doubt it still works correctly
 function printPermitStatus()
   string animationTags = "aggressive"
@@ -2066,7 +2086,7 @@ function printPermitStatus()
   sslBaseAnimation[] animations = SexLab.GetAnimationsByTag(2, animationTags, TagSuppress = supressTags)
   Debug.MessageBox(("animations:'" + animationTags +"',suppress tags:'" + supressTags+ "',animations available:" + animations.length))
   MCM.bPrintSexlabStatus = false
- endFunction
+endFunction
 
 function printVulnerableStatus()
   MCM.bPrintVulnerabilityStatus = false
