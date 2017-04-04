@@ -232,6 +232,7 @@ event OnPageReset(string a_page)
     iGenderPrefOID        = AddMenuOption("Approacher Gender Preference", genderList[iGenderPref])
     iGenderPrefMasterOID  = AddMenuOption("Master Gender Preference", genderList[iGenderPrefMaster])
     bUseSexlabGenderOID   = AddToggleOption("Use Sexlab Genders", bUseSexlabGender)
+    
     AddEmptyOption() ; spacer
     
     SetCursorPosition(1) ; switched sides
