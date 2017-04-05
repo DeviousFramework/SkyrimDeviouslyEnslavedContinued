@@ -1467,13 +1467,13 @@ int function prepareForDoPlayerSex(actor actorRef, bool both = false, bool skip_
     endif
   endif
   ; still here? so they couldn't remove your belt... if female lets lock to oral at least
-  if actorRef.GetActorBase().GetSex() == 1
+  ;if actorRef.GetActorBase().GetSex() == 1
     ;if Utility.RandomInt(1,100) > 50
-      return 1
+    ;  return 1
     ;else
     ;  return 2
     ;endif
-  endif
+  ;endif
   
   return 0  
 EndFunction
@@ -1528,7 +1528,7 @@ function doPlayerSex(actor actorRef, bool rape = false, bool soft = false, bool 
       ; user wanted animations where woman was not in male role, this might help with that
       animationTags += ",Cowgirl"
     elseif !(playerGender == 1 && actorGender == 1 && !MCM.bFxFAlwaysAggressive)
-      animationTags += ",aggressive"
+      animationTags += ",Aggressive"
     endif
     SendModEvent("crdePlayerSexRapeStarting")
   else
@@ -1537,12 +1537,14 @@ function doPlayerSex(actor actorRef, bool rape = false, bool soft = false, bool 
   
   string supressTags = "Solo"
   if soft == false
-    supressTags  += ",Cuddling,acrobat,Petting,Foreplay"
+    ;supressTags  += ",Cuddling,Acrobat,Petting,Foreplay"
+    supressTags  += ",Cuddling,Acrobat,Petting,"
   endif
   
   if playerGender == 1 && actorGender == 1 ; both girls
     supressTags += ",handjob,footjob,boobjob" ; seriously now
     ; even oral on a dildo has some embarrassment value, but handjob on dildo is just silly, same with foot and boob, especially since they are kinda... woman focused
+    ; TODO: remove this and check what animations are being dumped because 1/5 stages has one of these
   endif
   
 	; we can optimize this out with a variable, since we have to check this earlier when we start the dialogue anyway
@@ -1556,13 +1558,14 @@ function doPlayerSex(actor actorRef, bool rape = false, bool soft = false, bool 
     if  (actorRef.WornHasKeyword(libs.zad_DeviousBelt) && !player.wornhaskeyword(libs.zad_PermitVaginal)) 
       supressTags += ",Vaginal,Pussy,Tribadism,BlowJob"
     elseif actorGender == 1
-      supressTags += ",Tribadism,BlowJob"
+      ; if they too are a woman, keep pussy it shows up on licking animations
+      supressTags += ",Vaginal"
     endif
     if !player.wornhaskeyword(libs.zad_PermitAnal) && actorGender == 0 || ( (actorRef.WornHasKeyword(libs.zad_DeviousBelt) && !actorRef.wornhaskeyword(libs.zad_PermitAnal)))
-      supressTags += ",anal"
+      supressTags += ",Anal"
     endif
   elseif player.wornHasKeyword(Mods.zazKeywordWornBelt) && actorGender == 0 || ( actorRef.wornHasKeyword(Mods.zazKeywordWornBelt))
-    supressTags += ",vaginal,anal"
+    supressTags += ",Vaginal,Anal"
   endif
   if (player.wornhaskeyword(libs.zad_DeviousGag) && !(player.wornhaskeyword(libs.zad_PermitOral) || player.wornhaskeyword(libs.zad_DeviousGagPanel) )) ||\
       (!player.wornhaskeyword(libs.zad_DeviousGag) && player.wornHasKeyword(Mods.zazKeywordWornGag) && !player.wornHasKeyword(Mods.zazKeywordPermitOral))
@@ -1588,19 +1591,35 @@ function doPlayerSex(actor actorRef, bool rape = false, bool soft = false, bool 
   
   debugmsg(("anim:'" + animationTags +"',supp:'" + supressTags+ "',animsize:" + animations.length), 3)
   
-  if (playerGender == 1 && actorGender == 1 )
-    ; if both player and attacker are female, we want the player to take the 'reciever' or 'female' position
-    ;  why does sorting the actors do this? no fucking clue. this code was used in petcollar, maybe it's placebo who knows ¯\_(ツ)_/¯
+  ; if I'm only getting 8 animations with these tags, most users probably get near enough to zero to be a problem
+  ; TODO: break suppress tags into two parts so we can keep the above more intact without dropping all of it
+  if animations.length == 0 
+    debugmsg("No animations available with given tags, reducing ...", 4)
+    supressTags = "Solo,Breastfeeding,Acrobat"
+  endif
+  
+  int anim = 0
+  sslBaseAnimation tmp 
+  while anim < animations.length
+    tmp = animations[anim]
+    debugmsg(("animation: " + tmp.name + " tags:" + tmp.GetRawTags()), 3)
+    anim += 1
+  endwhile
+  
+  ; if both player and attacker are female, we want the player to take the 'reciever' or 'female' position
+  ;  why does sorting the actors do this? no fucking clue. this code was used in petcollar, maybe it's placebo who knows ¯\_(ツ)_/¯
+  ;  unless oral was chosen, then we want the player to 'give' oral, rather than recieve
+  if (playerGender == 1 && actorGender == 1 && preSex != 1)
     sexActors = SexLab.SortActors(sexActors)
   endif
   
   ; attempting to get around DDi animation filter based on kimy's advice
   sslBaseAnimation[]  single_animation = new sslBaseAnimation[1]
-  int l = animations.length
+  int l = animations.length - 1
   single_animation[0] = animations[Utility.RandomInt(0,l)]
   debugmsg("Animation chosen is: " + single_animation[0].name, 3)
   
-  
+  ; if player is male, and female attacker, don't use aggressive because we want cowgirl animations
 	if rape == true && !(playerGender == 0 && actorGender == 1 ) 
     sexFromDEC = true
     ;SexLab.StartSex(sexActors, animations, player);, None, false);
@@ -1687,9 +1706,8 @@ Event crdeSexHook(int tid, bool HasPlayer);(string eventName, string argString, 
       
       ; assumption: cannot rape player without going through isActiveInvalid already
       ; yeah but this is now the general event catch, not just for CRDE called
-      ;if  sexFromDEC ;|| (playerVulnerability >= MCM.iMinEnslaveVulnerable) ; NONslaveending dumbass
       if NPCMonitorScript.isInvalidRace(otherPerson) == false 
-        if enslavedLevel < 1 
+        if enslavedLevel < 1
           bool enslave_attempt_result = tryEnslavableSexEnd(otherPerson)
           if enslave_attempt_result
             sexFromDEC = false 
