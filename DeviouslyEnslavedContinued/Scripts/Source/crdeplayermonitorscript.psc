@@ -1652,6 +1652,19 @@ Event crdeSexHook(int tid, bool HasPlayer);(string eventName, string argString, 
     follower_attack_cooldown = false
     timeoutFollowerApproach = Utility.GetCurrentGameTime()
     
+    if Thread.ActorCount <= 1  && player.WornHasKeyword(libs.zad_DeviousBelt)  ; we know the player was involved to get this far, lets increase reputation and temporary vulnerability
+      debugmsg("sexlabhook: masterbation detected while belted", 3)
+      ; mod arousal for all nearby NPCs
+      actor[] a = NPCSearchScript.getNearbyFollowers() ;getNearbyActors() 
+      ; increment all thinks sub by two
+      adjustPerceptionPlayerSub( a, 3 )
+      timeExtraVulnerableEnd = Utility.GetCurrentGameTime() + (1/48) ; in days, 24 hours half hour (30 minutes)
+      timeExtraVulnerableLoc = player.GetCurrentLocation()
+      ; increase nearby NPC arousal?
+      adjustActorsArousal(a, 20)
+      return
+    endif
+    
     ; check for errors, if errors skip the post sex and leave
     if victim == None && (sexFromDEC || !MCM.bHookReqVictimStatus)
       victim = player ; assumed player was submissive (Yes, Master) or we don't care (overrride)
@@ -1668,22 +1681,10 @@ Event crdeSexHook(int tid, bool HasPlayer);(string eventName, string argString, 
     if ( sexFromDEC && sexFromDECWithoutAfterAttacks  )
       debugmsg("sexlabhook: sex was specified no attack", 3)
     elseif ( sexFromDEC && !MCM.bHookAnySexlabEvent)
+      ; what is this MCM variable again???
       ;debugmsg("sexlabhook: sexlab wasn't started by DEC or ALL not set", 3)
       ;return ; don't return yet, we want to alter perception first
       ; do nothing
-    elseif Thread.ActorCount <= 1  && player.WornHasKeyword(libs.zad_DeviousBelt)  ; we know the player was involved to get this far, lets increase reputation and temporary vulnerability
-      debugmsg("sexlabhook: masterbation detected while belted", 3)
-      ; mod arousal for all nearby NPCs
-      actor[] a = NPCSearchScript.getNearbyFollowers() ;getNearbyActors() 
-      ; increment all thinks sub by two
-      adjustPerceptionPlayerSub( a, 3 )
-      timeExtraVulnerableEnd = Utility.GetCurrentGameTime() + (1/48) ; in days, 24 hours half hour (30 minutes)
-      timeExtraVulnerableLoc = player.GetCurrentLocation()
-      ; increase nearby NPC arousal?
-      adjustActorsArousal(a, 20)
-
-    ;elseif Thread.ActorCount <= 1
-      ; no events for just player masterbating somewhere, 
     else ; no error, keep going
 
       int playerPos = Thread.GetPlayerPosition()
