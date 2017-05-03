@@ -155,7 +155,7 @@ Event OnCombatStateChanged(Actor akTarget, Int aeCombatState)
   elseif hasEnteredCombat
     if hitByPlayer > 1
       PlayerMon.debugmsg(" follower was hit by player: " + hitByPlayer + " times", 3)
-      PlayerMon.follower_thinks_player_dom    = StorageUtil.GetFloatValue(akTarget, "crdeFollowerFrustration")
+      PlayerMon.follower_thinks_player_dom = StorageUtil.GetFloatValue(akTarget, "crdeThinksPCEnjoysDom")
       PlayerMon.forceGreetFollower = 10
     endif
     hitByPlayer = 0
