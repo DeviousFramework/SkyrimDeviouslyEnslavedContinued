@@ -1645,9 +1645,9 @@ int function isPlayerEnslaved()
   if iEnslavedLevel >= 1
     PlayMonScript.updateMaster()
   endif
-  if iEnslavedLevel > 0
-    debugmsg("enslaved: default return " + iEnslavedLevel, 2)
-  endif
+  ;if iEnslavedLevel > 0
+  ;  debugmsg("enslaved: default return " + iEnslavedLevel, 2)
+  ;endif
   return iEnslavedLevel
 endFunction
 
