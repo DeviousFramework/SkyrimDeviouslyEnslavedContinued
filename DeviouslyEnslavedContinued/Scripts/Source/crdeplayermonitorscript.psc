@@ -992,12 +992,16 @@ bool function attemptApproach()
       follower_enjoys_sub           = StorageUtil.GetFloatValue(follower, "crdeFollEnjoysSub") 
       follower_thinks_player_sub    = StorageUtil.GetFloatValue(follower, "crdeThinksPCEnjoysSub")
       follower_thinks_player_dom    = StorageUtil.GetFloatValue(follower, "crdeThinksPCEnjoysDom") 
-      follower_thinks_player_sub    = StorageUtil.GetFloatValue(follower, "crdeFollowerFrustration")
+      follower_frustration          = StorageUtil.GetFloatValue(follower, "crdeFollowerFrustration")
       ; add 10 points if player has a slave/follower with collar
       follower_thinks_player_sub   += ((Mods.metReqFrameworkMakeVuln() as int) * 10)
       
       
-      debugmsg("follower thinks player sub: " + follower_thinks_player_sub + " ")      
+      debugmsg("thinks sub: " + follower_thinks_player_sub \
+        + ", thinks dom: " + follower_thinks_player_dom \
+        + ", enjoys sub: " + follower_enjoys_sub \
+        + ", enjoys dom: " + follower_enjoys_dom \
+        + ", frust: " + follower_frustration )
       ; also test for relationship and arousal and stuff
 
       ItemScript.rollFollowerFoundItems(follower) ; for now, roll as we need to, but later lets roll even if we don't need to and only roll once, print it out instead
