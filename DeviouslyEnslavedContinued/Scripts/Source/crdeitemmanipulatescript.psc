@@ -584,7 +584,7 @@ armor function getRandomUniqueCollar(actor actorRef)
   bool  removed = false
   ;PlayerMon.debugmsg("equipPlayerMon.randomDD: rolled " + roll, 2)
   PlayerMon.debugmsg("pet/cursed/slave/slut/rubber/banned/prostituted/naked/stripTease(" \
-                     + weightPetCollar + "/" + weightDCURSlave + "/" + weightDCURSlut + "/" + weightPetCollar + "/"\
+                     + weightPetCollar + "/" + weightDCURCursedCollar + "/" + weightDCURSlave + "/" + weightDCURSlut + "/"\
                      + weightDCURRubberDollCollar + "/" + weightFBanned + "/" + weightFProstituted + "/" \
                      + weightFNaked + "/" + weightStripTease \
                      +")roll/total:(" + roll + "/" + weightTotal + ")", 2)
