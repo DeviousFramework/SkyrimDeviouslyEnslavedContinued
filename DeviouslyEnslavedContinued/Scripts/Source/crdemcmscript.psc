@@ -42,7 +42,7 @@ int function GetVersion()
 endFunction
 
 ; are we even using these, or did you forget about them
-string[]  _difficultyList ; are any of these actually being used? I don't trust papyrus compiler to optimise these out
+;string[]  _difficultyList ; are any of these actually being used? I don't trust papyrus compiler to optimise these out
 
 ; OIDs (T:Text B:Toggle S:Slider M:Menu, C:Color, K:Key)
 int      _toggle1OID_B

@@ -410,6 +410,14 @@ more recent (not mothballed either):
     if cunnilingus is used, we need to flip the "victim" as the player is the one being sucked off which is backwards
     The whole pre-sex animation filter should be re-written with female vag suppression tag avoidance in mind, it's too hard to follow right now
   
+  Don't forget to turn off animation tags debug before final release version
+  
+  If we turn off the follower ai package after sex, instead of at the start of the dialogue, we can prevent from walking away
+    Problem: they will keep talking to you, we almost need a second ai package that just follows you and doesn't talk to you
+    time estimate: 2 hours
+  
+  the MCM follower index keeps going out of range
+  
   always: new followers system needs to be tested more
   
   ** TODO / NOTES (bottom is most recent, older in ascending order)  --^ **

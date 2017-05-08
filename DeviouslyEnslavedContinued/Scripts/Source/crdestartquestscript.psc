@@ -37,20 +37,21 @@ bool Property needsMaintenance Auto
 ; float version is Xxx.Yy.Zz = > Xxx.yYzZ
 ; IE 3.2.1 would be 3.0201
 float function getVersion()
-  return 13.0800
+  return 13.0801
   EndFunction
 
 string function getVersionString()
-  return "13.8.0"
+  return "13.8.1"
 EndFunction
 
 Function Maintenance()
 	;Debug.trace("[CRDE] Maintenance")
-	needsMaintenance = false
+	needsMaintenance = true
 	if(getVersion() > lastVersion)
 		string upOrStart = "Updating to "
 		if(lastVersion == 0)
 			upOrStart = "Starting "
+    	needsMaintenance = false
 		endif
 		Debug.Notification(upOrStart + "Deviously Enslaved Cont. v" + getVersionString())
     Debug.trace("[CRDE] " + upOrStart + "DEC v" + getVersionString())

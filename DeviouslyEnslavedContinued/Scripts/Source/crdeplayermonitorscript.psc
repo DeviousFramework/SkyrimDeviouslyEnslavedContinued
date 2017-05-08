@@ -1486,7 +1486,7 @@ EndFunction
 function doPlayerSex(actor actorRef, bool rape = false, bool soft = false, bool oral_only = false)
 	;timeoutEnslaveGameTime = Utility.GetCurrentGameTime() + MCM.fEventTimeout
   ;debugmsg("Resetting approach at start of doSex",1)
-  Debug.SendAnimationEvent(actorRef, "IdleNervous") ; should work well enough
+  Debug.SendAnimationEvent(actorRef, "IdleNervous") ; should work well enough; no longer works...what
 	clear_force_variables() ; handles forceGreetIncomplete = false
   Mods.dhlpResume()
   
@@ -2325,9 +2325,6 @@ function testTestButton2()
   ;MCM.bTestButton2 = false
   ; cursed loot tie me up function
  
-  ;debugmsg("testing DDZaZAPCArmBZaDS01",4) ; sure, makes sense
-  ;Debug.SendAnimationEvent(player, "DDZaZAPCArmBZaDS01") ;arms back struggling
-  ;Debug.SendAnimationEvent(player, libs.DDZaZAPCArmBZaDS01) ;arms back struggling  
   
   ;libs.PlayThirdPersonAnimation(player, libs.DDZaZAPCArmBZaDS01, 5)
   
@@ -2606,25 +2603,22 @@ function testTestButton7()
   ; getback.addFollowersAndSlaves(followers, slaves)
   ; getback.Start()
   
-  MCM.bTestButton7 = false
-  int i = 0
-  while true
-    ;Debug.SendAnimationEvent(actorRef, "IdleNervous") ; should work well enough
-    playRandomPlayerDDStruggle(i)
-    debugmsg("Playing animation number: " + i, 4)
-    ; not pulling out a math library for mod, good greif
-    if i >= 6
-      i = 0
-    else
-      i += 1   
-    endif
-    Utility.Wait(5)
-  endWhile
+  ; MCM.bTestButton7 = false
+  ; int i = 0
+  ; while true
+    ; playRandomPlayerDDStruggle(i)
+    ; debugmsg("Playing animation number: " + i, 4)
+    ; if i >= 6
+      ; i = 0
+    ; else
+      ; i += 1   
+    ; endif
+    ; Utility.Wait(5)
+  ; endWhile
   
-  ;SendModEvent( "DvCidhna_StartBandits" )
-  ;SendModEvent( "DvCidhna_StartVampires" )
-  
-  ;DistanceEnslave.enslaveLeon()
+  ; test 
+
+
   Debug.Notification("Test has completed.")
 endFunction
 
@@ -2992,7 +2986,7 @@ function movePlayerToBed(actor other)
     player.MoveTo(FoundBed)
   endif
   
-  Utility.wait(1.0)
+  Utility.wait(1)
   player.equipItem(Mods.zazBitGag) 
   player.equipItem(Mods.zazCollar) 
   
