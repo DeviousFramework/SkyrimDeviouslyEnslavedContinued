@@ -136,6 +136,7 @@ Event OnHit(ObjectReference akAggressor, Form akSource, Projectile akProjectile,
         PlayerMon.clear_force_variables(false) ; we don't want to reset follower aliases here, just the appraoch numbers
       else ; in combat, keep a tally
         ; if healed or calmed we should do other stuff too
+        PlayerMon.debugmsg("follower has been hit with damage spell",2)
         hitByPlayer += 1
         PlayerMon.follower_attack_type = 20
       endif
