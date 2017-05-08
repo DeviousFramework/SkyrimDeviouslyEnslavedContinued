@@ -6,7 +6,13 @@ Scriptname pf_crde_sexnotaslaveaslutbelt Extends TopicInfo Hidden
 Function Fragment_0(ObjectReference akSpeakerRef)
 Actor akSpeaker = akSpeakerRef as Actor
 ;BEGIN CODE
-(GetOwningQuest() as crdeItemManipulateScript).equipPunishmentBeltAndStuff(Game.GetPlayer())
+  actor player = Game.GetPlayer()
+  Debug.SendAnimationEvent(player, "bleedOutStart")
+  Utility.Wait(1.5)
+  Debug.Messagebox("From their bag flies a magic chastity belt, before you know it you're locked up tight!")
+  (GetOwningQuest() as crdeItemManipulateScript).equipPunishmentBeltAndStuff(player)
+  Utility.Wait(1.5)
+  Debug.SendAnimationEvent(player, "ZaZAPCSHFOFF")  ; shame pose
 ;END CODE
 EndFunction
 ;END FRAGMENT

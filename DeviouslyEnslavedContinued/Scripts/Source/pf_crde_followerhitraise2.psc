@@ -6,9 +6,9 @@ Scriptname pf_crde_followerhitraise2 Extends TopicInfo Hidden
 Function Fragment_0(ObjectReference akSpeakerRef)
 Actor akSpeaker = akSpeakerRef as Actor
 ;BEGIN CODE
-crdePlayerMonitorScript PlayerMon = GetOwningQuest() as crdePlayerMonitorScript
-PlayerMon.modFollowerFrustration(akSpeaker, 3)
-PlayerMon.forceGreetFollower = 0
+crdePlayerMonitorScript PlayerMon = GetOwningQuest() as crdePlayerMonitorScript 
+PlayerMon.modFollowerFrustration(akSpeaker, 3) 
+PlayerMon.forceGreetFollower = 0 
 ;END CODE
 EndFunction
 ;END FRAGMENT
