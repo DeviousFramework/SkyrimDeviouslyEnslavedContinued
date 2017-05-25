@@ -416,7 +416,11 @@ more recent (not mothballed either):
     Problem: they will keep talking to you, we almost need a second ai package that just follows you and doesn't talk to you
     time estimate: 2 hours
   
-  the MCM follower index keeps going out of range
+  the MCM follower index keeps going out of range, but only with 0 followers
+  
+  Follower game planning:
+    Items: Book with DD stuff, DD vibrating spells, collar, set of items (rubber, leather, heavy collar/gag/blindfold)
+      whip, harness? Piercings.
   
   always: new followers system needs to be tested more
   

@@ -550,6 +550,8 @@ endFunction
 function updateEquippedPlayerVulnerability(bool isSlaver = false)
   debugmsg("updating clothing vulnerability ...", 1) ; too often used, spam; not anymore, less used
   
+  CheckDevices()
+  
   bool isTattooVulnerable = (MCM.bVulnerableSlaveTattoo && (SlavetatsScript.wearingSlaveTattoo)); && (isNude || !MCM.bNakedReqSlaveTattoo || isSlaver))) || \
                             (MCM.bVulnerableSlutTattoo && (SlavetatsScript.wearingSlutTattoo)); && (isNude || !MCM.bNakedReqSlutTattoo || isSlaver))) ; and for slave
 
@@ -565,8 +567,7 @@ function updateEquippedPlayerVulnerability(bool isSlaver = false)
     clothingPlayerVulnerability = 4
     return 
   endif
-  ; TODO: Bug here, try to figure out how we got to this point
-  if((wearingArmbinder == true && MCM.bVulnerableArmbinder)  || player.wornHasKeyword(Mods.zazKeywordEffectOffsetAnim))
+  if((wearingArmbinder == true && MCM.bVulnerableArmbinder));  || player.wornHasKeyword(Mods.zazKeywordEffectOffsetAnim))
     clothingPlayerVulnerability = 3
     return 
   endif
@@ -588,11 +589,7 @@ function updateEquippedPlayerVulnerability(bool isSlaver = false)
 		return 
 	endif
   
-  ; stuff that needs to be moved
-;     +\
-;    (frameworkFameIncrease > 0) as int +\
-;    (MCM.bVulnerableBukkake && wearingBukkake && !(MCM.bNakedReqBukkake && !isNude)) ||\
-
+	clothingPlayerVulnerability = 0
   
 endFunction 
 
@@ -608,6 +605,7 @@ function updatePlayerVulnerability(bool isSlaver = false)
   int furnitureLocked             = (MCM.bVulnerableFurniture && NPCMonitorScript.checkActorBoundInFurniture(player)) as int
   int temporaryVulnerableIncrease = (CurrentGameTime < timeExtraVulnerableEnd && player.GetCurrentLocation() == timeExtraVulnerableLoc) as int
   int nightAddition               = ((isNight() as int) * (MCM.bNightAddsToVulnerable as int))
+  ; ZZZ
   
   int frameworkFameIncrease = 0
   int frameworkFameAlways   = 0 
@@ -646,10 +644,15 @@ function updatePlayerVulnerability(bool isSlaver = false)
                   ; I think we can leave this running all the time now
   int bukkakeVulnerable   = (MCM.bVulnerableBukkake && wearingBukkake && !(MCM.bNakedReqBukkake && !isNude)) as int
 
-  int situationalIncrease = frameworkFameIncrease + nightAddition + temporaryVulnerableIncrease + bukkakeVulnerable + frameworkFameIncrease
+  int situationalIncrease = frameworkFameIncrease + nightAddition + temporaryVulnerableIncrease + bukkakeVulnerable
 
 
   playerVulnerability = clothingPlayerVulnerability + situationalIncrease
+  if situationalIncrease > 0
+    debugmsg("situational(sex fame/night/temporary event/bukkake): (" + frameworkFameIncrease + "/" + nightAddition + ":" + temporaryVulnerableIncrease + ":" + bukkakeVulnerable + ")")
+  endif
+  debugmsg("vuln lvl(clothing/situation/total): (" + clothingPlayerVulnerability + ":" + situationalIncrease + ":" + playerVulnerability + ")")
+  
   
   ; extra cases, to compensate for not being in clothing detection anymore:
   if playerVulnerability > 4
@@ -1091,7 +1094,7 @@ bool function attemptApproach()
   
   
   ;old isplayerenslaved location
-  debugmsg("slave lvl: " + enslavedLevel + " vuln lvl: " + playerVulnerability + " weapon: " + wearingWeapon as int , 3) 
+  debugmsg("slave lvl: " + enslavedLevel + " weapon: " + wearingWeapon as int , 3) 
   
   if wearingWeapon 
     debugmsg("Player is armed, protected", 3)  
@@ -1276,7 +1279,6 @@ function equipRandomDD(actor actorRef, actor attacker = None, bool canEnslave = 
 endFunction
 
 function updateWornDD(bool collarOnly = false)
-	;CheckDevices() ; otherway around, this is called separately now
 
 	if(wearingArmbinder == true && collarOnly == false)
 		knownArmbinder = libs.GetWornDevice(player, libs.zad_DeviousArmbinder)
@@ -2116,21 +2118,22 @@ function printVulnerableStatus()
   CheckDevices()
   updatePlayerVulnerability()
   bool isNight = isNight()
-  debugmsg("slave lvl: " + enslavedLevel + " vuln lvl: " + playerVulnerability, 3)  
-  Debug.MessageBox("Nude: " + isNude + " playerVulnerability: " + playerVulnerability)
+  debugmsg("slave lvl: " + enslavedLevel + " vuln lvl: " + playerVulnerability, 3)
+  debugmsg("Nude: " + isNude + " playerVulnerability: " + playerVulnerability,5)
   ;Debug.MessageBox("Wornboots: (" + wearingSlaveBoots + ") WornHarness: (" + wearingHarness + ") WornBukkake: (" + wearingBukkake + ")" )
-  Debug.MessageBox("Worngag: (" + wearingGag + ") Worn armbidings: (" + wearingArmbinder + ") WornCollar: (" + wearingCollar +")" )
-  Debug.MessageBox("Furniture: (" + NPCMonitorScript.checkActorBoundInFurniture(player) + ") Nudity: (" + isNude + ") MCM furniture: (" + MCM.bVulnerableFurniture +")" )
+ 
+  debugmsg("Worngag: (" + wearingGag + ") DDi armbinder: (" + player.WornHasKeyword(libs.zad_DeviousArmbinder) + \
+  ") DDi yoke: (" + player.wornHasKeyword(libs.zad_DeviousYoke) + ") ZAZ animationoffset: (" +  player.wornHasKeyword(Mods.zazKeywordEffectOffsetAnim) + ") WornCollar: (" + wearingCollar +")", 5)
+  debugmsg("Furniture: (" + NPCMonitorScript.checkActorBoundInFurniture(player) + ") Nudity: (" + isNude + ") MCM furniture: (" + MCM.bVulnerableFurniture +")",5)
   ; print worn stuff
   ; print playerVulnerability
   bool iswearingblockinggag = (!MCM.bChastityGag || (player.wornhaskeyword( libs.zad_DeviousGag ) && !(player.wornhaskeyword( libs.zad_PermitOral ) || player.wornhaskeyword( libs.zad_DeviousGagPanel ))))
-  Debug.MessageBox("gag: (" + player.wornhaskeyword( libs.zad_DeviousGag ) \
+  debugmsg("gag: (" + player.wornhaskeyword( libs.zad_DeviousGag ) \
        + ") permitoral: (" + player.wornhaskeyword( libs.zad_PermitOral ) \
        + ") permitoral: (" + player.wornhaskeyword( libs.zad_DeviousGagPanel )  \
        + ") MCM chastgag: (" + MCM.bChastityGag +") expr result: (" + iswearingblockinggag  \
-       +") actual gag var: (" + wearingBlockingGag + ")")
-  Debug.MessageBox("is NOT wizrobes: " + playerIsNotWearingWizRobes() )
-  Debug.MessageBox("is nighttime: " + isNight() )
+       +") actual gag var: (" + wearingBlockingGag + ")",5)
+  debugmsg("is NOT wizrobes: " + playerIsNotWearingWizRobes() + ", is nighttime: " + isNight() ,5)
 endFunction
 
 ; searches for local NPCs and allows the player to pick one to count as valid race for future approaches
@@ -2616,8 +2619,28 @@ function testTestButton7()
     ; Utility.Wait(5)
   ; endWhile
   
-  ; test 
-
+  Cell c = player.GetParentCell()
+	ObjectReference [] containers = new ObjectReference [15]
+  ObjectReference  test_form
+	int index = 0
+  int booknum = 0
+	Int NumRefs = c.GetNumRefs(28)
+  String output = ""
+  Keyword bookshelf = Game.GetFormFromFile(0x000d5abe, "Skyrim.esm" ) as Keyword
+  Book deviousbook = Game.GetFormFromFile(0x09029ADC, "Devious Devices - Integration.esm" ) as Book
+  debugmsg("stuff: " + bookshelf.GetName() + " " + deviousbook.GetName() )
+	While NumRefs > 0  && index < 15
+		NumRefs -= 1
+		test_form = c.GetNthRef(NumRefs, 28) as ObjectReference 
+    output = output + test_form.GetDisplayName() + " +"
+    ;test_form.AddItem(deviousbook) ; works fine
+    ;Container testc = (test_form as Form) as Container
+    if test_form.HasKeyword(bookshelf)
+      booknum += 1
+    endif
+  EndWhile 
+  debugmsg("Containers: " + output)
+  debugmsg("Books: " + booknum)
 
   Debug.Notification("Test has completed.")
 endFunction

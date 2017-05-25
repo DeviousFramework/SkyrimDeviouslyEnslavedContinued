@@ -1563,7 +1563,7 @@ int function isPlayerEnslaved()
         PlayMonScript.master = slaverunZaidActor
         setEnslavedLevel(3)
         debugmsg("enslaved: slaverun reloaded slave training start 3", 3)
-        return iEnslavedLevel    
+        return iEnslavedLevel
       elseif SlaverunScript.PlayerIsInEnforcedLocation() && stage >= 1450 
         ;  you've gone through training and gained a reputation, people recognize you
         ; quest doesn't even need to be running
