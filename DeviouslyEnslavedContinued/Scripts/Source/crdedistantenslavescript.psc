@@ -68,7 +68,19 @@ bool Property hasRunBeforeSS auto conditional
 
 Event OnInit()
   ; kinda need this, since MCM variables are needed for canRun*()
-  Utility.Wait(5)
+  Utility.Wait(15)
+  if Mods == None
+    Debug.Trace("[CRDE] distant:Mods is NONE!!! What the fuck")
+    Utility.Wait(2)
+    Mods = Quest.GetQuest("crdeModsMonitor") as crdeModsMonitorScript
+    if Mods == None
+      Debug.Trace("[CRDE] distant:Mods is still NONE!!! what in tarnation")
+    endif
+    
+  endif
+  if Mods == None
+    Debug.Trace("[CRDE] distant:Mods is NONE!!! What the fuck")
+  endif
   while Mods.finishedCheckingMods == false
     Debug.Trace("[CRDE] distant:mods not finished yet")
     Utility.Wait(1)
@@ -134,7 +146,7 @@ function enslaveSold(actor actorRef = none)
   int CD          = MCM.iDistanceWeightCD             * (Mods.modLoadedCD && MCM.bCDEnslaveToggle ) as int
   int SLUTS       = MCM.iDistanceWeightSLUTSEnslave   * (Mods.modLoadedSLUTS ) as int
   int SRR         = MCM.iDistanceWeightSlaverunRSold  * (Mods.modLoadedSlaverunR ) as int
-  int DCBandits  = MCM.iDistanceWeightDCBandits      * (Mods.modLoadedDeviousCidhna ) as int
+  int DCBandits   = MCM.iDistanceWeightDCBandits      * (Mods.modLoadedDeviousCidhna ) as int
 
   int total = SS + Maria + CD + SLUTS + SRR + DCBandits
   if total == 0 ; stop gap, you shouldn't get this far

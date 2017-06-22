@@ -41,9 +41,6 @@ int function GetVersion()
   return (StartScript.GetVersion() *10000) as int 
 endFunction
 
-; are we even using these, or did you forget about them
-;string[]  _difficultyList ; are any of these actually being used? I don't trust papyrus compiler to optimise these out
-
 ; OIDs (T:Text B:Toggle S:Slider M:Menu, C:Color, K:Key)
 int      _toggle1OID_B
 int      _toggle2OID_B
@@ -682,7 +679,7 @@ event OnPageReset(string a_page)
     bTestButton3OID           = AddToggleOption("DD Key check", bTestButton3);, (!Mods.modLoadedSlaveTats) as int)
     bTestButton4OID           = AddToggleOption("Bed teleport test", bTestButton4, (!Mods.modLoadedCursedLoot) as int)
     bTestButton5OID           = AddToggleOption("Add Item test", bTestButton5);, (!Mods.modLoadedIsleofMara) as int)
-    bCDTestOID                = AddToggleOption("CD item test", bCDTest, (!Mods.modLoadedSlaverunR) as int)
+    bCDTestOID                = AddToggleOption("Print Zaz slave status", bCDTest, (!Mods.modLoadedSlaverunR) as int)
     bTestButton6OID           = AddToggleOption("SD distant start", bTestButton6, (!Mods.modLoadedSD) as int)
     bTestButton7OID           = AddToggleOption("Temporary test", bTestButton7);, (!Mods.modLoadedPrisonOverhaulPatch) as int)
   endIf

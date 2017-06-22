@@ -348,6 +348,7 @@ Armor   Property zazBitGag Auto
 Armor   Property zazCollar  Auto
 Armor   Property zazLegCuffs Auto
 Faction Property zazFactionSlave Auto
+Faction Property zazFactionSlaveState Auto
 Faction Property zazFactionSlaver Auto
 Keyword Property zazFurnitureMilkOMatic auto
 Keyword Property zazFurnitureMilkOMatic2 auto
@@ -763,7 +764,8 @@ function updateForms()
     if modLoadedSlaverun 
       Debug.trace("[CRDE] Both slaverun classic and reloaded are loaded, this is a bad idea!")
     endif
-    slaverunRTrainingQuest      = Quest.GetQuest("SLV_Slavetraining")
+    slaverunRTrainingQuest      = Quest.GetQuest("SLV_Slavetraining") ; works with SSR v 1
+    ;slaverunRTrainingQuest1     = Quest.GetQuest("SLV_SexSlaveTraining1")
     slaverunRPeriodicQuest      = Quest.GetQuest("SLV_PeriodicChecking") ;TODO Why won't this load?
     slaverunRMCMQuest           = Quest.GetQuest("slv_mcmmenu")
     slaverunZaidActor           = Game.GetFormFromFile(0x070012CB , "Slaverun_Reloaded.esp") as Actor  
@@ -871,34 +873,20 @@ function updateForms()
     cidhnaLostKnifeQuest  = Game.GetFormFromFile(0x6D0244B2 , "Devious Cidhna.esp") as Quest
     cidhnaNeighborQuest   = Game.GetFormFromFile(0x75008494 , "Devious Cidhna.esp") as Quest
   endif
-  
-  ; deprecated, mod is dead and no longer available
-  ;sgomseCowBelt         = Game.GetFormFromFile(0x6E002DD6 , "soulgem-oven-100-milk-slave-experience.esp") as Armor
-  ;modLoadedSGOMSE       = sgomseCowBelt != None
-  ;if modLoadedSGOMSE   
-  ;  sgomseCowCollar       = Game.GetFormFromFile(0x6E002DDB , "soulgem-oven-100-milk-slave-experience.esp") as Armor
-  ;endif
-  
-  ;if modLoadedZazAnimations ; hard requirement, should always be loaded
-  ; assign some of these in CK, so we don't have to keep doing this left right and center
-  ; deprecate these definitions, we can assign this stuff from the esp, less papyrus time needed at start
+    
+    ; todo: start assigning this stuff in the ESP instead of here, if ZAZ is a hard requirement then no reason to take this slower method
   zazKeywordFurniture         = Game.GetFormFromFile(0x1100762B , "ZaZAnimationPack.esm") as Keyword 
   zazKeywordEffectRefresh     = Game.GetFormFromFile(0x11007352 , "ZaZAnimationPack.esm") as Keyword 
-  ;zazKeywordWornGag           = Game.GetFormFromFile(0x02008A4D , "ZaZAnimationPack.esm") as Keyword 
   zazKeywordWornBlindfold     = Game.GetFormFromFile(0x11019FDC , "ZaZAnimationPack.esm") as Keyword 
-  ;zazKeywordWornYoke          = Game.GetFormFromFile(0x1100F300 , "ZaZAnimationPack.esm") as Keyword 
-  ;zazKeywordWornBelt          = Game.GetFormFromFile(0x11019FDB , "ZaZAnimationPack.esm") as Keyword 
   zazKeywordWornCollar        = Game.GetFormFromFile(0x11008A4E , "ZaZAnimationPack.esm") as Keyword 
-  ;zazKeywordPermitOral        = Game.GetFormFromFile(0x11019FDA , "ZaZAnimationPack.esm") as Keyword 
   zazKeywordAnimWrists        = Game.GetFormFromFile(0x1101440C, "ZaZAnimationPack.esm") as Keyword 
   zazKeywordWornAnkles        = Game.GetFormFromFile(0x0A008A4C, "ZaZAnimationPack.esm") as Keyword
   zazBindings                 = Game.GetFormFromFile(0x11001002, "ZaZAnimationPack.esm") as Armor 
   zazHood                     = Game.GetFormFromFile(0x11005006, "ZaZAnimationPack.esm") as Armor
   zazLegCuffs                 = Game.GetFormFromFile(0x0A004002, "ZaZAnimationPack.esm") as Armor
-  ;zazClothGag                 = Game.GetFormFromFile(0x02002002 , "ZaZAnimationPack.esm") as Armor
-  ;zazBitGag                   = Game.GetFormFromFile(0x11002004 , "ZaZAnimationPack.esm") as Armor
-  zazFactionSlave             = Game.GetFormFromFile(0x110096AE, "ZaZAnimationPack.esm") as Faction 
-  zazFactionSlaver            = Game.GetFormFromFile(0x110096B0, "ZaZAnimationPack.esm") as Faction 
+  ;zazFactionSlave             = Game.GetFormFromFile(0x110096AE, "ZaZAnimationPack.esm") as Faction 
+  ;zazFactionSlaveState        = Game.GetFormFromFile(0x110096AE, "ZaZAnimationPack.esm") as Faction 
+  ;zazFactionSlaver            = Game.GetFormFromFile(0x110096B0, "ZaZAnimationPack.esm") as Faction 
   zazKeywordEffectOffsetAnim  = Game.GetFormFromFile(0x0F0184EA, "ZaZAnimationPack.esm") as Keyword 
   zazKeywordHasBondageEffect  = Game.GetFormFromFile(0x0F008A2E, "ZaZAnimationPack.esm") as Keyword ;useles
   zazFactionAnimating         = Game.GetFormFromFile(0x0F00E2B7, "ZaZAnimationPack.esm") as Faction 
@@ -1479,7 +1467,6 @@ int function isPlayerEnslaved()
   endIf 
   
   ; devide into general items, at least until leons quest
-
   if(modLoadedCursedLoot == true)
     if dcurBondageQuest.IsRunning() && dcurBondageQuest.GetStage() < 1000
       debugmsg("enslaved: cursed loot bondage adventure quest 2", 3) ;&& dcurLeonQuest.GetStage() > 0
@@ -1556,36 +1543,35 @@ int function isPlayerEnslaved()
   endif
 
   if modLoadedSlaverunR
-    ;if ; part of the training event, don't bother anything
-    int stage = slaverunRTrainingQuest.GetStage() ; called too much, save it
-    if slaverunRTrainingQuest.isRunning(); && slaverunRMainQuest.isRunning()
-      if stage <= 10 ; start is kinda dialogue heavy, surrounded by attackers, let the scene playout
-        PlayMonScript.master = slaverunZaidActor
-        setEnslavedLevel(3)
-        debugmsg("enslaved: slaverun reloaded slave training start 3", 3)
-        return iEnslavedLevel
-      elseif SlaverunScript.PlayerIsInEnforcedLocation() && stage >= 1450 
-        ;  you've gone through training and gained a reputation, people recognize you
-        ; quest doesn't even need to be running
-        ; might be be a better idea to set always vulnerable instead, but for now...
-        PlayMonScript.master = slaverunZaidActor
-        setEnslavedLevel(1)
-        debugmsg("enslaved: slaverun reloaded trained slave 1", 3)
-        return iEnslavedLevel
-      elseif stage >= 200; you've been striped and have reported to zaid
-        PlayMonScript.master = slaverunZaidActor
-        setEnslavedLevel(2)
-        debugmsg("enslaved: slaverun reloaded quest 2", 3)
-        return iEnslavedLevel
-      ;else ; player was stripped/raped, but did not report to anyone yet, in wild, not strictly restrained, and not locked to anything yet
+    int stage = 0
+    if slaverunRTrainingQuest != None ; 1.X only
+      stage = slaverunRTrainingQuest.GetStage() ; called too much, save it
+      if slaverunRTrainingQuest.isRunning(); && slaverunRMainQuest.isRunning()
+        if stage <= 10 ; start is kinda dialogue heavy, surrounded by attackers, let the scene playout
+          PlayMonScript.master = slaverunZaidActor
+          setEnslavedLevel(3)
+          debugmsg("enslaved: slaverun reloaded slave training start 3", 3)
+          return iEnslavedLevel
+        elseif SlaverunScript.PlayerIsInEnforcedLocation() && stage >= 1450 
+          ;  you've gone through training and gained a reputation, people recognize you
+          ; quest doesn't even need to be running
+          ; might be be a better idea to set always vulnerable instead, but for now...
+          PlayMonScript.master = slaverunZaidActor
+          setEnslavedLevel(1)
+          debugmsg("enslaved: slaverun reloaded trained slave 1", 3)
+          return iEnslavedLevel
+        elseif stage >= 200; you've been striped and have reported to zaid
+          PlayMonScript.master = slaverunZaidActor
+          setEnslavedLevel(2)
+          debugmsg("enslaved: slaverun reloaded quest 2", 3)
+          return iEnslavedLevel
+        ;else ; player was stripped/raped, but did not report to anyone yet, in wild, not strictly restrained, and not locked to anything yet
+        endif
       endif
-    elseif slaverunRMainQuest.isRunning() && stage == 1500 ; trained, marked, in slaverun
+    endif 
+    ; both 1.X and 2.X for now
+    if slaverunRMainQuest.isRunning() ;&& stage >= 1500 ; trained, marked, in slaverun
       stage = slaverunRMainQuest.GetStage()
-      ;if stage == 1000
-      ;  PlayMonScript.master = slaverunZaidActor
-      ;  setEnslavedLevel(3)
-      ;  debugmsg("enslaved: slaverun entrance, ", 3)
-      ;  return iEnslavedLevel
       if stage >= 1200 
         if SlaverunScript.PlayerIsInEnforcedLocation()
           PlayMonScript.master = slaverunZaidActor
@@ -1600,7 +1586,6 @@ int function isPlayerEnslaved()
         endif
         ; for now, if not in an enslaved location we consider the player free-able, and more importantly re-enslaveable
         debugmsg("enslaved but free: slaverun reloaded 2", 3)
-        ;return iEnslavedLevel
       endif
     endif
   endif
@@ -1626,11 +1611,11 @@ int function isPlayerEnslaved()
       setEnslavedLevel(2) ; up to master if the player is vulnerable
   endif
   
-  if player.isInFaction(zazFactionSlave) 
-    setEnslavedLevel(2) 
-    debugmsg("enslaved: in zaz slave faction 2", 3)
-    return iEnslavedLevel 
-  endIf
+  ;if player.isInFaction(zazFactionSlave) && player.isInFaction(zazFactionSlaveState)
+  ;  setEnslavedLevel(2) 
+  ;  debugmsg("enslaved: in zaz slave faction 2", 3)
+  ;  return iEnslavedLevel 
+  ;endIf
 
   ;if zazFurnitureMilkOMatic ; moved to playerbusy instead
   

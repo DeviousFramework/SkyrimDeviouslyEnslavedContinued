@@ -422,6 +422,12 @@ more recent (not mothballed either):
     Items: Book with DD stuff, DD vibrating spells, collar, set of items (rubber, leather, heavy collar/gag/blindfold)
       whip, harness? Piercings.
   
+  check for SD+ ending slave states to see what we need to set detection for
+  check DCL quest end detection again
+  sexlab kidnapped and pitfall detection are broken
+  add MCM random SD+ master
+  
+  
   always: new followers system needs to be tested more
   
   ** TODO / NOTES (bottom is most recent, older in ascending order)  --^ **

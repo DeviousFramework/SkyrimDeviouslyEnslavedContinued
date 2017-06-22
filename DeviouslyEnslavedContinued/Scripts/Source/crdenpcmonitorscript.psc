@@ -303,7 +303,7 @@ endFunction
 ; moved to separate because it got complicated when playable race wasn't enough
 bool function isInvalidRace(actor actorRef)
   Race actorRace =  actorRef.getRace()
-  if actorRace.isPlayable() == true
+  if actorRace == None || actorRace.isPlayable() == true
     return false
   endif
   race current_race_test

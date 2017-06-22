@@ -510,6 +510,8 @@ Function CheckDevices()
   wearingPiercings  = player.WornHasKeyword(libs.zad_DeviousPiercingsNipple) || player.WornHasKeyword(libs.zad_DeviousPiercingsVaginal)
   wearingAnkleChains= player.WornHasKeyword(libs.zad_BoundCombatDisableKick); zzzz) ; todo get ankle chains
   
+  PlayerScript.equipmentChanged = false
+  
 EndFunction
 
 ; called from the loop, but assume other locations can call
@@ -551,9 +553,13 @@ function updateEquippedPlayerVulnerability(bool isSlaver = false)
   debugmsg("updating clothing vulnerability ...", 1) ; too often used, spam; not anymore, less used
   
   CheckDevices()
+    
+  bool isTattooVulnerable = 0
   
-  bool isTattooVulnerable = (MCM.bVulnerableSlaveTattoo && (SlavetatsScript.wearingSlaveTattoo)); && (isNude || !MCM.bNakedReqSlaveTattoo || isSlaver))) || \
-                            (MCM.bVulnerableSlutTattoo && (SlavetatsScript.wearingSlutTattoo)); && (isNude || !MCM.bNakedReqSlutTattoo || isSlaver))) ; and for slave
+  if Mods.modLoadedSlaveTats && (MCM.bVulnerableSlaveTattoo || MCM.bVulnerableSlutTattoo)
+    isTattooVulnerable = (MCM.bVulnerableSlaveTattoo && (SlavetatsScript.wearingSlaveTattoo)); && (isNude || !MCM.bNakedReqSlaveTattoo || isSlaver))) || \
+                         (MCM.bVulnerableSlutTattoo && (SlavetatsScript.wearingSlutTattoo)); && (isNude || !MCM.bNakedReqSlutTattoo || isSlaver))) ; and for slave
+  endif
 
   int heavyItemCount =  (((wearingArmbinder == true && MCM.bVulnerableArmbinder) as int) * 2) + \
                         ((wearingBlindfold && MCM.bVulnerableBlindfold) as int) + \
@@ -563,14 +569,17 @@ function updateEquippedPlayerVulnerability(bool isSlaver = false)
                         (player.HasKeyword(Mods.zazKeywordEffectOffsetAnim) as int) +\
                         ((isTattooVulnerable && (isNude || !MCM.bNakedReqSlaveTattoo || isSlaver)) as int) +\
                         (wearingAnkleChains as int) 
+
   if heavyItemCount >= 3
     clothingPlayerVulnerability = 4
     return 
   endif
+
   if((wearingArmbinder == true && MCM.bVulnerableArmbinder));  || player.wornHasKeyword(Mods.zazKeywordEffectOffsetAnim))
     clothingPlayerVulnerability = 3
     return 
   endif
+
   if((MCM.bVulnerableCollar && wearingCollar  ) && (MCM.bIsVulNaked == true && isNude) && (!(MCM.bNakedReqCollar && !isNude) || isSlaver)) ||\
     (MCM.bVulnerableHarness && wearingHarness && (!(MCM.bNakedReqHarness && !isNude) || isSlaver)) ||\
     (MCM.bVulnerablePierced && wearingPiercings && (!(MCM.bNakedReqPierced && !isNude) || isSlaver)) ||\
@@ -583,12 +592,13 @@ function updateEquippedPlayerVulnerability(bool isSlaver = false)
     clothingPlayerVulnerability = 2
 		return 
 	endif 
+
 	if(MCM.bVulnerableCollar && wearingCollar == true && !(MCM.bNakedReqCollar && !isNude)) \
    || (MCM.bIsVulNaked == true && isNude) 
 		clothingPlayerVulnerability = 1
 		return 
 	endif
-  
+   
 	clothingPlayerVulnerability = 0
   
 endFunction 
@@ -623,15 +633,12 @@ function updatePlayerVulnerability(bool isSlaver = false)
   ;endIf ; shouldn't happen anymore, has been long enough most users shouldn't run into this error anymore
   if PlayerScript.equipmentChanged == true ; equipment has changed
     updateEquippedPlayerVulnerability(isSlaver)
-    PlayerScript.equipmentChanged = false
     ;CheckGuardApproachable() 
     
   ; the following can happen now in THIS function without checking equippment 
   ;elseif PlayerScript.sittingInZaz ; else if because we don't need to check if gear was already checked. will get caught regardless
-  ;  updatePlayerVulnerability(isSlaver) 
   elseif PlayerScript.releasedFromZaz
     PlayerScript.releasedFromZaz = false
-  ;  updatePlayerVulnerability(isSlaver)
   
   elseif isSlaver && playerVulnerability < 2
     ; ??? confused, did we want to increase vulnerability if they are a slaver and they are only lvl 1? shouldn't this be MCM dependant instead of static?
@@ -639,6 +646,7 @@ function updatePlayerVulnerability(bool isSlaver = false)
     updateEquippedPlayerVulnerability(isSlaver)
   endif
     
+  
   CheckBukkake()  ; was originally called AFTER this updatePlayerVulnerability, but always only after an equippment change
                   ; (old assumption:) player would undress and dress for/after sex
                   ; I think we can leave this running all the time now
@@ -1070,6 +1078,7 @@ bool function attemptApproach()
   if MCM.bChastityToggle
     ; if attacker has keys, increase all chances
     ; else, no keys, sex = 0
+    debugmsg("Checking chastity ...", 3)
     debugmsg("chastity:" + wearingBlockingFull + ": a:" + wearingBlockingAnal + " b:" + wearingBlockingBra + " g:" + wearingBlockingGag, 3)
     if wearingBlockingFull 
       ; all items
@@ -2115,7 +2124,6 @@ endFunction
 
 function printVulnerableStatus()
   MCM.bPrintVulnerabilityStatus = false
-  CheckDevices()
   updatePlayerVulnerability()
   bool isNight = isNight()
   debugmsg("slave lvl: " + enslavedLevel + " vuln lvl: " + playerVulnerability, 3)
@@ -2281,29 +2289,14 @@ function testPonyOutfit()
   MCM.bAbductionTest = false
 endFunction
 
-; captured dreams test
-; now Slaverun test
+; now testing factions status
 function testCD()
-  ;sendModEvent("SlaverunReloaded_ForceEnslavement")
-  ;if Mods.modLoadedSlaverunR
-  ;  bool isin = Mods.SlaverunScript.PlayerIsInEnforcedLocation()
-  ;  debugmsg("is in slaverun enforceable location?:" + isin)
-  ;else
-  ;  debugmsg("slaverun not installed")
-  ;  MCM.bCDTest = false
-  ;endif
-  armor[] items = ItemScript.getRandomCDItems(player)
-  int i = 0
-  while i < items.length
-    armor item = items[i]
-    if item != None
-      player.additem(items[i])
-      debugmsg("adding " + item )
-    else
-      debugmsg("item @ " + i + " is none" )
-    endif
-    i += 1
-  endWhile
+  ; for faction, add to string, print string
+  
+  string s = "Factions zbfslave:" + player.GetFactionRank(Mods.zazFactionSlave) \
+           + " slavestate:" + player.GetFactionRank(Mods.zazFactionSlaveState)
+  
+  debugmsg(s,5)
 	
 endFunction
 
