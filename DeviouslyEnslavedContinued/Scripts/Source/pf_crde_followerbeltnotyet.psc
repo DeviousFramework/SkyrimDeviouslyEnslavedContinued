@@ -8,10 +8,13 @@ Actor akSpeaker = akSpeakerRef as Actor
 ;BEGIN CODE
 
 ; for now, no items and no enslavement, just sex. If aggressive, make it random, ergo already random animations
+; this dialogue really should go to a player choice instead of just into sex.
 crdePlayerMonitorScript PlayerMon = GetOwningQuest() as crdePlayerMonitorScript ; oh alright, three references is enough for a temp variable
 ;PlayerMon.ItemScript.equipRandomSingleDD(akSpeaker)
 ;however, for now, not completely care free, add one of some item to player
 PlayerMon.doPlayerSex(akSpeaker, rape = false, soft = true, oral_only = true)
+actor[] nearby = PlayerMon.NPCSearchScript.getNearbyActors(500)
+PlayerMon.adjustPerceptionPlayerSub(nearby,2,15)
 
 ;END CODE
 EndFunction

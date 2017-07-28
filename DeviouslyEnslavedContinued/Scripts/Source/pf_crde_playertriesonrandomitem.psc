@@ -10,7 +10,7 @@ crdePlayerMonitorScript PlayerMon = GetOwningQuest() as crdePlayerMonitorScript
 PlayerMon.ItemScript.equipFollowerFoundItems(PlayerMon.player)
 PlayerMon.resetFollowerContainerCount(akSpeaker)
 actor[] nearby = PlayerMon.NPCSearchScript.getNearbyActors(500)
-PlayerMon.adjustPerceptionPlayerSub(nearby,2)
+PlayerMon.adjustPerceptionPlayerSub(nearby,2,25)
 
 ;END CODE
 EndFunction

@@ -35,13 +35,13 @@ float lastVersion
 bool Property needsMaintenance Auto 
 
 ; float version is Xxx.Yy.Zz = > Xxx.yYzZ
-; IE 3.2.1 would be 3.0201
+; IE 3.2.1 would be 3.0201, 2.13.2 would be 2.1302
 float function getVersion()
-  return 13.0807
+  return 13.0900
   EndFunction
 
 string function getVersionString()
-  return "13.8.7"
+  return "13.9.0"
 EndFunction
 
 Function Maintenance()
@@ -64,7 +64,7 @@ Function Maintenance()
 		;(Settings as crdeSettingsScript).Maintenance()
 	endif
 
-	Utility.Wait(0.25)	
+	Utility.Wait(0.25)
 
 	if(Mods.isRunning() == false)
 		bool sOK = Mods.start()
@@ -83,7 +83,7 @@ EndFunction
 
 
 Event OnInit()
-	Debug.trace("[CRDE] Init")
+	Debug.trace("[CRDE] StartQuest: Init")
 	Utility.Wait(3.0)
 	needsMaintenance = true
 	RegisterForSingleUpdate(3)

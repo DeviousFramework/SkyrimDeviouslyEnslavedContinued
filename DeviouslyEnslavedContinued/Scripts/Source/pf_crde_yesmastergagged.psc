@@ -11,6 +11,8 @@ crdePlayerMonitorScript PlayerMon = GetOwningQuest() as crdePlayerMonitorScript 
 ;PlayerMon.ItemScript.equipRandomSingleDD(akSpeaker)
 ;however, for now, not completely care free, add one of some item to player
 PlayerMon.doPlayerSex(akSpeaker, rape = false, soft = true)
+actor[] nearby = PlayerMon.NPCSearchScript.getNearbyActors(500)
+PlayerMon.adjustPerceptionPlayerSub(nearby,1,12)
 ;END CODE
 EndFunction
 ;END FRAGMENT

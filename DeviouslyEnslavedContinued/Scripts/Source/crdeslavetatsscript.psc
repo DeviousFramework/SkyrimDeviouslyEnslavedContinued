@@ -44,7 +44,6 @@ GlobalVariable          Property  modEnabled Auto
 bool semaphore
 Bool Property changesHappened auto
 
-
 ; strings of names of tattoos that count for detection and their type
 string[] Property slaveTattooNames Auto
 string[] Property slutTattooNames Auto
@@ -101,14 +100,6 @@ Event TattooUpdate( String s1, String s2, Form f1)
   endif
 
 EndEvent
-
-;Event TattooUpdateRemoved( String s1, String s2, Form f1)
-;  if modEnabled.GetValueInt() == 1 && (PlayerMon.MCM.bVulnerableSlaveTattoo || PlayerMon.MCM.bVulnerableSlutTattoo )
-;    debug.trace("[CRDE] *** Tattoo removal detected ***")
-;    detectTattoos()
-;    endif
-;EndEvent
-
 
 ; meta thread, call this it knows what else to do
 Function detectTattoos()
@@ -206,18 +197,13 @@ EndFunction
 
 ; search the the name of the tatoo for the specific keywords
 Function checkSectionForKeywords( string tattoo_section, bool face)
-  ;if mcm slave option is set,
   int section = 0
   While section < slaveTattooSections.LENGTH              ; SLAVE
     if tattoo_section == slaveTattooSections[section]
       wearingSlaveTattoo = true
-      ;if face
-      wearingSlaveTattooFace = face && wearingSlaveTattoo;= true
-      ;endif
+      wearingSlaveTattooFace = face && wearingSlaveTattoo ;= true
       Debug.trace("[CRDE] compared correctly: " + tattoo_section + " + " + slaveTattooSections[section])
       section = slaveTattooSections.LENGTH ; end the loop, since papyrus doesn't have a continue keyword
-    else
-      ;Debug.trace("[CRDE] compared incorrectly: " + tattoo_section + " " + slaveTattooSections[section])
     endif
     section += 1
   EndWhile
@@ -226,13 +212,9 @@ Function checkSectionForKeywords( string tattoo_section, bool face)
   While section < slutTattooSections.LENGTH                ; SLUT
     if tattoo_section == slutTattooSections[section]
       wearingSlutTattoo = true
-      ;if face
       wearingSlutTattooFace = face && wearingSlutTattoo
-      ;endif
       Debug.trace("[CRDE] compared correctly: " + tattoo_section + " + " + slutTattooSections[section])
       section = slutTattooSections.LENGTH ; end the loop, since papyrus doesn't have a continue keyword
-    else
-      ;Debug.trace("[CRDE] compared incorrectly: " + tattoo_section + " " + slutTattooSections[section])
     endif
     section += 1
   EndWhile
@@ -241,12 +223,12 @@ Function checkSectionForKeywords( string tattoo_section, bool face)
   ; special case: Bistro slavetats has too many sections, but they all start with "BIS "
   section = 0
   While section < bisSectionNames.LENGTH                ; BIS
-    ; if tattoo_section == "BIS Face" ; oops, none of these are face aparently.
     if bisSectionNames[section] == tattoo_section
       wearingSlaveTattoo = true
     endif
+    section += 1
   EndWhile
- 
+
  
 EndFunction 
 

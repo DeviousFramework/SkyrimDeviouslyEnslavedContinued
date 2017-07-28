@@ -7,9 +7,14 @@ Function Fragment_0(ObjectReference akSpeakerRef)
 Actor akSpeaker = akSpeakerRef as Actor
 ;BEGIN CODE
 crdeItemManipulateScript itemscript = (GetOwningQuest() as crdeItemManipulateScript)
-itemscript.equipRandomGag(player)
+crdePlayerMonitorScript PlayerMon = (GetOwningQuest() as crdePlayerMonitorScript)
+itemscript.equipRandomGag(PlayerMon.player)
 Utility.Wait(3)
-itemscript.equipRandomDDBlindfolds(player)
+itemscript.equipRandomDDBlindfolds(PlayerMon.player)
+actor[] nearby = PlayerMon.NPCSearchScript.getNearbyActors(500)
+PlayerMon.adjustPerceptionPlayerSub(nearby,1,20)
+PlayerMon.modFollowerLikesDom(akSpeaker,1,20)
+
 ;END CODE
 EndFunction
 ;END FRAGMENT

@@ -8,7 +8,7 @@ Actor akSpeaker = akSpeakerRef as Actor
 ;BEGIN CODE
 crdePlayerMonitorScript PlayerMon = (GetOwningQuest() as crdePlayerMonitorScript)
 actor[] nearby = PlayerMon.NPCSearchScript.getNearbyActors(500)
-PlayerMon.adjustPerceptionPlayerSub(nearby,-4)
+PlayerMon.adjustPerceptionPlayerSub(nearby,-3)
 ;END CODE
 EndFunction
 ;END FRAGMENT

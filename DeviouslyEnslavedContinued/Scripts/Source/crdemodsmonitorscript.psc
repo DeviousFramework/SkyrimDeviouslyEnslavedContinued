@@ -450,7 +450,16 @@ Function Maintenance()
   ;RegisterForSingleUpdate(9)
   Debug.Trace("[CRDE]Mods:Maintenance ...")
   ; think we have to wait for the other mods to load
-  Utility.Wait(7) ; used to be 3, doesn't work with 2-1, returning to longer
+  ;Utility.Wait(7) ; used to be 3, doesn't work with 2-1, returning to longer
+  
+  ; for a few versions, we'll just reapply the perk every update
+  ;  why? because the perk doesn't auto refresh when a newer version of code is installed
+  ;  so the parameters don't get re-init
+  if player.HasPerk(crdeContainerPerk)
+    player.removePerk(crdeContainerPerk)
+  endif
+  player.addPerk(crdeContainerPerk)
+  
   finishedCheckingMods = false
   updateForms()
   checkStatuses()
@@ -462,6 +471,7 @@ Event OnInit()
   pointedValidRaces = new race[10]
   RegisterForModEvent("dhlp-Suspend", "OnSuspend")
 	RegisterForModEvent("dhlp-Resume", "OnResume")
+  RegisterForModEvent("crderesetmods", "Maintenance")
   
   ;updateForms() ; move to maintenance, let it be called there
   ;checkStatuses()
@@ -470,12 +480,12 @@ Event OnInit()
 EndEvent
 Event onUpdate()
   Debug.Trace("[CRDE]Mods:OnUpdate running ...")
-  if !player.HasPerk(crdeContainerPerk)
-    Debug.Trace("[CRDE]Player Container Perk was missing, applying ...")
-    player.addPerk(crdeContainerPerk)
-  endif
+  ;if !player.HasPerk(crdeContainerPerk)
+  ;  Debug.Trace("[CRDE]Player Container Perk was missing, applying ...")
+  ;  player.addPerk(crdeContainerPerk)
+  ;endif
   if bRefreshModDetect
-    Utility.Wait(5.0)
+    Utility.Wait(10.0)
     Maintenance() 
   endif
   PreviousFollowers.revert()
@@ -757,7 +767,6 @@ function updateForms()
     ;slaverunEnforcerQuest        = Game.GetFormFromFile(0x000012c4 , "SlaverunEnforcer.esp") as Quest
   endif
 
-  ; TODO finish
   slaverunRMainQuest               = Quest.GetQuest("SLV_Mainquest"); TODO fix
   modLoadedSlaverunR               = (slaverunRMainQuest != None)
   if  modLoadedSlaverunR

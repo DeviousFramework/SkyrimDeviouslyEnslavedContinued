@@ -6,8 +6,12 @@ Scriptname pf_crde_followerlikesyougagged1 Extends TopicInfo Hidden
 Function Fragment_0(ObjectReference akSpeakerRef)
 Actor akSpeaker = akSpeakerRef as Actor
 ;BEGIN CODE
-;actor[] nearby = PlayerMon.NPCSearchScript.getNearbyActors(500)
-;PlayerMon.adjustPerceptionPlayerSub(nearby,2)
+;" I think I like you this way"
+crdePlayerMonitorScript PlayerMon = (GetOwningQuest() as crdePlayerMonitorScript)
+actor[] nearby = PlayerMon.NPCSearchScript.getNearbyActors(500)
+PlayerMon.adjustPerceptionPlayerSub(nearby,1,12)
+PlayerMon.modFollowerLikesDom(akSpeaker,1,20)
+
 ;END CODE
 EndFunction
 ;END FRAGMENT

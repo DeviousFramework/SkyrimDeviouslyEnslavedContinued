@@ -54,10 +54,7 @@ Armor Property previousGag Auto ; for reapplication
 Outfit Property BallandChainRedOutfit Auto
 Outfit Property BlackPonyMixedOutfit Auto
 
-
-
 crdeVars Property Vars Auto ; still not sure what this thing was for
-
 
 ; one day I will be lubed enough to move this shit over here to this class
 ;Armor[] Property randomDDxCuffs  Auto  
@@ -74,12 +71,17 @@ Armor[] Property randomDDPunishmentVagPlugs  Auto
 Armor[] Property randomDDPunishmentAnalPlugs  Auto  
 Armor[] Property randomDDPunishmentVagPiercings  Auto 
 
-
-
 Race[] Property alternateRaces Auto
 
 ; todo, break this into individual keywords, since the creation kit is a fickle bitch
 Keyword[] Property deviceKeywords  Auto 
+
+; for when we already know what we want to equip at dialogue time
+Armor[] Property followerFoundArmorBuffer Auto
+
+Event OnInit()
+  followerFoundArmorBuffer = new Armor[10]
+endEvent
 
 ; just from player, was meant to clear armor quickly, not sure if it's even still being used 
 function removeDDs()
@@ -858,10 +860,8 @@ armor[] function getRandomHarnessAndStuff(actor actorRef)
   PlayerMon.debugmsg("checking if harness are worn already ...", 1)
   armor[] items = new armor[5]
   if actorRef.wornHasKeyword(libs.zad_DeviousHarness) == false 
-    int offsetIndex = Utility.Randomint(0,2);0 ; 0 are ebonite, 1 are red, 2 are white
-    ;offsetIndex     =
-    Armor harness = randomDDxHarnesss[offsetIndex]
-    ;PlayerMon.debugmsg("harness:" + harness)
+    Armor harness = getRandomHarness(actorRef)
+
     armor[] stuff = getRandomStuff(actorRef, harness)
     ;armor rndrd = libs.GetRenderedDevice(harness)
     int i = 0
@@ -872,6 +872,22 @@ armor[] function getRandomHarnessAndStuff(actor actorRef)
     items[i] = harness
   endif
     return items
+endFunction
+
+bool function equipRandomHarness(actor actorRef)
+  Armor harness = getRandomHarness(actorRef)
+  if harness != None
+    return equipRegularDDItem(actorRef, harness, None)
+  endif
+  return false
+endFunction
+
+armor function getRandomHarness(actor actorRef)
+  if actorRef.wornHasKeyword(libs.zad_DeviousHarness) == false 
+    int offsetIndex = Utility.Randomint(0,2);0 ; 0 are ebonite, 1 are red, 2 are white
+    return randomDDxHarnesss[offsetIndex]
+  endif
+  return NONE
 endFunction
 
 ;moving everything here because same code normally
@@ -1358,6 +1374,7 @@ armor[] function getCDStuff(actor actorRef)
   return items
 endFunction
 
+;followerItemsWhichOneFree
 int function checkItemAddingAvailability(actor actorRef, keyword keywordRef)
   if keywordRef == None
     PlayerMon.debugmsg("Err: keyword provided is none",1)
@@ -1366,7 +1383,6 @@ int function checkItemAddingAvailability(actor actorRef, keyword keywordRef)
   bool playerAlreadyWearing  = PlayerMon.player.WornHasKeyword(keywordRef)
   bool actorAlreadyWearing   = actorRef.WornHasKeyword(keywordRef)
   if playerAlreadyWearing && actorAlreadyWearing
-    ;PlayerMon.followerItemsWhichOneFree = 3
     return 0
   elseif playerAlreadyWearing
     return 1
@@ -1376,6 +1392,157 @@ int function checkItemAddingAvailability(actor actorRef, keyword keywordRef)
     return 3
   endif
 endFunction
+
+function setFollowerFoundItem(actor actorRef, int itemCombo, keyword kw, objectReference c, armor a1, armor a2 = none, armor a3 = none)
+  PlayerMon.followerItemsCombination = itemCombo
+  ;PlayerMon.debugmsg("two armors: " + a1 + a2)
+  c.RemoveItem(a1, abSilent = true)
+  followerFoundArmorBuffer[0] = a1
+  followerFoundArmorBuffer[1] = a2
+  followerFoundArmorBuffer[2] = a3
+  PlayerMon.followerItemsWhichOneFree = checkItemAddingAvailability(actorRef, kw)
+endFunction
+
+; this assumes the armors passed are shuffled to allow for random searching, 
+; as this doesn't shuffle or randomize the armor and checks sequentially
+bool function checkFollowerFoundItems(actor actorRef, armor[] armorArray, objectReference[] containerArray)
+  ; for keyword, check to see if an item in the list is included
+  int i = 0
+  armor tmp 
+  int last = 0
+  keyword itemDDKeyword = None
+  ; for all items in the armor array
+  while i < armorArray.length
+    if armorArray[i] == NONE
+      last = i
+      i = 100
+      ;PlayerMon.debugmsg("Leaving check items at [" + i + "] because we have reached NONE(end)")
+      ;return false
+    endif 
+    tmp = libs.GetRenderedDevice(armorArray[i]) ; the rendered one has the type keywords, the inventory item only has the inventory item
+    itemDDKeyword = libs.GetDeviceKeyword(armorArray[i])
+    if itemDDKeyword == NONE
+      PlayerMon.debugmsg(" * keyword was none")
+    endif
+    PlayerMon.debugmsg("Checking item: " + armorArray[i] + " has keyword: " + itemDDKeyword.GetString())
+
+    ; can't think of a faster way than something like this
+    ; TODO flesh this out later with more stuff, and/or write a section at the bottom for random selection
+      ; might need more dialogue
+    if    itemDDKeyword == libs.zad_DeviousCollar
+      if checkItemAddingAvailability(actorRef, libs.zad_DeviousCollar) == 0
+        PlayerMon.debugmsg(" * Collar found but NPCs not available")
+      elseif MCM.iWeightSingleCollar == 0
+        PlayerMon.debugmsg(" * Collar found but player has set that item weight 0")        
+      endif
+      PlayerMon.debugmsg(" * Collar found: " + tmp)
+      setFollowerFoundItem(actorRef, 1, libs.zad_DeviousCollar, containerArray[i], armorArray[i])
+      return true
+
+    elseif itemDDKeyword == libs.zad_DeviousPlug
+      if checkItemAddingAvailability(actorRef, libs.zad_DeviousPlug) == 0
+        PlayerMon.debugmsg(" * Plug found but NPCs not available")
+      elseif MCM.iWeightPlugs == 0
+        PlayerMon.debugmsg(" * Plug found but player has set that item weight 0")        
+      endif
+      PlayerMon.debugmsg(" * Plug found: " + tmp)
+      setFollowerFoundItem(actorRef, 2, libs.zad_DeviousCollar, containerArray[i], armorArray[i], libs.beltIron)
+      return true
+
+    elseif itemDDKeyword == libs.zad_DeviousArmbinder
+      if checkItemAddingAvailability(actorRef, libs.zad_DeviousArmbinder) == 0
+        PlayerMon.debugmsg(" * Armbinder found but NPCs not available")
+      elseif MCM.iWeightSingleArmbinder == 0
+        PlayerMon.debugmsg(" * Armbinder found but player has set that item weight 0")        
+      endif
+      PlayerMon.debugmsg(" * Armbinder found: " + tmp)
+      setFollowerFoundItem(actorRef, 8, libs.zad_DeviousArmbinder, containerArray[i], armorArray[i])
+      return true
+      
+    elseif itemDDKeyword == libs.zad_DeviousGag
+      if checkItemAddingAvailability(actorRef, libs.zad_DeviousGag) == 0
+        PlayerMon.debugmsg(" * Gag found but NPCs not available")
+      elseif MCM.iWeightSingleGag == 0
+        PlayerMon.debugmsg(" * Gag found but player has set that item weight 0")
+      endif
+      PlayerMon.debugmsg(" * Gag found: " + tmp)
+      setFollowerFoundItem(actorRef, 13, libs.zad_DeviousGag, containerArray[i], armorArray[i])
+      return true
+
+    elseif itemDDKeyword == libs.zad_DeviousHarness
+      if checkItemAddingAvailability(actorRef, libs.zad_DeviousHarness) == 0
+        PlayerMon.debugmsg(" * Harness found but NPCs not available")
+      elseif MCM.iWeightSingleHarness == 0
+        PlayerMon.debugmsg(" * Harness found but player has set that item weight 0")
+      endif
+      PlayerMon.debugmsg(" * Harness found: " + tmp)
+      setFollowerFoundItem(actorRef, 17, libs.zad_DeviousHarness, containerArray[i], armorArray[i])
+      return true
+      
+    elseif itemDDKeyword == libs.zad_DeviousBelt
+      if checkItemAddingAvailability(actorRef, libs.zad_DeviousBelt) == 0
+        PlayerMon.debugmsg(" * Belt found but NPCs not available")
+      elseif MCM.iWeightSingleBelt == 0
+        PlayerMon.debugmsg(" * Belt found but player has set that item weight 0")
+      endif
+      PlayerMon.debugmsg(" * Belt found: " + tmp)
+      setFollowerFoundItem(actorRef, 25, libs.zad_DeviousBelt, containerArray[i], armorArray[i])
+      return true
+
+    elseif itemDDKeyword == libs.zad_DeviousSuit
+      if checkItemAddingAvailability(actorRef, libs.zad_DeviousSuit) == 0
+        PlayerMon.debugmsg(" * Suit found but NPCs not available")
+      elseif MCM.iWeightMultiRubber == 0
+        PlayerMon.debugmsg(" * Suit found but player has set that item weight 0")
+      endif
+      PlayerMon.debugmsg(" * Suit found: " + tmp)
+      setFollowerFoundItem(actorRef, 14, libs.zad_DeviousSuit, containerArray[i], armorArray[i])
+      return true      
+      
+    elseif itemDDKeyword == libs.zad_DeviousPiercingsNipple
+      if checkItemAddingAvailability(actorRef, libs.zad_DeviousPiercingsNipple) == 0
+        PlayerMon.debugmsg(" * Nipple pierce found but NPCs not available")
+      elseif MCM.iWeightPiercings == 0
+        PlayerMon.debugmsg(" * Nipple pierce found but player has set that item weight 0")
+      endif
+      PlayerMon.debugmsg(" * Nipple pierce found: " + tmp)
+      setFollowerFoundItem(actorRef, 21, libs.zad_DeviousPiercingsNipple, containerArray[i], armorArray[i])
+      return true      
+      
+    elseif itemDDKeyword == libs.zad_DeviousPiercingsVaginal
+      if checkItemAddingAvailability(actorRef, libs.zad_DeviousPiercingsVaginal) == 0
+        PlayerMon.debugmsg(" * Vaginal pierce found but NPCs not available")
+      elseif MCM.iWeightPiercings == 0
+        PlayerMon.debugmsg(" * Vaginal pierce found but player has set that item weight 0")
+      endif
+      PlayerMon.debugmsg(" * Vaginal pierce found: " + tmp)
+      setFollowerFoundItem(actorRef, 22, libs.zad_DeviousPiercingsVaginal, containerArray[i], armorArray[i])
+      return true      
+
+    endIf
+    i += 1
+  endWhile
+  
+  ; if we reach this far, then none of the items met the specific criteria... 
+  ; lets have random selection of items from the pool, if the user allows for it
+  if MCM.bFollowerContainerSearchUnknown
+    PlayerMon.debugmsg("No specific items found, randomly picking some unknown items ...")
+    int rand = 1
+    ;while rand > 0
+      rand  = Utility.RandomInt(0, last)
+      armor arm = armorArray[rand]
+      keyword kw = libs.GetDeviceKeyword(arm)
+      setFollowerFoundItem(actorRef, 0, kw, containerArray[rand], arm)
+    ;endWhile
+    ;rand  = Utility.RandomInt(0, 1)
+    return true
+  else
+    PlayerMon.debugmsg("No specific items found, leaving at [" + i + "]")
+  endif
+  
+  return false 
+endFunction
+
 
 ; In order for our dialogue to be specific, and in order for our weights and percentages to work
 ;  we have to roll this stuff before dialogue starts, and hope users don't hack the parts they want
@@ -1463,15 +1630,17 @@ function rollFollowerFoundItems(actor actorRef)
     PlayerMon.followerItemsWhichOneFree = checkItemAddingAvailability(actorRef, armorKeyword)
     PlayerMon.debugmsg("for keyword: " + armorKeyword + " availability is " + PlayerMon.followerItemsWhichOneFree)
   else
-    PlayerMon.followerItemsWhichOneFree = -1
+    PlayerMon.debugmsg("ERR: no armor keyword")
+    PlayerMon.followerItemsWhichOneFree = -1 ; last second error, should never happen
   endif
   
 endFunction
 
+
 function equipFollowerFoundItems(actor actorRef)
 
   armor[] items = getFollowerFoundItems(actorRef)
-
+    
   int ic = PlayerMon.followerItemsCombination ; shorter, also avoiding the compiler asking PlayerMon for the property over and over again
   if ic == 1 || ic == 5 || ic == 7 || ic == 13 || ic == 30
     ; don't need to remove chest, can just put on player
@@ -1487,12 +1656,11 @@ function equipFollowerFoundItems(actor actorRef)
     tmp = items[i]
     if tmp !=None
       name = tmp.GetName()
-    endif
-  
-    if tmp != None
       PlayerMon.debugmsg(" equipping " + tmp + " on actor "+ actorRef, 2)
       equipRegularDDItem(actorRef, tmp, None)
       Utility.Wait(0.25)
+    ;else
+      ;i = 100 ; end early, added in 13.9
     endif
     i += 1
   endWhile
@@ -1501,39 +1669,46 @@ endFunction
 
 armor[] Function getFollowerFoundItems(actor actorRef)
   armor[] items = new armor[8]
-  int ic = PlayerMon.followerItemsCombination ; shorter, also avoiding the compiler asking PlayerMon for the property over and over again
-  if ic     == 0
-    items = getRandomSingleDD(actorRef)
-  elseif ic == 1 
-    items[0] = getRandomDDCollars(actorRef)
-  elseif ic == 2 
-    items = getRandomBeltAndStuff(actorRef, force_stuff = true)
-  elseif ic == 3 
-    items = getRandomBeltAndStuff(actorRef)
-  elseif ic == 4 
-    items = getRandomDDxRGlovesBoots()
-  elseif ic == 6 
-    items = getRandomDDCuffs() ;equipRandomDDCuffs
-  elseif ic == 13 
-    items[0] = getRandomGag()
-  elseif ic == 8
-    items[0] = getRandomDDArmbinders()    
-  elseif ic == 17 
-    items = getRandomHarnessAndStuff(actorRef)
-  elseif ic == 40 
-    items = getRandomCDItems(actorRef)
-  elseif ic == 21 
-    items[0] = getRandomNipplePiercings(actorRef)
-  elseif ic == 24 
-    ;items[0] = getRandomAssortedPiercings(actorRef)
-  elseif ic == 31
-    items[0] = Mods.petCollar
-  elseif ic == 30 
-    items[0] = getRandomUniqueCollar(actorRef)
-
+  if followerFoundArmorBuffer[0] != None
+    items[0] = followerFoundArmorBuffer[0]
+    items[1] = followerFoundArmorBuffer[1]
+    items[2] = followerFoundArmorBuffer[2]
+    followerFoundArmorBuffer = new Armor[10]
+    PlayerMon.debugmsg("items: " + items)
   else
-    PlayerMon.debugmsg("ERR: Unexected value for followerItemsCombination")
-  endif     
+    int ic = PlayerMon.followerItemsCombination ; shorter, also avoiding the compiler asking PlayerMon for the property over and over again
+    if ic     == 0
+      items = getRandomSingleDD(actorRef)
+    elseif ic == 1 
+      items[0] = getRandomDDCollars(actorRef)
+    elseif ic == 2 
+      items = getRandomBeltAndStuff(actorRef, force_stuff = true)
+    elseif ic == 3 
+      items = getRandomBeltAndStuff(actorRef)
+    elseif ic == 4 
+      items = getRandomDDxRGlovesBoots()
+    elseif ic == 6 
+      items = getRandomDDCuffs() ;equipRandomDDCuffs
+    elseif ic == 13 
+      items[0] = getRandomGag()
+    elseif ic == 8
+      items[0] = getRandomDDArmbinders()    
+    elseif ic == 17 
+      items = getRandomHarnessAndStuff(actorRef)
+    elseif ic == 40 
+    items = getRandomCDItems(actorRef)
+    elseif ic == 21 
+      items[0] = getRandomNipplePiercings(actorRef)
+    elseif ic == 24 
+      ;items[0] = getRandomAssortedPiercings(actorRef)
+    elseif ic == 31
+      items[0] = Mods.petCollar
+    elseif ic == 30 
+      items[0] = getRandomUniqueCollar(actorRef)
+    else
+      PlayerMon.debugmsg("ERR: Unexected value for followerItemsCombination")
+    endif     
+  endif
   
   return items
 
@@ -1574,4 +1749,54 @@ endFunction
 ; for now, might as well use this
 function stripPlayer()
     unequipAllNonImportantSlow()  
+endFunction
+
+; length is passed because the passed array is oversized, and papyrus doesn't allow for subarray passing
+; array returned is the original size
+armor[] function shuffleArmor(armor[] providedArmor, objectReference[] containerArray, int len)
+  int i = 0
+  int randomPick = 0
+  armor tmpArm
+  objectReference tmpRef
+  ;armor[] newArray = providedArmor ;new armor[len]
+  ; while i < len
+  
+    ; i += 1
+  ; endWhile
+  ; i = 0
+  while i < len
+    randomPick = Utility.RandomInt(0,len - 1)
+    tmpArm = providedArmor[i]
+    providedArmor[i] = providedArmor[randomPick]
+    providedArmor[randomPick] = tmpArm
+    tmpRef = containerArray[i]
+    containerArray[i] = containerArray[randomPick]
+    containerArray[randomPick] = tmpRef
+    i += 1
+  endWhile
+  return providedArmor
+endFunction
+
+; this is loose, we're ignoring count here, if the player put it back, ect
+bool function itemStillInContainer(form f, objectReference c)
+  if c == NONE
+    PlayerMon.debugmsg("Err: container passed is NONE",4)
+    return false
+  endif
+  int containerComplement = c.GetNumItems()
+  if containerComplement > 0 
+    int remaining = c.GetItemCount(f)
+    return remaining >= 1
+    ; worried that this is slower
+    ;int i = 0
+    ;form tmp
+    ;While i < containerComplement
+    ;  tmp = c.GetNthForm(i)
+    ;  if tmp == f
+    ;    return true
+    ;  endif
+    ;  i += 1
+    ;endWhile
+  endif
+  return false
 endFunction

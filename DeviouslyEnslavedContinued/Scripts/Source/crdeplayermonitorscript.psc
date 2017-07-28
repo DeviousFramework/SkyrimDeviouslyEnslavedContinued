@@ -150,10 +150,14 @@ int   Property forceGreetWanted       Auto Conditional
 ; 1 is items, 10 is being hit by player and wanting to talk to them
 int 	Property forceGreetFollower     Auto Conditional
 
+form[] Property followerFoundDDItems Auto
+objectReference[] Property followerFoundDDItemsContainers Auto
+bool followerItemsArraySemaphore
+int followerFoundDDItemsIndex
 
 FormList property permanentFollowers Auto 
 
-; contains a number for different combos
+; WARNING: this list exists in different spots, make sure they stay updated with each other
 ;   0 is random single item, 1 is random collar
 ;   2 is plug and extra, 3 is belt and extra
 ;   4 is gloves and boots, 5 is other boots, 6 cuffs
@@ -286,18 +290,20 @@ Event OnInit()
     Debug.Trace("[crde]in player:mods not finished yet", 1)
     Utility.wait(2) ; in seconds
   endWhile
-  PlayerScript.equipmentChanged = true ; start out checking equipment regardless of what it could be
+	Maintenance() 
+  RegisterForSingleUpdate(3)
+EndEvent
+
+function Maintenance()
+	PlayerScript.equipmentChanged = true ; start out checking equipment regardless of what it could be
   ;cdGeneralFactionAlias = Mods.cdGeneralFaction as Alias
   RegisterForModEvent("HookAnimationStart", "crdeSexStartCatch")
   RegisterForModEvent("HookAnimationEnd", "crdeSexHook")
   RegisterForModEvent("DeviceActorOrgasm", "playerOrgasmsFromDD") ; orgasm
   RegisterForModEvent("DeviceEdgedActor", "playerEdgedFromDD") ; edged? meaning halfway?
   RegisterForModEvent("DeviceEvent", "playerHornyFromDD")
-	RegisterForSingleUpdate(1) ; in seconds
-EndEvent
-
-function Maintenance()
-	RegisterForSingleUpdate(3) ; is this right?
+  followerFoundDDItems = new form[32]
+  followerFoundDDItemsContainers = new objectReference[32]
 	;settings.resetValues()
 endFunction
 
@@ -326,7 +332,7 @@ Event playerOrgasmsFromDD(String eventname, string character_name, float argNum,
     ; mod arousal for all nearby NPCs
     actor[] a = NPCSearchScript.getNearbyFollowers() ;getNearbyActors() 
     ; increment all thinks sub by two
-    adjustPerceptionPlayerSub( a, 2 )
+    adjustPerceptionPlayerSub( a,8)
     timeExtraVulnerableEnd = Utility.GetCurrentGameTime() + (1/48) ; in days, 24 hours half hour (30 minutes)
     timeExtraVulnerableLoc = player.GetCurrentLocation()
     ; increase nearby NPC arousal?
@@ -341,7 +347,7 @@ Event playerEdgedFromDD(String eventname, string character_name, float argNum, F
     ; mod arousal for all nearby NPCs
     actor[] a = NPCSearchScript.getNearbyFollowers() ;getNearbyActors() 
     ; increment all thinks sub by two
-    adjustPerceptionPlayerSub( a, 2 )
+    adjustPerceptionPlayerSub( a,2,8)
     timeExtraVulnerableEnd = Utility.GetCurrentGameTime() + (1/48) ; in days, 24 hours half hour (30 minutes)
     timeExtraVulnerableLoc = player.GetCurrentLocation()
     ; increase nearby NPC arousal?
@@ -357,7 +363,7 @@ Event playerHornyFromDD(String eventname, string character_name, float argNum, F
     ; mod arousal for all nearby NPCs
     actor[] a = NPCSearchScript.getNearbyFollowers() ;getNearbyActors() 
     ; increment all thinks sub by two
-    adjustPerceptionPlayerSub( a, 2 )
+    adjustPerceptionPlayerSub( a, 2 , 8)
     timeExtraVulnerableEnd = Utility.GetCurrentGameTime() + (1/48) ; in days, 24 hours half hour (30 minutes)
     timeExtraVulnerableLoc = player.GetCurrentLocation()
     adjustActorsArousal(a, 10)
@@ -799,6 +805,7 @@ endFunction
 ; previously named bool tryEnslaveEvent, renamed because it didn't mention the sex approach and other approaches that should be handled here
 ;   also not event, don't put event in the function name unless it's an event
 ; I know this function is huge, but since papyrus doesn't likely inline functions...
+; TODO: move follower to a different subfunction, I think that at least is reasonable
 bool function attemptApproach()
   ; isbusy -> enslavelvl -> nearest -> (follower chance) -> roll(need nearest for slave trader modifier) -> vulnerability check -> attempts
   ; roll is fastest, busy is second fastest. nearest is slowest. Nearest before roll only because we need nearest for follower,
@@ -844,7 +851,6 @@ bool function attemptApproach()
     return false
   endif
 
-  
   ;clear_force_variables(); not sure this is needed anymore
   forceGreetSex     = 0
   forceGreetSlave   = 0
@@ -857,15 +863,22 @@ bool function attemptApproach()
   endif
   
   ; moved this later, since it takes a long time
-  NPCMonitorScript.printNearbyValidActors() ; hope this won't mess with us
-  actor[] nearest = NPCMonitorScript.getClosestRefActor(player)
+  actor[] nearest
+  if MCM.bAlternateNPCSearch
+    nearest = NPCMonitorScript.getClosestActor(player)
+    debugmsg("closest npcs: " + nearest) 
+  else
+    NPCMonitorScript.printNearbyValidActors() 
+    nearest = NPCMonitorScript.getClosestRefActor(player)
+  endif
   actor[] followers = NPCSearchScript.getNearbyFollowers()
   
   location player_loc = player.GetCurrentLocation()
   ; if player has followers
   if  MCM.bFollowerDialogueToggle.GetValueInt() == 1 \
     && followers[0] != None && timeoutFollowerNag < CurrentGameTime \
-    && ( nearest.length == 1 || (player_loc && player_loc.haskeyword(LocTypePlayerHouse))) 
+    && (nearest.length <= 1 || player_loc && player_loc.haskeyword(LocTypePlayerHouse)) 
+    ;&& ( nearest.length == 1 || (player_loc && player_loc.haskeyword(LocTypePlayerHouse))) ; why does nearest need to have 1?
     ; special case, alone with followers[0] in the woods or some shit, lets do something
 
     ; are we alone with followers in a dungeon?
@@ -984,9 +997,53 @@ bool function attemptApproach()
       follower = current_followers[Utility.RandomInt(0, current_count - 1)]
       debugmsg("Follower re-chosen randomly is " + follower.GetDisplayName() + " out of " + current_count , 1)
     endif
-
+  
+    int validItemsFound = 0
+    i = 1 ; start at present index -1, the last location written.
+    int absoluteIndex
+    armor[]           armorArray      = new armor[32]
+    objectReference[] containerArray  = new objectReference[32]
+    ;debugmsg("past items: " + followerFoundDDItems )
+    ;debugmsg("and their contianers: " + followerFoundDDItemsContainers )
+    followerItemsArraySemaphore = true
+    form testForm
+    objectReference testContainer
     
-    float item_approach_roll      = Utility.RandomFloat(0,100)
+    bool alreadyFoundOneKey = false
+    while i < 31
+      ; we need to count how many items we have, and calculate additional chance of item being found for this one cycle
+      absoluteIndex = (followerFoundDDItemsIndex + 32 - i) % 32
+      testForm = followerFoundDDItems[absoluteIndex] 
+      followerFoundDDItems[absoluteIndex] = NONE ; clear as we go
+        ; maybe we should clear per approach after all?
+      if testForm == NONE
+        i = 100 ; end loop
+      else
+        Key keyTest = testForm as Key
+        testContainer = followerFoundDDItemsContainers[absoluteIndex]
+        if alreadyFoundOneKey == false && keytest != None
+          ; for now, randomly give to a follower if the last follower, assuming they weren't too submissive
+          ; TODO add a way for the follower to bring you the key if they aren't dom
+          ;followers[0]
+          actor randomFoll = followers[Utility.RandomInt(0, (followers.length - 1))]
+          debugmsg("Follower " + randomFoll.GetDisplayName() + " found a key:" + testForm.GetName(), 3)
+          randomFoll.additem(keyTest)
+          alreadyFoundOneKey = true
+        elseif ItemScript.itemStillInContainer(testForm, testContainer)
+        
+          ;debugmsg("Adding to armor short list " + testForm.GetName(), 3)
+          armorArray[validItemsFound] = testForm as armor
+          containerArray[validItemsFound] = testContainer
+          validItemsFound += 1
+        endif
+        i += 1
+      endif
+    endWhile
+    followerItemsArraySemaphore = false
+
+    debugmsg("Items found by follower :" + validItemsFound, 3)
+    
+    float item_approach_roll      = Utility.RandomFloat(0,100) - validItemsFound * 5 ; for now, 5% per item, need something better TODO
     float goal                    = MCM.fFollowerFindChanceMaxPercentage
     int   follower_item_count     = StorageUtil.GetIntValue(follower, "crdeFollContainersSearched") ;playerContainerOpenCount)
     if follower_item_count < MCM.iFollowerFindChanceMaxContainers
@@ -1007,15 +1064,25 @@ bool function attemptApproach()
       ; add 10 points if player has a slave/follower with collar
       follower_thinks_player_sub   += ((Mods.metReqFrameworkMakeVuln() as int) * 10)
       
-      
       debugmsg("thinks sub: " + follower_thinks_player_sub \
         + ", thinks dom: " + follower_thinks_player_dom \
         + ", enjoys sub: " + follower_enjoys_sub \
         + ", enjoys dom: " + follower_enjoys_dom \
-        + ", frust: " + follower_frustration )
+        + ", frust: " + follower_frustration \
+        + ", availablility: " + followerItemsWhichOneFree)
       ; also test for relationship and arousal and stuff
 
-      ItemScript.rollFollowerFoundItems(follower) ; for now, roll as we need to, but later lets roll even if we don't need to and only roll once, print it out instead
+      ;debugmsg("pre-shuffle: " + armorArray)
+      ;armor[] shuffledArmor = ItemScript.shuffleArmor( armorArray, containerArray, validItemsFound)
+      if armorArray[0] != None
+        ItemScript.shuffleArmor( armorArray, containerArray, validItemsFound)
+        debugmsg("Shuffled: " + armorArray)
+      endif
+      if armorArray[0] == None || ItemScript.checkFollowerFoundItems(follower, armorArray, containerArray) == false
+        debugmsg("Follower found items invalid, rolling random items")
+        ItemScript.rollFollowerFoundItems(follower)
+      endif
+      
       if !(MCM.gForceGreetItemFind.GetValueInt() as bool)
         Debug.Notification( follower.GetDisplayName() + " wants to talk to you.")
       else ; force greet is on, setup cancel timeout
@@ -1025,8 +1092,6 @@ bool function attemptApproach()
 
       forceGreetFollower = 1
       reshuffleFollowerAliases(follower)
-      ;playerContainerOpenCount = 0 ; this is here because it's the easiest way to reset it for followers[0] dialogue, in the future it should be moved to the dialogue
-      
       
       return true
     endif
@@ -1230,51 +1295,64 @@ function setMaster(actor masterRef)
   master = masterRef
   masterRefAlias.forceRefto(master)
   masterIsSlaver = Mods.isSlaveTrader(master); was this ever used?
-
 endFunction
 
-;follower_enjoys_dom           = StorageUtil.GetIntValue(follower, "crdeFollEnjoysDom")
-; follower_enjoys_sub           = StorageUtil.GetIntValue(follower, "crdeFollEnjoysSub") 
-; follower_thinks_player_dom    = StorageUtil.GetIntValue(follower, "crdeThinksPCEnjoysDom") 
-; follower_thinks_player_sub    = StorageUtil.GetIntValue(follower, "crdeThinksPCEnjoysSub")
+; if I had known these 5 functions would all be the same I would have just made one with a string parameter to differentiate them, but now I'm fat and lazy
 
 ; does the follower like being sub/dom? positive is yes, negative is no, 0 is don't care
-function modFollowerLikesDom(actor actorRef , float value)
-  ;float current_value = StorageUtil.GetFloatValue(actorRef, "crdeFollEnjoysDom")
-  ; for now do standard mod, no oddity
-  ;StorageUtil.SetFloatValue(actorRef, "crdeFollEnjoysDom", current_value + value)
-  StorageUtil.AdjustFloatValue(actorRef, "crdeFollEnjoysDom", value)
-  
+function modFollowerLikesDom(actor actorRef , float value, float max = 30.0)
+  float current_value = StorageUtil.GetFloatValue(actorRef, "crdeFollEnjoysDom")
+  if current_value > max && value > 0 
+    ; we're already too high for us to be affected by this adjustment
+  elseif value + current_value > max
+    StorageUtil.SetFloatValue(actorRef, "crdeFollEnjoysDom", max)
+  else
+    StorageUtil.AdjustFloatValue(actorRef, "crdeFollEnjoysDom", value)
+  endif
 endFunction
 
-function modFollowerLikesSub(actor actorRef, float value)
-  ;float current_value = StorageUtil.GetFloatValue(actorRef, "crdeFollEnjoysSub") ; our local value is temp, modified, do not use it
-  ;StorageUtil.SetFloatValue(actorRef, "crdeFollEnjoysSub", current_value + value)
-  StorageUtil.AdjustFloatValue(actorRef, "crdeFollEnjoysSub", value)
-
+function modFollowerLikesSub(actor actorRef, float value, float max = 30.0)
+  float current_value = StorageUtil.GetFloatValue(actorRef, "crdeFollEnjoysSub")
+  if current_value > max && value > 0 
+    ; we're already too high for us to be affected by this adjustment
+  elseif value + current_value > max
+    StorageUtil.SetFloatValue(actorRef, "crdeFollEnjoysSub", max)
+  else
+    StorageUtil.AdjustFloatValue(actorRef, "crdeFollEnjoysSub", value)
+  endif
 endFunction
 
-function modThinksPlayerDom(actor actorRef , float value)
-  ;float current_value = StorageUtil.GetFloatValue(actorRef, "crdeThinksPCEnjoysDom")
-  ;debugmsg("adjusting " + actorRef + " thinks player is dom " +current_value+ " by " + value)
-  ;StorageUtil.SetFloatValue(actorRef, "crdeThinksPCEnjoysDom", current_value + value)
-  StorageUtil.AdjustFloatValue(actorRef, "crdeThinksPCEnjoysDom", value)
-
+function modThinksPlayerDom(actor actorRef , float value, float max = 30.0)
+  float current_value = StorageUtil.GetFloatValue(actorRef, "crdeThinksPCEnjoysDom")
+  if current_value > max && value > 0 
+    ; we're already too high for us to be affected by this adjustment
+  elseif value + current_value > max
+    StorageUtil.SetFloatValue(actorRef, "crdeThinksPCEnjoysDom", max)
+  else
+    StorageUtil.AdjustFloatValue(actorRef, "crdeThinksPCEnjoysDom", value)
+  endif
 endFunction
 
-function modThinksPlayerSub(actor actorRef , float value)
-  ;float current_value = StorageUtil.GetFloatValue(actorRef, "crdeThinksPCEnjoysSub")
-  ;debugmsg("adjusting " + actorRef + " thinks player is sub "+current_value+ " by " + value)
-  ;StorageUtil.SetFloatValue(actorRef, "crdeThinksPCEnjoysSub", current_value + value)
-  StorageUtil.AdjustFloatValue(actorRef, "crdeThinksPCEnjoysSub", value)
-
+function modThinksPlayerSub(actor actorRef , float value, float max = 30.0)
+  float current_value = StorageUtil.GetFloatValue(actorRef, "crdeThinksPCEnjoysSub")
+  if current_value > max && value > 0 
+    ; we're already too high for us to be affected by this adjustment
+  elseif value + current_value > max
+    StorageUtil.SetFloatValue(actorRef, "crdeThinksPCEnjoysSub", max)
+  else
+    StorageUtil.AdjustFloatValue(actorRef, "crdeThinksPCEnjoysSub", value)
+  endif
 endFunction
 
-function modFollowerFrustration(actor actorRef, float value)
-  ;float current_value = StorageUtil.GetFloatValue(actorRef, "crdeFollowerFrustration")
-  ;StorageUtil.SetFloatValue(actorRef, "crdeFollowerFrustration", current_value + value)
-  StorageUtil.AdjustFloatValue(actorRef, "crdeFollowerFrustration", value)
-
+function modFollowerFrustration(actor actorRef, float value, float max = 30.0)
+  float current_value = StorageUtil.GetFloatValue(actorRef, "crdeFollowerFrustration")
+  if current_value > max && value > 0 
+    ; we're already too high for us to be affected by this adjustment
+  elseif value + current_value > max
+    StorageUtil.SetFloatValue(actorRef, "crdeFollowerFrustration", max)
+  else
+    StorageUtil.AdjustFloatValue(actorRef, "crdeFollowerFrustration", value)
+  endif
 endFunction
 
 ; eliminate these entirely, calling directly from crdeitemmanipulatescript
@@ -1745,7 +1823,6 @@ Event crdeSexHook(int tid, bool HasPlayer);(string eventName, string argString, 
     sexFromDEC                    = false 
     sexFromDECWithoutAfterAttacks = false
     
-     
   else
     debugmsg("crdeSexhook ERR: sexlab doesn't have player controller or mod is turned off", 2)
   endif
@@ -1781,34 +1858,34 @@ function modifyNearbyNPCPerception(actor[] sexActors, bool playerIsVictim = fals
       i += 1
     endWhile
     if allPartnersLookLikeSlaves
-      adjustPerceptionPlayerDom( a, 2 ) ; TODO switch these for player set values
+      adjustPerceptionPlayerDom( a, 2 , 10) ; TODO switch these for player set values
     endif
   else
     ; increment all thinks sub by two
-    adjustPerceptionPlayerSub( a, 2 )
+    adjustPerceptionPlayerSub( a, 2 , 12)
   endif
 
 endFunction
 
-function adjustPerceptionPlayerSub(actor[] actors, float diffValue)
+function adjustPerceptionPlayerSub(actor[] actors, float diffValue, float max = 10.0)
   int i = 0
   actor testActor = None
   while i < actors.length 
     testActor = actors[i]
     if testActor != None
-      modThinksPlayerSub(testActor, diffValue)
+      modThinksPlayerSub(testActor, diffValue, max)
     endif
     i += 1
   endWhile
 endFunction
 
-function adjustPerceptionPlayerDom(actor[] actors, float diffValue)
+function adjustPerceptionPlayerDom(actor[] actors, float diffValue, float max = 10.0)
   int i = 0
   actor testActor = None
   while i < actors.length 
     testActor = actors[i]
     if testActor != None
-      modThinksPlayerDom(testActor, diffValue)
+      modThinksPlayerDom(testActor, diffValue, max)
     endif
     i += 1
   endWhile
@@ -2724,14 +2801,14 @@ function tryDebug()
   if MCM.bRefreshSDMaster
     refreshSDMaster()
   endif
-  if Mods.bRefreshModDetect
-    debugmsg("Resetting mod detection ...", 4)
-    Mods.finishedCheckingMods = false
-    Mods.updateForms()
-    Mods.checkStatuses()
-    debugmsg("Finished resetting mod detection.", 4)
-    Mods.bRefreshModDetect = False
-  endif
+  ;if Mods.bRefreshModDetect
+  ;  debugmsg("Resetting mod detection ...", 4)
+  ;  Mods.finishedCheckingMods = false
+  ;  Mods.updateForms()
+  ;  Mods.checkStatuses()
+  ;  debugmsg("Finished resetting mod detection.", 4)
+  ;  Mods.bRefreshModDetect = False
+  ;endif
   if MCM.bSetValidRace
     appointValidRace()
     MCM.bSetValidRace = false
@@ -2792,7 +2869,7 @@ function timeTest()
   timePlayerBusy = Utility.GetCurrentRealTime() - timePlayerBusy
   
   float timeGetClosestActor = Utility.GetCurrentRealTime()
-  actor nearest = NPCMonitorScript.getClosestActor(player)
+  actor[] nearest = NPCMonitorScript.getClosestActor(player)
   timeGetClosestActor = Utility.GetCurrentRealTime() - timeGetClosestActor
   
   float timeGetClosestRefActor = Utility.GetCurrentRealTime()
@@ -2817,8 +2894,8 @@ function timeTest()
   
   ;;;; rolling copy paste (because abstracting three floats to global hurts the compiler spilling
   float timeRollingWithModifiers = Utility.GetCurrentRealTime()
-  if nearest == none ;|| isActorIneligable(nearest) == false ; already called in the search
-    nearest = player
+  if nearest[0] == none ;|| isActorIneligable(nearest[0]) == false ; already called in the search
+    nearest[0] = player
     ;return
   endif
   
@@ -2826,7 +2903,7 @@ function timeTest()
   ;float rollTalk		= Utility.RandomInt(1,100)
   float rollSex		  = Utility.RandomInt(1,100) 
     
-  bool isSlaveTrader = Mods.isSlaveTrader(nearest) 
+  bool isSlaveTrader = Mods.isSlaveTrader(nearest[0]) 
   if(isSlaveTrader)
     ;rollEnslave  = 1
     ;rollTalk 	  = 1
@@ -2846,7 +2923,7 @@ function timeTest()
     debugmsg("chastity:" + wearingBlockingFull + ": a:" + wearingBlockingAnal + " b:" + wearingBlockingBra + " g:" + wearingBlockingGag, 3)
     if wearingBlockingFull 
     ; all items
-      if (nearest.GetItemCount(libs.restraintsKey) > 0) || (nearest.GetItemCount(libs.chastityKey) > 0)
+      if (nearest[0].GetItemCount(libs.restraintsKey) > 0) || (nearest[0].GetItemCount(libs.chastityKey) > 0)
         rollSex     = rollSex     /  MCM.fChastityCompleteModifier
       else 
         rollSex 	  = 101         ; impossible
@@ -2904,8 +2981,8 @@ endFunction
 ; make sure they aren't dead, and the next one needs to match gender restrictions
 function refreshSDMaster()
   Debug.Notification("Reseting next distance SD master ...");
-  
-  actor previous = DistanceEnslave.SDNextMaster
+
+  actor previous = DistanceEnslave.SDNextMaster 
   
   actor[] a = DistanceEnslave.SDMasters
   int a_index = 0 ; if we need to rebuild list
@@ -2915,8 +2992,8 @@ function refreshSDMaster()
   int gender_pref   = MCM.iGenderPrefMaster
   int actor_sex     = 0
   bool usesexlabgender = MCM.bUseSexlabGender
+  int old_length = DistanceEnslave.SDMasters.length ; less property fetching
   if gender_pref != 0 ; we need to rebuild the potential master list to match genders
-    int old_length = DistanceEnslave.SDMasters.length ; less property fetching
     a = new actor[32] ; old length
     int old_position = 0
     actor tmp = None
@@ -2949,22 +3026,28 @@ function refreshSDMaster()
     a_index = a.length
   endif
       
+  menu.AddEntryItem(" ** random **")
   menu.AddEntryItem(" ** cancel **")
-  menu.OpenMenu()
+  
+  menu.OpenMenu() ; kinda a weird way to do this, wouldn't you just open teh menu and grab the result, not open menu, return, then wait for a response?
   int result = UIExtensions.GetmenuResultInt("UIListMenu")
-  if  a[result].isDead() 
+  
+  if a[result].isDead() 
     Debug.MessageBox("The actor you selected: " + a[result] + " is dead, and cannot be used")
   elseif result >= 0 && result < a_index
     ; valid choice
     DistanceEnslave.SDNextMaster = a[result]  
     Debug.MessageBox("Next distance SD master set is " + a[result].GetDisplayName() +", wasPreviously:" + previous.GetDisplayName() + ", Last master:" + DistanceEnslave.SDPreviousMaster.GetDisplayName())
   elseif result <= a_index + 1
+    debugmsg("random button pushed, selecting at random ...", 0) 
+    Debug.Notification("Random SD Master assigned")
+    DistanceEnslave.SDNextMaster = a[Utility.RandomInt(0, a_index)] 
+  elseif result <= a_index + 2
     ; do nothing, was the cancel button
     debugmsg("cancel button pushed, quitting") 
   else
     Debug.Messagebox("ERROR: returning index was the wrong size")
   endif
-
   
   ; open list with all known masters
   ;DistanceEnslave.selectNextSDMaster()
@@ -2983,6 +3066,7 @@ bool function isNight()
   return (Time >= 20 || Time < 5)
 endFunction
 
+; ... did I really write this?
 function StartCombat(actor Attacker)
   ; testing
   Attacker.StartCombat(player)
@@ -3030,16 +3114,56 @@ function reshuffleFollowerAliases(actor mostRecent)
     followerRefAlias01.forceRefTo(mostRecent)
   else
     actor tmp = followerRefAlias01.GetActorRef()    
-    if followerRefAlias02 == None || mostRecent == tmp
+    if tmp == None
+      ; do nothing
+    elseif followerRefAlias02 == None || mostRecent == tmp
       followerRefAlias02.forceRefTo(tmp)
-      followerRefAlias01.forceRefTo(mostRecent)
     else
       ; we need to shift whether the last one is free or not, additional logic only hurts us
       followerRefAlias03.forceRefTo(followerRefAlias02.GetActorRef())
       followerRefAlias02.forceRefTo(tmp)
-      followerRefAlias01.forceRefTo(mostRecent)
     endif
+    followerRefAlias01.forceRefTo(mostRecent)
   endif
+
+endFunction
+
+; form rather than armor because we use this same function for keys
+; this is called by the container perk
+; TODO: if this is too heavy, turn it into a modevent, which offloads it onto a different thread, might be nicer to the engine
+;       OR shove everything into a list and check everything at cycle time
+function addToFollowerFoundItems(form[] foundItems, objectReference itemContainer)
+  if itemContainer == None
+    debugmsg("error adding items because container is NONE: " + itemContainer)
+    return NONE
+  endif
+
+  while followerItemsArraySemaphore ; locked, another process is busy with this, we can't add items right now
+    ; if this gets stuck at weird places, we COULD make this a timestamp instead, where > 0 is active, and then count when it was set and reset if taking too long
+    Utility.Wait(0.3)
+  endWhile 
+  ; not locked (anymore)
+  ;debugmsg("locking semiphore")
+  followerItemsArraySemaphore = true
+  
+  int len = 0
+  form tmp = None
+  while len < foundItems.length
+    tmp = foundItems[len]
+    ;debugmsg("Checking item: " + tmp.GetName() + " in container: " + itemContainer)
+    ; if it's a key, roll for chance to add it to follower's inventory
+    
+    if tmp != None && ! tmp.HasKeyword(libs.zad_BlockGeneric)
+      followerFoundDDItems[followerFoundDDItemsIndex] = tmp
+      followerFoundDDItemsContainers[followerFoundDDItemsIndex] = itemContainer
+      debugmsg("adding item: " + tmp.GetName() );+ " in container: " + itemContainer)
+      followerFoundDDItemsIndex = (followerFoundDDItemsIndex + 1) % 32 ; wraparound, lets just keep a full list of previous items as a circular array
+    endif
+    len += 1
+  endWhile
+  
+  followerItemsArraySemaphore = false  
+  ;debugmsg("releasing semiphore")
 
 endFunction
 

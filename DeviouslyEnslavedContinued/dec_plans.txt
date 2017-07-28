@@ -1,4 +1,4 @@
-; verstort 4/2017
+; verstort 7/2017
 ; this is more notes at this point than just plans
 ; the top is really old, from early 2015, the bottom is the most up-to-date
 ; search for "more recent", above it is the newest todo list, below are some notes on follower dialogue and other stuff
@@ -374,10 +374,6 @@ more recent (not mothballed either):
     ; seems like no
   
   13:
-  Maybe use UIextensions to add interface for hand-picking clothes to count as magic/wizards clothes for intimidation
-  DCL lucky charm, maybe we can prevent the player from getting new items through dialogue if they are wearing this?
-  If player is in brothel, more vulnerable?
-    Extra dialogue for in brothel/freeuse zone?
   
   Maybe extra dialogue, or different dialogue, if the same person appraoches you a second time, especially if you said no last time?
   Higher local chance if you are not outside? not sure this is a good idea
@@ -387,46 +383,58 @@ more recent (not mothballed either):
   Waiting for lsm to get back to my email about skse for theft/pickpocket detection using skse
   ^- gah, he actually did insert assmebler into the esp, fucking hell I'm not messing with that
 
-  Test all available spanking animations
-    Specifically, grab them all in testing
-  What is blocking our animations? which filter? Sometimes single belted becomes masturbate and something else
-  make it so that the follower can replace non-blocking collars, and check for it the present collar is removable through DCUR
-    means writing a function or two
-  Wait several seconds and disable the struggle animation for enslavement, since it doesn't self cancel
-    How does DD handle this? can I just make an event that catches movement once and then forget? would that be safe?
   If anal with plug, can they cum with sound effect and notificaiton?
     Maybe vib effect too? Orgasm effect is dangerous because of animation override.
-  rewrite those adjust functions to accept cielings
   Does follower hit detection care about shouts yet?
   Slavetats: detect those tattoos that count as weapons
 
-  We need to swap zbf keywords for zad keywords, or add them as additional: looks like kimy has finally scrapped ZAZ from cursed loot
-  Sex through PAHE and PAHHSH counts as sex we should allow enslavment and items for
+  ;We need to swap zbf keywords for zad keywords, or add them as additional: looks like kimy has finally scrapped ZAZ from cursed loot
+  ;Sex through PAHE and PAHHSH counts as sex we should allow enslavment and items for
   Follower with DCUR gag could talk to player, sigh
-
+    god damn it kimy...
+    
   14:
   player is stuck performing oral on attacker if belted
     we should check to make sure there are oral animations available to the player?
     if cunnilingus is used, we need to flip the "victim" as the player is the one being sucked off which is backwards
     The whole pre-sex animation filter should be re-written with female vag suppression tag avoidance in mind, it's too hard to follow right now
-  
-  Don't forget to turn off animation tags debug before final release version
-  
-  If we turn off the follower ai package after sex, instead of at the start of the dialogue, we can prevent from walking away
-    Problem: they will keep talking to you, we almost need a second ai package that just follows you and doesn't talk to you
-    time estimate: 2 hours
-  
-  the MCM follower index keeps going out of range, but only with 0 followers
-  
+   
+  ;If we turn off the follower ai package after sex, instead of at the start of the dialogue, we can prevent from walking away
+  ;  Problem: they will keep talking to you, we almost need a second ai package that just follows you and doesn't talk to you
+  ;  time estimate: 2 hours
+   
+   forwarded:
+  Test all available spanking animations
+    Specifically, grab them all in testing
+  make it so that the follower can replace non-blocking collars, and check for it the present collar is removable through DCUR
+    means writing a function or two
+  Wait several seconds and disable the struggle animation for enslavement, since it doesn't self cancel
+    How does DD handle this? can I just make an event that catches movement once and then forget? would that be safe?
+  Maybe use UIextensions to add interface for hand-picking clothes to count as magic/wizards clothes for intimidation
+  DCL lucky charm, maybe we can prevent the player from getting new items through dialogue if they are wearing this?
+  If player is in brothel, more vulnerable?
+    Extra dialogue for in brothel/freeuse zone?
+
   Follower game planning:
     Items: Book with DD stuff, DD vibrating spells, collar, set of items (rubber, leather, heavy collar/gag/blindfold)
       whip, harness? Piercings.
   
   check for SD+ ending slave states to see what we need to set detection for
   check DCL quest end detection again
-  sexlab kidnapped and pitfall detection are broken
-  add MCM random SD+ master
+
+  sexlab kidnapped and pitfall detection are broken and need to be fixed
+  make sure the items found are acceptable to user
   
+  add a dialogue for follower finding lucky charms from DCL if they exist
+  add dialogue for nipple piercings
+  check if new DD items can be integrated
+  check what we have to do with this new keyword
+  add an NPC from morvunskar to SD distant, especially with the cages could be good place, lots of NPC, beds, cages, chairs, enchanting tables, walking distance
+
+  ;bug: if guy approaching player has a NONE actorRef, we don't catch it until it throws an error in the log
+  ;if no items found, don't shuffle?
+  
+  make the NPC count MCM option grey out only if you aren't using alternate search
   
   always: new followers system needs to be tested more
   
@@ -614,7 +622,8 @@ ASM Discovery:
  		NOT [ID[::temp22], ID[::temp22]] ; fucking pos -> neg toggle
 		JMPF [ID[::temp22], 7]           ; jump on neg
     
-  This is weird, why the fuck does it need to cast from a string to an int instead of saving it as an int into the comparison?? Almost every modern CPU instruction set lets you add a constant inline within the instruction
+  This is weird, why the fuck does it need to cast from a string to an int instead of saving it as an int into the comparison??
+  Almost every modern CPU instruction set lets you add a constant inline within the instruction
 		CAST [ID[::temp391], 20]
 		CMP_GE [ID[::temp393], ID[QQZQQ083], ID[::temp391]]
 		CAST [ID[::temp393], ID[::temp393]]
@@ -624,6 +633,18 @@ ASM Discovery:
 		CAST [ID[::temp393], ID[::temp394]]
 		RETURN [ID[::temp393]]
 
+  DAMN IT getting an actorAV can HANG the fucking thread, waiting forever. Why.
+  if the AV doesn't exist for the NPC make it return error at least so I can see it.
+  if the NPC is broken, then... fucking put a timer on that shit?
+==> CALLMETHOD GetAV ActorRef ::temp51 1 Morality
+    ASSIGN actorMorality ::temp51
+  
+  WAT
+  no seriously what fucking flag setting bullshit is this
+  CAST ::temp80 ::temp81
+  CAST ::temp81 ::temp80
+  JMPF ::temp81 13
+  
     
 **************************************************************************************************************************
     
@@ -767,7 +788,7 @@ Things I need to learn:
   
 (*)  (*)  (*)  (*)  (*)  working on the copy paste themer
   
-  ;int ddChance            = MCM.iWeightSingleGlovesBoots * ((!PlayerMon.player.wornHasKeyword(libs.zad_DeviousGloves) && !PlayerMon.player.wornHasKeyword(libs.zad_DeviousBoots)) as int)
+  ;int ddChance           = MCM.iWeightSingleGlovesBoots * ((!PlayerMon.player.wornHasKeyword(libs.zad_DeviousGloves) && !PlayerMon.player.wornHasKeyword(libs.zad_DeviousBoots)) as int)
   int ddEnabledZazChance  = MCM.iWeightSingleArmbinder * ((!PlayerMon.player.wornHasKeyword(libs.zad_DeviousArmbinder) && !PlayerMon.player.wornHasKeyword(libs.zad_DeviousYoke)) as int)
   int zazChance           = MCM.iWeightSingleCollar * ((!PlayerMon.player.wornHasKeyword(libs.zad_DeviousCollar)) as int) ; could do harness too
   

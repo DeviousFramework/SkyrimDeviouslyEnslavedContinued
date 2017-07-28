@@ -47,6 +47,9 @@ crdePlayerScript          Property PlayerScript Auto; initialized in init from p
 ;crdeSlaveTatsScript       Property SlavetatsScript Auto
 ;import crdeSlaveTatsScript
 
+Keyword Property ActorTypeNPC Auto ;: 00013794
+
+
 Actor          Property player Auto
 ReferenceAlias Property playerScriptAlias Auto 
 
@@ -132,36 +135,36 @@ bool function checkActorBoundInFurniture(actor actorRef)
   ;endif
 endFunction
 
-; cleaned up the loop a bit, fewer comparisons means fewer cpu cycles and less branch prediction
-; this doesn't check for if we're getting the same random actor more than once though...
-; deprecated, use getClosestRefActor, much faster
-; only use this if you think the nearby actors won't be filled at the exact time you need to check, or you don't want to reset actors as well
-;   ergo: testing
-actor function getClosestActor(actor actorRef, bool skipSlavers = false)
+; this uses SKSE NPC search instead, which is honestly faster but I'm too lazy to prove it to fishburger
+; we need a different NPC invalid function because the quest reset checks in conditions if an NPC is invalid to some extent
+;  for this we have to check those conditions in papyrus
+actor[] function getClosestActor(actor actorRef, bool skipSlavers = false)
 	
 	int curSearch = 0
+  int npcIndex = 0
 	actor npcActor = none
-
-	while curSearch < MCM.iNPCSearchCount
+  Actor[] valid = new Actor[10]
+  Cell c = actorRef.GetParentCell()
+  int searchLen = c.GetNumRefs(43) ;MCM.iNPCSearchCount
+  
+	while curSearch < searchLen && npcIndex < 9
 		;Debug.Trace("checking " + npcActor.GetDisplayName())
-		npcActor = Game.FindRandomActorFromRef(actorRef, MCM.iSearchRange) ;200.0)	
-    if (npcActor == None) ; if we get a none, then there are no actors nearby, might as well quit early
-      return None
-		elseif (isActorIneligable(npcActor, skipSlavers) == false )
-			return npcActor ; elegible, return now, we don't need anything more from this function
+		;npcActor = Game.FindRandomActorFromRef(actorRef, MCM.iSearchRange) ;200.0)	; old method, full of holes (lots of actor=player and actor=follower most of the time)
+    npcActor = c.GetNthRef(curSearch, 43) as actor
+    if npcActor == None ; if we get a none, then there are no actors nearby, might as well quit early
+      return valid
+		elseif isActorIneligable(npcActor, skipSlavers) == false 
+			valid[npcIndex] = npcActor ; elegible, return now, we don't need anything more from this function
+      npcIndex += 1
 		endif
 		curSearch += 1
 	endWhile
-	return none ; passed through the whole loop, no valid actors
+	return valid ; passed through the whole loop, no valid actors
 	
 endFunction
 
 ; searches through the the quest ReferenceAlias' for a match
 ; should be faster than above since we can let the engine run some of these basic checks for us
-; this will be ugly unless I'm willing to make an array of actors, hard on papyrus engine though
-; moving to a separate library might be a decent iddea, since we don't need anything more than a library link 
-; actor[] a = [ValidAttacker1.GetActorRef(), ...] ; bad idea if 0 < actors < X
-; we return an array of size one if no nearby actors at all, or only friendlies are found.
 actor[] function getClosestRefActor(actor actorRef)
   Actor closest = None
   Actor[] valid = new Actor[10]
@@ -341,50 +344,100 @@ endFunction
 ; this might become obsolete if I can move some/al of them to the quest alias conditions
 ; I haven't changed this since I switched over to isActorRefIneligable, however I made fixes to isActorRefIneligable, keep that in mind
 bool function isActorIneligable(actor actorRef, bool includeSlaveTraders = false)
-	;debugmsg("invalid: ", 0)
-  float actorMorality = actorRef.GetAV("Morality") ; might take long enough that saving it is desireable
+
+  ; things checked by the ESP conditions for isActorRefIneligable:
+  ; actor in scene
+  ; has actor keyword
+  ; is in distance
+  ; child/teamate
+  ; in slave faction
+  ; follower faction
+  ; has zbfeffectkeepoffsetanim
+  ; has zbfeffectrefreshanim
   
-	if actorRef == player ; most of the time, return as early as possible to avoid wasting cpu/time
-    return true 
-	elseif(SexLab.IsActorActive(actorRef))
+  if actorRef == None || actorRef == player ; should be taken care of before this, but might as well play with save variables
+    return true
+  endif
+  
+  
+	if(SexLab.IsActorActive(actorRef))
 		debugmsg("invalid: " + actorRef.GetDisplayName() + " actor is 'sexlab active', busy", 3)
+  ; don't need to check distance if the search function is based on search
+  elseif(actorRef.isDisabled())
+  ; in case they are disabled because player disabled them or quest NPC hidden until later
+  	return true
+  elseif(actorRef.IsHostileToActor(player) || actorRef.IsInCombat() )
+    debugmsg("invalid: " + actorRef.GetDisplayName() + " is hostile or in combat", 3)
+		return true
+  elseif(actorRef.HasKeyword(ActorTypeNPC) == false);: 00013794
+		debugmsg("invalid: " + actorRef.GetDisplayName() + " is not an NPC actor", 3)
+		return true
+  elseif(actorRef.GetRelationshipRank(player) > MCM.iRelationshipProtectionLevel)
+		debugmsg("invalid: " + actorRef.GetDisplayName() + " has too high of relationship: " + actorRef.GetRelationshipRank(player), 3)
+		return true
+  elseif !MCM.bAttackersGuards && actorRef.IsGuard() ;actorRef.IsInFaction(Vars.isGuardFaction)
+		debugmsg("invalid: " + actorRef.GetDisplayName() + " is in guards faction", 3)
+		return true
+	elseif(Mods.ModLoadedCD == true && actorRef.IsInFaction(Mods.cdGeneralFaction) || actorRef.IsInFaction(Mods.cdCustomerFaction)) 
+		debugmsg("invalid: " + actorRef.GetDisplayName() + " is in a CD faction", 3)
+		return true
+	elseif(actorRef.HasLOS(player) == false && MCM.bVulnerableLOS )
+		debugmsg("invalid: " + actorRef.GetDisplayName() + " has no los", 3)
+		return true
+  endif
+  
+  float arousal_modifier = (1 + ((PlayerMonScript.isNight() as int) * (MCM.fNightReqArousalModifier - 1)) )
+  if !MCM.bArousalFunctionWorkaround
+    int arousal = actorRef.GetFactionRank(Mods.sexlabArousedFaction)
+    if arousal < MCM.gMinApproachArousal.GetValueInt() / arousal_modifier ;&& !isSlaver ;aroused enough?
+      debugmsg("invalid: " + actorRef.GetDisplayName() + " arousal too low (faction): " + arousal + "/" + (MCM.gMinApproachArousal.GetValueInt() / arousal_modifier) as int + " Night:" + PlayerMonScript.isNight(), 3)
+  	  return true
+    Endif
+  elseif MCM.bArousalFunctionWorkaround 
+    int arousal = Aroused.GetActorArousal(actorRef) 
+    if arousal < MCM.gMinApproachArousal.GetValueInt() / arousal_modifier  
+      debugmsg("invalid: " + actorRef.GetDisplayName() + " arousal too low (function): " + arousal + "/" + (MCM.gMinApproachArousal.GetValueInt() / arousal_modifier) as int + " Night:" + PlayerMonScript.isNight(), 3)
+      return true  
+    Endif
+  endif  
+  
+  float actorMorality = actorRef.GetAV("Morality") ; holy fuck this can hang the thread on some actors
+  bool isSlaver = Mods.isSlaveTrader(actorRef)
+  if isWearingSlaveDD(actorRef) && !isSlaver
+		debugmsg("invalid: " + actorRef.GetDisplayName() + " is wearing slave DD gear", 3)
+		return true
+  elseif isWearingSlaveXaz(actorRef) && !isSlaver
+		debugmsg("invalid: " + actorRef.GetDisplayName() + " is wearing slave ZAZ gear", 3)
+		return true
+  elseif(actorRef == master)
+		debugmsg("invalid: " + actorRef.GetDisplayName() + " is your master", 3)
+		return true
+  elseif(actorRef.isDead() || actorRef.isChild())
+	  debugmsg("invalid: " + actorRef.GetDisplayName() + " is dead, or child", 3)
+		return true
+  elseif isInvalidRace(actorRef) 
+		debugmsg("invalid: " + actorRef.GetDisplayName() + " is not valid race", 3)
+		return true
+    
+    
+  elseif ((MCM.iMaxEnslaveMorality as float) < actorMorality) && ((MCM.iMaxSolicitMorality as float) < actorMorality) && !Mods.isSlaveTrader(actorRef)
+		debugmsg("invalid: " + actorRef.GetDisplayName() + " has too high of a morality ", 3)
+		return true
+
   elseif(actorRef.IsPlayerTeammate())
 		debugmsg("invalid: " + actorRef.GetDisplayName() + " is your team mate (follower)", 3)
 		return true
   elseif(actorRef.IsInFaction(CurrentFollowerFaction))
 		debugmsg("invalid: " + actorRef.GetDisplayName() + " is in currentfollowerfaction", 3)
 		return true
-	elseif(actorRef.HasLOS(player) == false && MCM.bVulnerableLOS )
-		debugmsg("invalid: " + actorRef.GetDisplayName() + " has no los", 3)
-		return true
-	elseif(actorRef.GetRelationshipRank(player) > MCM.iRelationshipProtectionLevel)
-		debugmsg("invalid: " + actorRef.GetDisplayName() + " has too high of relationship: " + actorRef.GetRelationshipRank(player), 3)
-		return true
-	elseif(isWearingSlaveDD(actorRef)  || isWearingSlaveXaz(actorRef) )
-		debugmsg("invalid: " + actorRef.GetDisplayName() + " is wearing slave gear", 3)
-		return true
   elseif player.IsSneaking() && !player.IsDetectedBy(actorRef)   
     debugmsg("invalid: player is sneaking, and " + actorRef.GetDisplayName() + " doesn't see them", 3)
 		return true
   ;heavier
-	elseif Mods.isSlave(actorRef) 
- 		debugmsg("invalid: " + actorRef.GetDisplayName() + " is a slave", 3)
-    return true
-  elseif isInvalidRace(actorRef) 
-		debugmsg("invalid: " + actorRef.GetDisplayName() + " is not valid race", 3)
-		return true
-  elseif actorRef.GetFactionRank(Mods.sexlabArousedFaction) < MCM.gMinApproachArousal.GetValueInt()   ; aroused
-    debugmsg("invalid: " + actorRef.GetDisplayName() + " doesn't have high enough arousal: " + actorRef.GetFactionRank(Mods.sexlabArousedFaction) + "/" + MCM.gMinApproachArousal.GetValueInt() , 3)
-  	return true
   elseif checkActorBoundInFurniture(actorRef) 
 		debugmsg("invalid: " + actorRef.GetDisplayName() + " is locked in furniture", 3)
 		return true
-  elseif ((MCM.iMaxEnslaveMorality as float) < actorMorality) && ((MCM.iMaxSolicitMorality as float) < actorMorality) && !Mods.isSlaveTrader(actorRef)
-		debugmsg("invalid: " + actorRef.GetDisplayName() + " has too high of a morality ", 3)
-		return true
-	elseif !MCM.bAttackersGuards && actorRef.IsGuard() ;actorRef.IsInFaction(Vars.isGuardFaction)
-		debugmsg("invalid: " + actorRef.GetDisplayName() + " is in guards faction", 3)
-		return true
+	
   endif
   
   int actor_sex = 0
@@ -397,28 +450,21 @@ bool function isActorIneligable(actor actorRef, bool includeSlaveTraders = false
 	if( actor_sex == 0 && gender_pref == 2) || (actor_sex == 1 && gender_pref == 1)
 		debugmsg("invalid: " + actorRef.GetDisplayName() + " is the wrong gender", 3) ; 0 is male, 1 is female
 		return true
-  elseif(actorRef == master)
-		debugmsg("invalid: " + actorRef.GetDisplayName() + " is your master", 3)
+  elseif Mods.modLoadedAngrim && StorageUtil.GetIntValue( actorRef, "Angrim_iEnthralled" ) > 0
+    debugmsg(actorRef.GetDisplayName() + " is an angrim's apprentice thrawl, and loves the player", 3)
 		return true
-	;elseif(includeSlaveTraders == true && Mods.isSlaveTrader(actorRef) == true)
-	;	debugmsg("invalid: " + actorRef.GetDisplayName() + " you reached slave invalid?!?", 5)
-	 ;shouldn't that read either includeTraiders= false, or isInvalidTrader?
-	 ; oh well, I guess it works?
-	;	return true
-	elseif(Mods.ModLoadedCD == true && actorRef.IsInFaction(Mods.cdGeneralFaction)) 
-		debugmsg("invalid: " + actorRef.GetDisplayName() + " is in CD general faction", 3)
-		return true
-	elseif(Mods.ModLoadedCD == true && actorRef.IsInFaction(Mods.cdCustomerFaction))
-		debugmsg("invalid: " + actorRef.GetDisplayName() + " is in CD customer faction", 3)
-		return true
-	;elseif(isBusyDefeat(player) || isBusyMDevious(player) );|| isBusyMaria) ; defeat is active, invalid
-	;	debugmsg("invalid: " + actorRef.GetDisplayName() + " is busy with MDQ or defeat", 3)
-	;	return true
-	elseif(actorRef.IsHostileToActor(player) || actorRef.isUnconscious() || actorRef.IsInCombat() || actorRef.isDead() || actorRef.isChild() )
-	debugmsg("invalid: " + actorRef.GetDisplayName() + " is hostile,unconscious,combat,dead,child", 3)
-		return true
-	elseif(actorRef.getAV("Aggression") > 1)
+	elseif Mods.isSlave(actorRef) 
+ 		debugmsg("invalid: " + actorRef.GetDisplayName() + " is a slave", 3)
+    return true
+	elseif actorRef.GetCurrentScene() != None 
+ 		debugmsg("invalid: " + actorRef.GetDisplayName() + " is in a scene", 3)
+    return true
+
+	elseif(actorRef.getAV("Aggression") > 2)
 		debugmsg("invalid: " + actorRef.GetDisplayName() + " is aggressive? inactive", 3) ; this one might be needed for stealth after all
+		return true
+  elseif actorRef.IsDisabled()
+		debugmsg("invalid: " + actorRef.GetDisplayName() + " is disabled and does not exist", 3) ; this one might be needed for stealth after all
 		return true
 	endif
 	
@@ -426,8 +472,6 @@ bool function isActorIneligable(actor actorRef, bool includeSlaveTraders = false
 endFunction
 
 
-
-; yes I know copy pasting code is bad practice, but this is in anticipation of replacement
 bool function isActorRefIneligable(actor actorRef, bool includeSlaveTraders = false)
 	;debugmsg("invalid: ", 0)
   

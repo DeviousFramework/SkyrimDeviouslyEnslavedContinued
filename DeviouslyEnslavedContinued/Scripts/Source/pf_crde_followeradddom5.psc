@@ -9,7 +9,7 @@ Actor akSpeaker = akSpeakerRef as Actor
 ; Really? It's kinda big *zap*
 crdePlayerMonitorScript PlayerMon = (GetOwningQuest() as crdePlayerMonitorScript)
 actor[] nearby = PlayerMon.NPCSearchScript.getNearbyActors(500)
-PlayerMon.adjustPerceptionPlayerDom(nearby,2)
+PlayerMon.adjustPerceptionPlayerDom(nearby,2,12)
 PlayerMon.libs.EdgeActor(akSpeaker)
 ;END CODE
 EndFunction

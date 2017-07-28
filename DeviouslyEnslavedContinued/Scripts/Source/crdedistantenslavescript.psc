@@ -275,10 +275,9 @@ endFunction
 
 ; actual code setup for enslavement with possibly hostile enemy, includes trim/polish
 function enslaveSD(actor masterRef = none) ; Sanguine's Debaunchery+
-; how skyrimll uses it
   
-  debugmsg(" Starting SD distnace" , 1)
-  ;Quest sdEnslavement = (Quest.getQuest("_SD_enslavement") as _SDQS_enslavement) ; we don't need, it's a keyword not a quest
+  debugmsg(" Starting SD distance" , 1)
+  StorageUtil.SetFormValue( Game.getPlayer() , "_SD_TempAggressor", masterRef)
   StorageUtil.SetIntValue(masterRef, "_SD_iPersonalityProfile", 2) ; for now lock it to perverted type
   ; put character moving details here, including screen fade, items, position, dialogue
   

@@ -27,11 +27,11 @@ Scriptname crdePlayerScript extends ReferenceAlias
 ; Received existing work from the original Deviously Enslaved Continued mod.  Added headers.
 ;***********************************************************************************************
 
-crdeStartQuestScript Property Startup  Auto  
+crdeStartQuestScript    Property Startup  Auto  
 crdePlayerMonitorScript Property PlayerMonitorScript Auto
-crdeModsMonitorScript Property Mods Auto
+crdeModsMonitorScript   Property Mods Auto
 
-GlobalVariable Property crdeInvChange auto ; ignore for now
+;GlobalVariable Property crdeInvChange auto ; ignore for now
 
 bool Property equipmentChanged Auto
 bool Property weaponChanged Auto
@@ -47,13 +47,15 @@ Event OnPlayerLoadGame()
 	Startup.RegisterForSingleUpdate(2)
 	equipmentChanged  = true
   weaponChanged     = true
-
+  if Mods.bRefreshModDetect
+    SendModEvent("crdemodsreset")
+  endif
 EndEvent
 
 ; we only need to test if the player is vulnerable when equipment changes
-; however, if we check once per item change, we might swamp the script engine if > 6 items get changed all at once
-; so instead, we set the variable to check, and we check once every onUpdate loop like before, we just don't need 
-; to check if no items are being swapped, should be a tad lighter on the scripts
+;  however, if we check once per item change, we might swamp the script engine if > 6 items get changed all at once
+;  so instead, we set the variable to check, and we check once every onUpdate loop like before, we just don't need 
+;  to check if no items are being swapped, should be a tad lighter on the scripts
 Event OnObjectEquipped(Form akBaseObject, ObjectReference akReference)
 	
   if akBaseObject as Armor ; aparently eating/potions/herbs counts as equiping, also weapons
@@ -101,10 +103,8 @@ Event OnGetUp(ObjectReference akFurniture)
   endif
 EndEvent
 
+
 ;Event OnCombatStateChanged(Actor akTarget, int aeCombatState)
-
-
-
 ;endEvent
 
 

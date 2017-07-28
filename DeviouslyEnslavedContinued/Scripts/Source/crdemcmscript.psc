@@ -229,6 +229,7 @@ event OnPageReset(string a_page)
     iGenderPrefOID        = AddMenuOption("Approacher Gender Preference", genderList[iGenderPref])
     iGenderPrefMasterOID  = AddMenuOption("Master Gender Preference", genderList[iGenderPrefMaster])
     bUseSexlabGenderOID   = AddToggleOption("Use Sexlab Genders", bUseSexlabGender)
+    bAlternateNPCSearchOID= AddToggleOption("Alternate NPC search", bAlternateNPCSearch)
     
     AddEmptyOption() ; spacer
     
@@ -278,7 +279,7 @@ event OnPageReset(string a_page)
     AddEmptyOption() ; spacer
     AddHeaderOption("Multiple Event weights")
     iWeightMultiPonyOID           = AddSliderOption("Pony suit", iWeightMultiPony, "{0}")
-    iWeightMultiRedBNCOID         = AddSliderOption("Red Ebonite suit", iWeightMultiRedBNC, "{0}")
+    iWeightMultiRedBNCOID         = AddSliderOption("Red Ebonite outfit", iWeightMultiRedBNC, "{0}")
     iWeightMultiSeveralOID        = AddSliderOption("Several single items", iWeightMultiSeveral, "{0}")
     iWeightMultiTransparentOID    = AddSliderOption("DCUR Transparent Suit", iWeightMultiTransparent, "{0}")
     iWeightMultiRubberOID         = AddSliderOption("DCUR Rubber Suit", iWeightMultiRubber, "{0}")
@@ -363,7 +364,6 @@ event OnPageReset(string a_page)
   elseif a_page == Pages[3] ; vulnerability
 
     AddHeaderOption("General Options")
-    iMinEnslaveVulnerableOID        = AddSliderOption("Minimum Enslavement Vulnerability", iMinEnslaveVulnerable, "Level {0}")
     iMinApproachArousalOID          = AddSliderOption("Minimum NPC Arousal", gMinApproachArousal.GetValueInt(), "{0}%")
     iMaxEnslaveMoralityOID          = AddSliderOption("Maximum Morality (enslave)", iMaxEnslaveMorality, "Level {0}")
     iMaxSolicitMoralityOID          = AddSliderOption("Maximum Morality (sex)", iMaxSolicitMorality, "Level {0}")
@@ -385,7 +385,7 @@ event OnPageReset(string a_page)
     iNightReqConfidenceReductionOID  = AddSliderOption("iNightReqConfidenceReduction", iNightReqConfidenceReduction, "{0}", 0);(!Mods.iNightReqConfidenceReduction) as int)
     bNightAddsToVulnerableOID        = AddToggleOption("Night Makes More Vulnerable", bNightAddsToVulnerable, 0);(!Mods.bNightAddsToVulnerable) as int)
     
-    ;AddEmptyOption() ; spacer
+    AddEmptyOption() ; spacer ; there may be extra spacers here to equalize vulnerable items and the oposite side cosmetically
 
     
     AddEmptyOption() ; spacer
@@ -436,10 +436,10 @@ event OnPageReset(string a_page)
     AddHeaderOption("Vulnerable only while naked")
     bNakedReqGagOID         = AddToggleOption("Gag", bNakedReqGag, (!bIsVulNaked) as int)
     bNakedReqCollarOID      = AddToggleOption("Collar", bNakedReqCollar, (!bIsVulNaked) as int)
-    bNakedReqArmbinderOID   = AddToggleOption("Armbinder+Yoke", bNakedReqArmbinder, 1)
-    bNakedReqBlindfoldOID   = AddToggleOption("BlindFold", bNakedReqBlindfold, 1)
+    AddEmptyOption() ; spacer bNakedReqArmbinderOID   = AddToggleOption("Armbinder+Yoke", bNakedReqArmbinder, 1)
+    AddEmptyOption() ; spacer bNakedReqBlindfoldOID   = AddToggleOption("BlindFold", bNakedReqBlindfold, 1)
     bNakedReqBukkakeOID     = AddToggleOption("Semen", bNakedReqBukkake, (!bIsVulNaked) as int)
-    bNakedReqSlaveBootsOID  = AddToggleOption("SlaveBoots",  bNakedReqSlaveBoots, 1)
+    AddEmptyOption() ; spacer bNakedReqSlaveBootsOID  = AddToggleOption("SlaveBoots",  bNakedReqSlaveBoots, 1)
     bNakedReqHarnessOID     = AddToggleOption("Harness", bNakedReqHarness, (!bIsVulNaked) as int)
     bNakedReqPiercedOID     = AddToggleOption("Piercings", bNakedReqPierced, (!bIsVulNaked) as int)
     bNakedReqSlaveTattooOID = AddToggleOption("Slave Tattoos", bNakedReqSlaveTattoo)
@@ -448,6 +448,7 @@ event OnPageReset(string a_page)
   elseif a_page == Pages[4] ;Enslavement
     
     AddHeaderOption("General enslavement options")
+    iMinEnslaveVulnerableOID      = AddSliderOption("Minimum Enslavement Vulnerability", iMinEnslaveVulnerable, "Level {0}")
     bGuardDialogueToggleOID       = AddToggleOption("Guard dialogue", bGuardDialogueToggle)
     bEnslaveLockoutDCUROID        = AddToggleOption("Cursed loot Blocking item lock", bEnslaveLockoutDCUR, (!Mods.modLoadedCursedLoot) as int)
     bEnslaveFollowerLockToggleOID = AddToggleOption("Nearby Follower Lock", bEnslaveFollowerLockToggle)
@@ -512,12 +513,7 @@ event OnPageReset(string a_page)
 
     
   elseif a_page == Pages[5] ; follower 
-    ;UpdateFollowerPage()
     SetCursorFillMode(TOP_TO_BOTTOM) ; probably not needed, since I never change it, assumption: mod scope
-    ;SetCursorPosition(0) ; left side first
-    ;  AddHeaderOption("loading follower list ... " )
-
-    ; get array of nearby followers
 
     SetCursorPosition(0) ; left side first
     AddHeaderOption("General")
@@ -526,7 +522,9 @@ event OnPageReset(string a_page)
     AddEmptyOption() ; spacer
 
     gForceGreetItemFindOID                = AddToggleOption("Follower Approaches Directly (Item found)", gForceGreetItemFind.GetValueInt())
-    bFollowerDungeonEnterRequiredOID      = AddToggleOption("Finding Item Requires Dungeon", bFollowerDungeonEnterRequired, 1);(!Mods.bFollowerDungeonEnterRequired) as int)
+    bFollowerDungeonEnterRequiredOID      = AddToggleOption("Finding Item Requires Dungeon", bFollowerDungeonEnterRequired, 1)
+    bFollowerContainerSearchOID           = AddToggleOption("Follower can find items player missed", bFollowerContainerSearch.GetValueInt())
+    bFollowerContainerSearchUnknownOID    = AddToggleOption("Unknown follower found items", bFollowerContainerSearchUnknown)
     fFollowerFindMinContainersOID         = AddSliderOption("Minimum containers", fFollowerFindMinContainers, "{1}", 1);(!Mods.fFollowerFindMinContainers) as int)
     fFollowerFindChanceMaxPercentageOID   = AddSliderOption("Max chance follower found an item", fFollowerFindChanceMaxPercentage, "{1}");(!Mods.fFollowerFindChanceMaxPercentage) as int)
     iFollowerFindChanceMaxContainersOID   = AddSliderOption("Containers needed for Max", iFollowerFindChanceMaxContainers, "{0}");(!Mods.iFollowerFindChanceMaxContainers) as int)
@@ -541,7 +539,6 @@ event OnPageReset(string a_page)
     fFollowerSexApproachExpOID              = AddSliderOption("Approach Curve Exponent", fFollowerSexApproachExp, "{1}");(
     AddEmptyOption() ; spacer
 
-    
     SetCursorPosition(1) ; now for right-hand side
 
     FormList followers = Mods.PreviousFollowers  ; old unreliable method
@@ -604,7 +601,6 @@ event OnPageReset(string a_page)
       AddTextOption("If you have a follower and they","")
       AddTextOption("haven't shown up, exit the menu","")
       AddTextOption("and wait ~30 seconds for DEC to find them","")
-
       
     else
       ; follower dom
@@ -968,8 +964,10 @@ event OnOptionSelect(int a_option)
   elseif a_option == bRefreshModDetectOID
     Mods.bRefreshModDetect = ! Mods.bRefreshModDetect
     SetToggleOptionValue(a_option, Mods.bRefreshModDetect)
-    ; reset options were moved to the playermonitor test, off thread
-
+    ; lets try this instead, since we can't call the reset without issues in the thread, lets just reset the quest
+    if Mods.bRefreshModDetect
+      SendModEvent("crderesetmods")
+    endif
   elseif a_option == bSetValidRaceOID
     ;bSetValidRace = ! bSetValidRace
     ;if Mods.bRefreshModDetect 
@@ -1058,14 +1056,19 @@ event OnOptionSelect(int a_option)
   elseif a_option == bFollowerDungeonEnterRequiredOID
     bFollowerDungeonEnterRequired = ! bFollowerDungeonEnterRequired
     SetToggleOptionValue(a_option, bFollowerDungeonEnterRequired)
+  elseif a_option == bFollowerContainerSearchOID 
+    bFollowerContainerSearch.SetValueInt( (bFollowerContainerSearch.GetValueInt() == 0) as int )
+    SetToggleOptionValue(a_option, bFollowerContainerSearch.GetValueInt() as bool)
+    
+  elseif a_option == bFollowerContainerSearchUnknownOID
+    bFollowerContainerSearchUnknown = ! bFollowerContainerSearchUnknown
+    SetToggleOptionValue(a_option, bFollowerContainerSearchUnknown)
   elseif a_option == bUseSexlabGenderOID
     bUseSexlabGender = ! bUseSexlabGender
     SetToggleOptionValue(a_option, bUseSexlabGender)
-
   elseif a_option == bSDGeneralLockoutOID
     bSDGeneralLockout = ! bSDGeneralLockout
     SetToggleOptionValue(a_option, bSDGeneralLockout)
-    
   elseif a_option == tFollowerteleportToPlayerOID
     currentFollower.MoveTo(Mods.player)
   elseif a_option == bAddFollowerManuallyOID  
@@ -1075,9 +1078,14 @@ event OnOptionSelect(int a_option)
     ;endif
     Mods.PlayMonScript.addPermanentFollower()
     ;SetToggleOptionValue(a_option, bAddFollowerManually)
+    
+  elseif (a_option == bAlternateNPCSearchOID); long distance stuff too
+    bAlternateNPCSearch = ! bAlternateNPCSearch
+    SetToggleOptionValue(a_option, bAlternateNPCSearch)
+
   endIf
 
-  ; template
+  ; template 
   ;elseif (a_option == dddOID); long distance stuff too
     ;ddd = ! ddd
     ;SetToggleOptionValue(a_option, ddd)
@@ -2598,6 +2606,11 @@ event OnOptionHighlight(int a_option)
     SetInfoText("Minimum arousal level needed before follower will use your bound body for sex")
   elseif a_option == bFollowerDungeonEnterRequiredOID 
     SetInfoText("Toggles whether your Follower can find items without having visited a dungeon first, and if containers only count inside of a dungeon")
+  elseif a_option == bFollowerContainerSearchOID 
+    SetInfoText("Toggles if the follower searches through old containers you visited looking for DD items to bring to you")
+  elseif a_option == bFollowerContainerSearchUnknownOID 
+    SetInfoText("Toggles if the follower finds items you missed in a chest, and they do not fit current specific dialogue, they will randomnly be added under all dialgoue options WARNING: Ignores item weights, quest items can be selected")
+
   elseif a_option == bUseSexlabGenderOID 
     SetInfoText("Toggles using sexlab actor genders instead of vanilla skyrim assigned genders for NPCs")
   elseif a_option == fFollowerFindMinContainersOID
@@ -2626,6 +2639,8 @@ event OnOptionHighlight(int a_option)
   elseif a_option == iRapeEventDeviceOID
     SetInfoText("Chance of getting items after DEC started sex when the player is not enslaved yet")
 
+  elseif a_option == bAlternateNPCSearchOID
+    SetInfoText("Switches from using a quest to detect nearby NPCs to using SKSE's NPC search method")
     
   else ; catch all; the stuff I forgot and then some
     SetInfoText("Catchall tooltip: typing hints is tedious, if you want to know what this does ask in the support thread, and/or report which option is missing the tooltip")
@@ -3175,6 +3190,10 @@ GlobalVariable Property   gFollowerArousalMin Auto
 Int  gFollowerArousalMinOID
 bool Property  bFollowerDungeonEnterRequired Auto
 Int  bFollowerDungeonEnterRequiredOID
+GlobalVariable Property bFollowerContainerSearch Auto
+int bFollowerContainerSearchOID
+bool property bFollowerContainerSearchUnknown auto
+int bFollowerContainerSearchUnknownOID
 Float Property   fFollowerFindMinContainers Auto
 Int  fFollowerFindMinContainersOID
 Float Property   fFollowerFindChanceMaxPercentage Auto
@@ -3203,3 +3222,6 @@ int bSDGeneralLockoutOID
 
 bool property bAddFollowerManually Auto
 int bAddFollowerManuallyOID
+
+bool property bAlternateNPCSearch Auto
+int bAlternateNPCSearchOID
