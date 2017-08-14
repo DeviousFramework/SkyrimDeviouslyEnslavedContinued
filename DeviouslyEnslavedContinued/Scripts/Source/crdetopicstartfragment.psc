@@ -2,6 +2,9 @@
 ;NEXT FRAGMENT INDEX 5
 Scriptname crdeTopicStartFragment Extends Package Hidden
 
+; WHAT THE FUCK IS THIS
+
+
 ;BEGIN FRAGMENT Fragment_3
 Function Fragment_3(Actor akActor)
 ;BEGIN CODE

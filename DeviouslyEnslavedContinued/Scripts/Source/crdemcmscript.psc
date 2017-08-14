@@ -221,15 +221,15 @@ event OnPageReset(string a_page)
     AddEmptyOption() ; spacer
     
     AddHeaderOption("General Settings")
-    fEventIntervalOID     = AddSliderOption("Event Interval", fEventInterval, "{0} seconds")
-    fEventTimeoutOID      = AddSliderOption("Event Timeout", fEventTimeoutHours, "{1} Game Hours")
-    iSearchRangeOID       = AddSliderOption("Search range", gSearchRange.GetValueInt(), "{0} Inches")  ; event range
-    iApproachDurationOID  = AddSliderOption("Search duration", iApproachDuration, "{0} Game Mins")
-    iNPCSearchCountOID    = AddSliderOption("NPC Search Count", iNPCSearchCount , "{0} NPCs", 1) ; search depth
-    iGenderPrefOID        = AddMenuOption("Approacher Gender Preference", genderList[iGenderPref])
-    iGenderPrefMasterOID  = AddMenuOption("Master Gender Preference", genderList[iGenderPrefMaster])
-    bUseSexlabGenderOID   = AddToggleOption("Use Sexlab Genders", bUseSexlabGender)
-    bAlternateNPCSearchOID= AddToggleOption("Alternate NPC search", bAlternateNPCSearch)
+    fEventIntervalOID       = AddSliderOption("Event Interval", fEventInterval, "{0} seconds")
+    fEventTimeoutOID        = AddSliderOption("Event Timeout", fEventTimeoutHours, "{1} Game Hours")
+    iSearchRangeOID         = AddSliderOption("Search range", gSearchRange.GetValueInt(), "{0} Inches")  ; event range
+    iApproachDurationOID    = AddSliderOption("Search duration", iApproachDuration, "{0} Game Mins")
+    iNPCSearchCountOID      = AddSliderOption("NPC Search Count", iNPCSearchCount , "{0} NPCs", (! bAlternateNPCSearch) as int) ; search depth
+    iGenderPrefOID          = AddMenuOption("Approacher Gender Preference", genderList[iGenderPref])
+    iGenderPrefMasterOID    = AddMenuOption("Master Gender Preference", genderList[iGenderPrefMaster])
+    bUseSexlabGenderOID     = AddToggleOption("Use Sexlab Genders", bUseSexlabGender)
+    bAlternateNPCSearchOID  = AddToggleOption("Alternate NPC search", bAlternateNPCSearch)
     
     AddEmptyOption() ; spacer
     
@@ -244,12 +244,12 @@ event OnPageReset(string a_page)
     AddEmptyOption() ; spacer
     
     AddHeaderOption("Rape Events")
-    iRapeEventEnslaveOID      = AddSliderOption("Chance of Enslavement", iRapeEventEnslave, "{0}%")
-    iRapeEventDeviceOID       = AddSliderOption("Chance of Devious Device(s)", iRapeEventDevice, "{0}%")
+    iRapeEventEnslaveOID        = AddSliderOption("Chance of Enslavement", iRapeEventEnslave, "{0}%")
+    iRapeEventDeviceOID         = AddSliderOption("Chance of Devious Device(s)", iRapeEventDevice, "{0}%")
     AddEmptyOption() ; spacer
     
     AddHeaderOption("General lockout")
-    bSDGeneralLockoutOID     = AddToggleOption("SD+ Enslave Lockout", bSDGeneralLockout, (!Mods.modLoadedSD) as int)
+    bSDGeneralLockoutOID        = AddToggleOption("SD+ Enslave Lockout", bSDGeneralLockout, (!Mods.modLoadedSD) as int)
 
     
   elseif a_page == Pages[2] ; items
@@ -364,18 +364,21 @@ event OnPageReset(string a_page)
   elseif a_page == Pages[3] ; vulnerability
 
     AddHeaderOption("General Options")
-    iMinApproachArousalOID          = AddSliderOption("Minimum NPC Arousal", gMinApproachArousal.GetValueInt(), "{0}%")
-    iMaxEnslaveMoralityOID          = AddSliderOption("Maximum Morality (enslave)", iMaxEnslaveMorality, "Level {0}")
-    iMaxSolicitMoralityOID          = AddSliderOption("Maximum Morality (sex)", iMaxSolicitMorality, "Level {0}")
-    bIsVulNakedOID                  = AddToggleOption("Nudity Vulnerability", bIsVulNaked)
-    bIsNonChestArmorIgnoredNakedOID = AddToggleOption("Alt Armor Slot Protection", bIsNonChestArmorIgnoredNaked)
+    iMinApproachArousalOID            = AddSliderOption("Minimum NPC Arousal", gMinApproachArousal.GetValueInt(), "{0}%")
+    iMaxEnslaveMoralityOID            = AddSliderOption("Maximum Morality (enslave)", iMaxEnslaveMorality, "Level {0}")
+    iMaxSolicitMoralityOID            = AddSliderOption("Maximum Morality (sex)", iMaxSolicitMorality, "Level {0}")
+    bIsVulNakedOID                    = AddToggleOption("Nudity Vulnerability", bIsVulNaked)
+    bIsNonChestArmorIgnoredNakedOID   = AddToggleOption("Alt Armor Slot Protection", bIsNonChestArmorIgnoredNaked)
     ;bChastityToggleOID              = AddToggleOption("Chastity Protection", bChastityToggle); deprecated: duplicate
-    bVulnerableLOSOID               = AddToggleOption("Line of sight", bVulnerableLOS)
-    iWeaponProtectionLevelOID       = AddSliderOption("Weapon Protection Level", iWeaponProtectionLevel, "Level {0}")
-    iRelationshipProtectionLevelOID = AddSliderOption("Relationship Protection Level", iRelationshipProtectionLevel, "Level {0}")
-    bVulnerableFurnitureOID         = AddToggleOption("Xaz Furniture", bVulnerableFurniture)
-    bAttackersGuardsOID             = AddToggleOption("Guards Toggle",  bAttackersGuards)
-    bAltBodySlotSearchWorkaroundOID = AddToggleOption("Alternate body slot search", bAltBodySlotSearchWorkaround)
+    bVulnerableLOSOID                 = AddToggleOption("Line of sight", bVulnerableLOS)
+    iWeaponHoldingProtectionLevelOID  = AddSliderOption("Holding weapon Protection", iWeaponHoldingProtectionLevel, "Level {0}")
+    iWeaponWavingProtectionLevelOID   = AddSliderOption("Waving weapon Protection", iWeaponHoldingProtectionLevel, "Level {0}")
+    iRelationshipProtectionLevelOID   = AddSliderOption("Relationship Protection Level", iRelationshipProtectionLevel, "Level {0}")
+    bVulnerableFurnitureOID           = AddToggleOption("Xaz Furniture", bVulnerableFurniture)
+    bAttackersGuardsOID               = AddToggleOption("Guards Toggle",  bAttackersGuards)
+    bAltBodySlotSearchWorkaroundOID   = AddToggleOption("Alternate body slot search", bAltBodySlotSearchWorkaround)
+    bEnslaveFollowerLockToggleOID     = AddToggleOption("Follower locks enslave attempt", bEnslaveFollowerLockToggle)
+    bSexFollowerLockToggleOID         = AddToggleOption("Follower locks sex attempt", bSexFollowerLockToggle)
     
     AddEmptyOption() ; spacer
     AddHeaderOption("Nighttime Options")
@@ -385,7 +388,7 @@ event OnPageReset(string a_page)
     iNightReqConfidenceReductionOID  = AddSliderOption("iNightReqConfidenceReduction", iNightReqConfidenceReduction, "{0}", 0);(!Mods.iNightReqConfidenceReduction) as int)
     bNightAddsToVulnerableOID        = AddToggleOption("Night Makes More Vulnerable", bNightAddsToVulnerable, 0);(!Mods.bNightAddsToVulnerable) as int)
     
-    AddEmptyOption() ; spacer ; there may be extra spacers here to equalize vulnerable items and the oposite side cosmetically
+    ;AddEmptyOption() ; spacer ; there may be extra spacers here to equalize vulnerable items and the oposite side cosmetically
 
     
     AddEmptyOption() ; spacer
@@ -418,20 +421,21 @@ event OnPageReset(string a_page)
     bChastityZazGagOID     = AddToggleOption("Zaz Gag (Blocking)", bChastityZazGag)
     bChastityZazBeltOID    = AddToggleOption("Zaz Belts", bChastityZazBelt)
 
-    AddEmptyOption() ; spacer
+    ;AddEmptyOption() ; spacer
     AddEmptyOption() ; spacer 
     AddHeaderOption("Fame Makes vulnerable")
     iReqLevelSLSFSlaveIncreaseVulnerableOID  = AddSliderOption("SLSF Slave Increases vulnerable", iReqLevelSLSFSlaveIncreaseVulnerable, "{0}", (!Mods.modLoadedFameFramework) as int)
     iReqLevelSLSFExhibIncreaseVulnerableOID  = AddSliderOption("SLSF Exhibition Increases vulnerable", iReqLevelSLSFExhibIncreaseVulnerable, "{0}", (!Mods.modLoadedFameFramework) as int)
     iReqLevelSLSFSlutIncreaseVulnerableOID   = AddSliderOption("SLSF Slut Increases vulnerable", iReqLevelSLSFSlutIncreaseVulnerable, "{0}", (!Mods.modLoadedFameFramework) as int)
     
-    ;AddEmptyOption() ; spacer
+    AddEmptyOption() ; spacer
     ;AddHeaderOption("Fame Makes vulnerable")
     iReqLevelSLSFSlaveMakeVulnerableOID  = AddSliderOption("SLSF Slave Makes vulnerable", iReqLevelSLSFSlaveMakeVulnerable, "{0}", (!Mods.modLoadedFameFramework) as int)
     iReqLevelSLSFExhibMakeVulnerableOID  = AddSliderOption("SLSF Exhibition Makes vulnerable", iReqLevelSLSFExhibMakeVulnerable, "{0}", (!Mods.modLoadedFameFramework) as int)
     iReqLevelSLSFSlutMakeVulnerableOID   = AddSliderOption("SLSF Slut Makes vulnerable", iReqLevelSLSFSlutMakeVulnerable, "{0}", (!Mods.modLoadedFameFramework) as int)
 
-    ;AddEmptyOption() ; spacer
+    AddEmptyOption() ; spacer ; there may be extra spacers here to equalize vulnerable items and the oposite side cosmetically
+    AddEmptyOption() ; spacer
     AddEmptyOption() ; spacer
     AddHeaderOption("Vulnerable only while naked")
     bNakedReqGagOID         = AddToggleOption("Gag", bNakedReqGag, (!bIsVulNaked) as int)
@@ -445,13 +449,12 @@ event OnPageReset(string a_page)
     bNakedReqSlaveTattooOID = AddToggleOption("Slave Tattoos", bNakedReqSlaveTattoo)
     bNakedReqSlutTattooOID  = AddToggleOption("Slut Tattoos", bNakedReqSlutTattoo)
     
-  elseif a_page == Pages[4] ;Enslavement
+  elseif a_page == Pages[4] ; Enslavement
     
     AddHeaderOption("General enslavement options")
     iMinEnslaveVulnerableOID      = AddSliderOption("Minimum Enslavement Vulnerability", iMinEnslaveVulnerable, "Level {0}")
     bGuardDialogueToggleOID       = AddToggleOption("Guard dialogue", bGuardDialogueToggle)
     bEnslaveLockoutDCUROID        = AddToggleOption("Cursed loot Blocking item lock", bEnslaveLockoutDCUR, (!Mods.modLoadedCursedLoot) as int)
-    bEnslaveFollowerLockToggleOID = AddToggleOption("Nearby Follower Lock", bEnslaveFollowerLockToggle)
     
     AddHeaderOption("Enslavement Toggle Local")
     bMariaEnslaveToggleOID      = AddToggleOption("Maria local", bMariaEnslaveToggle, (!Mods.modLoadedMariaEden) as int)
@@ -512,13 +515,13 @@ event OnPageReset(string a_page)
     iDistanceWeightDCBanditsOID     = AddSliderOption("Devious Cidhna (Bandits) Weight", iDistanceWeightDCBandits, "{0}", (!Mods.modLoadedDeviousCidhna) as int)
 
     
-  elseif a_page == Pages[5] ; follower 
+  elseif a_page == Pages[5] ; Follower 
     SetCursorFillMode(TOP_TO_BOTTOM) ; probably not needed, since I never change it, assumption: mod scope
 
     SetCursorPosition(0) ; left side first
     AddHeaderOption("General")
     bFollowerDialogueToggleOID            = AddToggleOption("Follower dialogue", bFollowerDialogueToggle.GetValueInt(), 0)
-    bSecondBusyCheckWorkaroundOID         = AddToggleOption("Remembers if you shot them", bSecondBusyCheckWorkaround, 1)
+    bFollowerRemembersHitOID         = AddToggleOption("Remembers if you shot them", bFollowerRemembersHit)
     AddEmptyOption() ; spacer
 
     gForceGreetItemFindOID                = AddToggleOption("Follower Approaches Directly (Item found)", gForceGreetItemFind.GetValueInt())
@@ -792,8 +795,16 @@ event OnOptionSelect(int a_option)
     bConfidenceToggle = ! bConfidenceToggle
     SetToggleOptionValue(a_option, bConfidenceToggle) 
   elseif (a_option == bFollowerDialogueToggleOID)
-    ;bFollowerDialogueToggle = ! bFollowerDialogueToggle
-    bFollowerDialogueToggle.SetValueInt( ( bFollowerDialogueToggle.GetValueInt() == 0) as int )
+    int i = ( bFollowerDialogueToggle.GetValueInt() == 0) as int
+    bFollowerDialogueToggle.SetValueInt( i )
+    ; add/remove the perk
+    Perk containerPerk  = Mods.crdeContainerPerk
+    actor player        = Mods.player
+    if i == 1 && ! player.HasPerk(containerPerk)
+      player.addPerk(containerPerk)
+    elseif i == 0 && player.HasPerk(containerPerk)
+      player.removePerk(containerPerk)
+    endif
     SetToggleOptionValue(a_option, bFollowerDialogueToggle.GetValueInt())
   elseif (a_option == bVulnerableFurnitureOID)
     bVulnerableFurniture = ! bVulnerableFurniture
@@ -801,13 +812,13 @@ event OnOptionSelect(int a_option)
   elseif (a_option == bVulnerableBukkakeOID)
     bVulnerableBukkake = ! bVulnerableBukkake
     SetToggleOptionValue(a_option, bVulnerableBukkake)
-  elseif (a_option == bVulnerableSlaveBootsOID); long distance stuff too
+  elseif (a_option == bVulnerableSlaveBootsOID)
     bVulnerableSlaveBoots = ! bVulnerableSlaveBoots
     SetToggleOptionValue(a_option, bVulnerableSlaveBoots)
-  elseif (a_option == bVulnerableHarnessOID); long distance stuff too
+  elseif (a_option == bVulnerableHarnessOID)
     bVulnerableHarness = ! bVulnerableHarness
     SetToggleOptionValue(a_option, bVulnerableHarness)
-  elseif (a_option == bVulnerablePiercedOID); long distance stuff too
+  elseif (a_option == bVulnerablePiercedOID)
     bVulnerablePierced = ! bVulnerablePierced
     SetToggleOptionValue(a_option, bVulnerablePierced)
   elseif (a_option == bVulnerableSlaveTattooOID)
@@ -830,16 +841,16 @@ event OnOptionSelect(int a_option)
     bNakedReqBlindfold  = ! bNakedReqBlindfold
     SetToggleOptionValue(a_option, bNakedReqBlindfold)
 
-  elseif (a_option == bNakedReqBukkakeOID); long distance stuff too
+  elseif (a_option == bNakedReqBukkakeOID)
     bNakedReqBukkake = ! bNakedReqBukkake
     SetToggleOptionValue(a_option, bNakedReqBukkake)
-  elseif (a_option == bNakedReqSlaveBootsOID); long distance stuff too
+  elseif (a_option == bNakedReqSlaveBootsOID)
     bNakedReqSlaveBoots = ! bNakedReqSlaveBoots
     SetToggleOptionValue(a_option, bNakedReqSlaveBoots)
-  elseif (a_option == bNakedReqHarnessOID); long distance stuff too
+  elseif (a_option == bNakedReqHarnessOID)
     bNakedReqHarness = ! bNakedReqHarness
     SetToggleOptionValue(a_option, bNakedReqHarness)
-  elseif (a_option == bNakedReqPiercedOID); long distance stuff too
+  elseif (a_option == bNakedReqPiercedOID)
     bNakedReqPierced = ! bNakedReqPierced
     SetToggleOptionValue(a_option, bNakedReqPierced)
   elseif (a_option == bNakedReqSlaveTattooOID)
@@ -850,10 +861,13 @@ event OnOptionSelect(int a_option)
     SetToggleOptionValue(a_option, bNakedReqSlutTattoo)
   elseif (a_option == bAttackersGuardsOID)
     bAttackersGuards = ! bAttackersGuards
-    SetToggleOptionValue(a_option, bAttackersGuards) ; 
-  elseif (a_option == bEnslaveFollowerLockToggleOID)
+    SetToggleOptionValue(a_option, bAttackersGuards)
+  elseif (a_option == bEnslaveFollowerLockToggleOID) 
     bEnslaveFollowerLockToggle = ! bEnslaveFollowerLockToggle
     SetToggleOptionValue(a_option, bEnslaveFollowerLockToggle)
+  elseif (a_option == bSexFollowerLockToggleOID) 
+    bSexFollowerLockToggle = ! bSexFollowerLockToggle
+    SetToggleOptionValue(a_option, bSexFollowerLockToggle)
 
     
   elseif (a_option == bSDEnslaveToggleOID)
@@ -992,6 +1006,10 @@ event OnOptionSelect(int a_option)
   elseif a_option == bSecondBusyCheckWorkaroundOID ;bAltBodySlotSearchWorkaroundOID
     bSecondBusyCheckWorkaround = ! bSecondBusyCheckWorkaround
     SetToggleOptionValue(a_option, bSecondBusyCheckWorkaround)
+  elseif a_option == bFollowerRemembersHitOID
+    bFollowerRemembersHit = ! bFollowerRemembersHit
+    SetToggleOptionValue(a_option, bFollowerRemembersHit)
+  
   elseif a_option == bAltBodySlotSearchWorkaroundOID ;bIgnoreZazOnNPC
     bAltBodySlotSearchWorkaround = ! bAltBodySlotSearchWorkaround
     SetToggleOptionValue(a_option, bAltBodySlotSearchWorkaround)
@@ -1213,11 +1231,15 @@ event OnOptionSliderOpen(int a_option)
     SetSliderDialogDefaultValue(1)
     SetSliderDialogRange(0, 4)
     SetSliderDialogInterval(1)
-  elseif (a_option == iWeaponProtectionLevelOID )
-    SetSliderDialogStartValue(iWeaponProtectionLevel)
-    SetSliderDialogDefaultValue(2)
+  elseif (a_option == iWeaponHoldingProtectionLevelOID )
+    SetSliderDialogStartValue(iWeaponHoldingProtectionLevel)
     SetSliderDialogRange(0, 4)
     SetSliderDialogInterval(1)
+  elseif a_option == iWeaponWavingProtectionLevelOID
+		SetSliderDialogStartValue(iWeaponHoldingProtectionLevel)
+    SetSliderDialogRange(0, 4)
+    SetSliderDialogInterval( 1 )
+    
   elseif (a_option == iRelationshipProtectionLevelOID )
     SetSliderDialogStartValue(iRelationshipProtectionLevel)
     SetSliderDialogDefaultValue(2)
@@ -1839,9 +1861,13 @@ event OnOptionSliderAccept(int a_option, float a_value)
   elseif (a_option == iMaxSolicitMoralityOID)
     iMaxSolicitMorality = a_value as int
     SetSliderOptionValue(a_option, a_value, "Level {0}")
-  elseif (a_option == iWeaponProtectionLevelOID)
-    iWeaponProtectionLevel = a_value as int
+  elseif (a_option == iWeaponHoldingProtectionLevelOID)
+    iWeaponHoldingProtectionLevel = a_value as int
     SetSliderOptionValue(a_option, a_value, "Level {0}")
+  elseif a_option == iWeaponWavingProtectionLevelOID
+    iWeaponWavingProtectionLevel = a_value as int
+    SetSliderOptionValue(a_option, a_value, "Level {0}")
+    
   elseif (a_option == iRelationshipProtectionLevelOID)
     iRelationshipProtectionLevel = a_value as int
     SetSliderOptionValue(a_option, a_value, "Level {0}")
@@ -2346,8 +2372,11 @@ event OnOptionHighlight(int a_option)
     SetInfoText("Toggles whether the item is counted for vulnerability ONLY while naked/nude")
   elseIf (a_option == bVulnerableLOSOID)
     SetInfoText("Restricts NPC detection to those that have Line of Sight (this is literal, they have to look RIGHT AT YOU at the moment we check")
-  elseIf (a_option == iWeaponProtectionLevelOID)
-    SetInfoText("Sets the Max vulnerable level that a weapon or college robe prevents being approached for sex/enslavement")
+  elseIf (a_option == iWeaponHoldingProtectionLevelOID)
+    SetInfoText("Sets the Max vulnerable level that an equipped weapon or college robe prevents being approached for sex/enslavement")
+  elseif a_option == iWeaponWavingProtectionLevelOID
+    SetInfoText("Sets the Max vulnerable level that waving a weapon or spell prevents being approached for sex/enslavement")
+
   elseIf (a_option == bVulnerableFurnitureOID)
     SetInfoText("Allows the player to be considered vulnerable when locked in Xaz furniture")
     
@@ -2356,8 +2385,10 @@ event OnOptionHighlight(int a_option)
   elseif a_option == bEnslaveLockoutDCUROID
     SetInfoText("Toggles whether certain Cursed loot items, that have block genetic keywords, but are also removable, prevent the player from being enslaved. If off, these items will be removed and enslavement will commence as normal instead.")
     
-  elseIf a_option == bEnslaveFollowerLockToggleOID
-    SetInfoText("Toggle if having a nearby follower stops the player from being enslaved")
+  elseIf a_option == bEnslaveFollowerLockToggleOID 
+    SetInfoText("Toggle if having a nearby follower stops the player from being approached for enslavement")
+  elseIf a_option == bSexFollowerLockToggleOID 
+    SetInfoText("Toggle if having a nearby follower stops the player from being approached for sex")
 
   elseIf a_option == iEnslaveWeightSDOID || a_option == iEnslaveWeightMariaOID || a_option == iEnslaveWeightSlaverunOID
     SetInfoText("Sets the weights for the possible enslavements available to the person who approaches the player")
@@ -2399,9 +2430,11 @@ event OnOptionHighlight(int a_option)
    
   elseif a_option == bArousalFunctionWorkaroundOID 
     SetInfoText("Switches arousal detection to using the old function rather than the faction, slower but properly inits the NPC's arousal for now.")
-  elseif a_option == bSecondBusyCheckWorkaroundOID ;bAltBodySlotSearchWorkaround
+  elseif a_option == bSecondBusyCheckWorkaroundOID ;
     SetInfoText("Forces the mod to check if the player is busy twice, adding a second check at the last second to catch changes that might have happened later.")
-  elseif a_option == bAltBodySlotSearchWorkaroundOID ;bAltBodySlotSearchWorkaround
+  elseif a_option == bFollowerRemembersHitOID ;
+    SetInfoText("Toggles if your followers will approach you with more dialogue if you hit them in battle by accident")
+  elseif a_option == bAltBodySlotSearchWorkaroundOID ;
     SetInfoText("Searches all armor slots for body keywords and Sexlab Aroused nude status")
   elseif a_option == bIgnoreZazOnNPCOID 
     SetInfoText("Ignores non-restrictive Zaz items on NPCs when considering them as slaves")
@@ -2767,8 +2800,11 @@ Int  iReqLevelSLSFSlaveIncreaseVulnerableOID
 Int Property  iReqLevelSLSFSlaveMakeVulnerable Auto
 Int  iReqLevelSLSFSlaveMakeVulnerableOID
 
-int Property iWeaponProtectionLevel Auto 
-int iWeaponProtectionLevelOID
+int Property iWeaponHoldingProtectionLevel Auto 
+int iWeaponHoldingProtectionLevelOID
+Int Property  iWeaponWavingProtectionLevel Auto
+Int iWeaponWavingProtectionLevelOID
+
 int Property iRelationshipProtectionLevel Auto 
 int iRelationshipProtectionLevelOID
 
@@ -2854,6 +2890,8 @@ int bEnslaveLockoutDCUROID
 
 bool Property bEnslaveFollowerLockToggle Auto Conditional
 int bEnslaveFollowerLockToggleOID
+bool Property bSexFollowerLockToggle Auto Conditional
+int bSexFollowerLockToggleOID
 
 ; local toggles
 bool Property bSlaverunEnslaveToggle Auto Conditional
@@ -2970,6 +3008,8 @@ bool property bArousalFunctionWorkaround auto
 int bArousalFunctionWorkaroundOID
 bool property bSecondBusyCheckWorkaround auto
 int bSecondBusyCheckWorkaroundOID
+bool property bFollowerRemembersHit auto
+int bFollowerRemembersHitOID
 bool property bAltBodySlotSearchWorkaround auto
 int bAltBodySlotSearchWorkaroundOID
 bool property bIgnoreZazOnNPC auto

@@ -1268,8 +1268,6 @@ armor[] function getRandomCDItems(actor actorRef)
     endif  
   endif
   
- 
-  
   roll = Utility.RandomInt(1,5) ; cuffs
   if roll <= 2
     if style == 0
@@ -1561,6 +1559,14 @@ endFunction
 ; that one needs to sync
 function rollFollowerFoundItems(actor actorRef)
   
+  ;followerFoundArmorBuffer = new Armor[10]
+  followerFoundArmorBuffer[0] = None
+  followerFoundArmorBuffer[1] = None
+  followerFoundArmorBuffer[2] = None
+  followerFoundArmorBuffer[3] = None
+  followerFoundArmorBuffer[4] = None
+
+  
   ; check what color the other items are, modify index
   ; we should probably check the NPC to see if they can wear it too
   ;int random          = 1 ;MCM.iWeightBeltPadded  * (player.WornHasKeyword(libs.zad_Devious) as int)
@@ -1582,8 +1588,6 @@ function rollFollowerFoundItems(actor actorRef)
   int total       = collar + randomPlug + belt + glovesandboots + cuffs + randomGag + harness + armbinder + randomCD
   
   int roll = Utility.RandomInt(1,total)
-  PlayerMon.debugmsg("collar/randomPlug/belt/glovesandboots/cuffs/randomGag/harness/armbinder/randomCD/petcollar/uniqueCollar(" + collar + "/" + randomPlug + "/" + belt + "/"\
-                                    + glovesandboots + "/" + cuffs + "/"  + randomGag + "/"  + harness + "/"  + armbinder + "/"  + randomCD +  "/" + petCollar + "/" + uniqueCollar +")roll/total:(" + roll + "/" + total + ")", 2)
   ;if roll < random
   ;  PlayerMon.followerItemsCombination = 0
     
@@ -1628,14 +1632,22 @@ function rollFollowerFoundItems(actor actorRef)
   
   if armorKeyword
     PlayerMon.followerItemsWhichOneFree = checkItemAddingAvailability(actorRef, armorKeyword)
-    PlayerMon.debugmsg("for keyword: " + armorKeyword + " availability is " + PlayerMon.followerItemsWhichOneFree)
+    ;PlayerMon.debugmsg("for keyword: " + armorKeyword + " availability is " + PlayerMon.followerItemsWhichOneFree)
+    PlayerMon.debugmsg("collar/randomPlug/belt/glovesandboots/cuffs/randomGag/harness/armbinder/randomCD/nipplePiercings/petcollar/uniqueCollar(" + \
+                        collar + "/" + randomPlug + "/" + belt + "/" + glovesandboots + "/" + cuffs + "/"  +\
+                        randomGag + "/"  + harness + "/"  + armbinder + "/"  + randomCD + "/" + nipplePiercings + "/" + petCollar + "/" + uniqueCollar +\
+                        ")")
+    PlayerMon.debugmsg("roll/total/avail/ic/kw:(" + roll + "/" + total + "/" + PlayerMon.followerItemsWhichOneFree + "/" + PlayerMon.followerItemsCombination + "/ " + armorKeyword + ")", 2)
+                        
+
   else
     PlayerMon.debugmsg("ERR: no armor keyword")
     PlayerMon.followerItemsWhichOneFree = -1 ; last second error, should never happen
   endif
+
+
   
 endFunction
-
 
 function equipFollowerFoundItems(actor actorRef)
 
@@ -1667,13 +1679,65 @@ function equipFollowerFoundItems(actor actorRef)
   
 endFunction
 
+function swapFollowerFoundItems(actor actorRef)
+
+  armor[] items = getFollowerFoundItems(actorRef)
+  int ic = PlayerMon.followerItemsCombination ; shorter, also avoiding the compiler asking PlayerMon for the property over and over again
+  if ic == 1 || ic == 5 || ic == 7 || ic == 13 || ic == 30
+    ; don't need to remove chest, can just put on player
+  else
+    actorRef.UnequipItemSlot(32) ; take off the body, we need to apply the belt
+  endif
+
+  ; remove all devices already worn on actor that have the same keywords as items we want to put on 
+  int i = 0
+  Keyword tmpkw
+  armor dd 
+  armor rndrd ; these are both needed to remove through DDi interface
+  ; for all devices in our list
+  while i < items.length && items[i] != NONE
+    tmpkw = libs.GetDeviceKeyword(items[i])
+    dd    = libs.GetWornDeviceFuzzyMatch(actorRef, tmpkw)
+    if dd != None
+      rndrd = libs.GetRenderedDevice(dd)
+      if !dd.HasKeyword(libs.zad_BlockGeneric)
+        libs.removeDevice(actorRef, dd, rndrd, tmpkw)
+        if dd != None && dd.haskeyword(libs.zad_DeviousBelt)
+          previousBelt = dd
+        endif
+      else
+        PlayerMon.debugmsg("Could not remove because blocking kwd: " + dd + " " + tmpkw)
+      endif 
+    endif
+    i += 1
+  endWhile
+  
+  ; put on new items
+  i = 0
+  string name = None
+  armor tmp = none
+  while i < items.length
+    name = None
+    tmp = items[i]
+    if tmp !=None
+      name = tmp.GetName()
+      PlayerMon.debugmsg(" equipping " + tmp + " on actor "+ actorRef, 2)
+      equipRegularDDItem(actorRef, tmp, None)
+      Utility.Wait(0.25)
+    ;else
+      ;i = 100 ; end early, added in 13.9
+    endif
+    i += 1
+  endWhile
+
+endFunction
+
 armor[] Function getFollowerFoundItems(actor actorRef)
   armor[] items = new armor[8]
   if followerFoundArmorBuffer[0] != None
     items[0] = followerFoundArmorBuffer[0]
     items[1] = followerFoundArmorBuffer[1]
     items[2] = followerFoundArmorBuffer[2]
-    followerFoundArmorBuffer = new Armor[10]
     PlayerMon.debugmsg("items: " + items)
   else
     int ic = PlayerMon.followerItemsCombination ; shorter, also avoiding the compiler asking PlayerMon for the property over and over again

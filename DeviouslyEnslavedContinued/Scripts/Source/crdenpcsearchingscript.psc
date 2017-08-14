@@ -140,7 +140,7 @@ Actor[] function getNearbyActorsLinear(int distance = 1024)
 endFunction
 
 Actor[] function getNearbyFollowers(int specificDistance = 0)
-  int searchDistance = 1024 ; TODO set this in the MCM
+  int searchDistance = 768 ; TODO set this in the MCM
   if specificDistance != 0
     searchDistance = specificDistance
   endif
@@ -162,91 +162,91 @@ Actor[] function getNearbyFollowers(int specificDistance = 0)
   ;  i += 1
   ;endif
   actor testActor = nearest00.GetActorRef()
-  if testActor != None && actorIsFollower(testActor, min_relationship)
+  if testActor != None && testActor.GetDistance(player) <= searchDistance && actorIsFollower(testActor, min_relationship)
     a[i]  =  testActor
     nearest00.clear()
     i += 1
   endif
   testActor = nearest01.GetActorRef()
-  if testActor != None && actorIsFollower(testActor, min_relationship)
+  if testActor != None && testActor.GetDistance(player) <= searchDistance && actorIsFollower(testActor, min_relationship)
     a[i]  =  testActor
     nearest01.clear()
     i += 1
   endif
   testActor = nearest02.GetActorRef()
-  if testActor != None && actorIsFollower(testActor, min_relationship)
+  if testActor != None && testActor.GetDistance(player) <= searchDistance && actorIsFollower(testActor, min_relationship)
     a[i]  =  testActor
     nearest02.clear()
     i += 1
   endif
   testActor = nearest03.GetActorRef()
-  if testActor != None && actorIsFollower(testActor, min_relationship)
+  if testActor != None && testActor.GetDistance(player) <= searchDistance && actorIsFollower(testActor, min_relationship)
     a[i]  =  testActor
     nearest03.clear()
     i += 1
   endif
   testActor = nearest04.GetActorRef()
-  if testActor != None && actorIsFollower(testActor, min_relationship)
+  if testActor != None && testActor.GetDistance(player) <= searchDistance && actorIsFollower(testActor, min_relationship)
     a[i]  =  testActor
     nearest04.clear()
     i += 1
   endif
   testActor = nearest05.GetActorRef()
-  if testActor != None && actorIsFollower(testActor, min_relationship)
+  if testActor != None && testActor.GetDistance(player) <= searchDistance && actorIsFollower(testActor, min_relationship)
     a[i]  =  testActor
     nearest05.clear()
     i += 1
   endif
   testActor = nearest06.GetActorRef()
-  if testActor != None && actorIsFollower(testActor, min_relationship)
+  if testActor != None && testActor.GetDistance(player) <= searchDistance && actorIsFollower(testActor, min_relationship)
     a[i]  =  testActor
     nearest06.clear()
     i += 1
   endif
   testActor = nearest07.GetActorRef()
-  if testActor != None && actorIsFollower(testActor, min_relationship)
+  if testActor != None && testActor.GetDistance(player) <= searchDistance && actorIsFollower(testActor, min_relationship)
     a[i]  =  testActor
     nearest07.clear()
     i += 1
   endif
   testActor = nearest08.GetActorRef()
-  if testActor != None && actorIsFollower(testActor, min_relationship)
+  if testActor != None && testActor.GetDistance(player) <= searchDistance && actorIsFollower(testActor, min_relationship)
     a[i]  =  testActor
     nearest08.clear()
     i += 1
   endif
   testActor = nearest09.GetActorRef()
-  if testActor != None && actorIsFollower(testActor, min_relationship)
+  if testActor != None && testActor.GetDistance(player) <= searchDistance && actorIsFollower(testActor, min_relationship)
     a[i]  =  testActor
     nearest09.clear()
     i += 1
   endif
   testActor = nearest10.GetActorRef()
-  if testActor != None && actorIsFollower(testActor, min_relationship)
+  if testActor != None && testActor.GetDistance(player) <= searchDistance && actorIsFollower(testActor, min_relationship)
     a[i]  =  testActor
     nearest10.clear()
     i += 1
   endif
   testActor = nearest11.GetActorRef()
-  if testActor != None && actorIsFollower(testActor, min_relationship)
+  if testActor != None && testActor.GetDistance(player) <= searchDistance && actorIsFollower(testActor, min_relationship)
     a[i]  =  testActor
     nearest11.clear()
     i += 1
   endif
   testActor = nearest12.GetActorRef()
-  if testActor != None && actorIsFollower(testActor, min_relationship)
+  if testActor != None && testActor.GetDistance(player) <= searchDistance && actorIsFollower(testActor, min_relationship)
     a[i]  =  testActor
     nearest12.clear()
     i += 1
   endif
   testActor = nearest14.GetActorRef()
-  if testActor != None && actorIsFollower(testActor, min_relationship)
+  if testActor != None && testActor.GetDistance(player) <= searchDistance && actorIsFollower(testActor, min_relationship)
     a[i]  =  testActor
     nearest14.clear()
     i += 1
   endif
   testActor = nearest15.GetActorRef()
-  if testActor != None && actorIsFollower(testActor, min_relationship)
+  if testActor != None && testActor.GetDistance(player) <= searchDistance && actorIsFollower(testActor, min_relationship)
     a[i]  =  testActor
     nearest15.clear()
     i += 1
@@ -258,10 +258,10 @@ Actor[] function getNearbyFollowers(int specificDistance = 0)
     Actor tmp = previousFollowers.GetAt(f) as Actor
     if tmp.IsDead()
       previousFollowers.RemoveAddedForm(tmp as Form)
-    else
+    elseif tmp.GetDistance(player) <= searchDistance
       a[i] = tmp
+      i += 1
     endif
-    i += 1
     f += 1
   endWhile  
     
@@ -285,7 +285,6 @@ bool function actorIsFollower(actor actorRef, int min_relationship)
          && !actorRef.WornHasKeyword(Mods.paradiseSlaveRestraintKW) && !(Mods.PAHETied && actorRef.IsInFaction(Mods.PAHETied))) \
          || (Mods.modLoadedSlaveTrainer && actorRef.IsInFaction(Mods.sltSlaveFaction)) \
            )
-         
 endFunction
 
 bool function getNearbyFollowersInFaction(actor[] allies)

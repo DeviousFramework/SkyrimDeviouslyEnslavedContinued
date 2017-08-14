@@ -60,9 +60,14 @@ Event OnObjectEquipped(Form akBaseObject, ObjectReference akReference)
 	
   if akBaseObject as Armor ; aparently eating/potions/herbs counts as equiping, also weapons
     equipmentChanged  = true
-  elseif akBaseObject as Weapon
-    weaponChanged     = true
+  ;elseif akBaseObject as Weapon
+  ;  weaponChanged     = true
   endif
+  weaponChanged = true ; just always check weapon for now
+
+  ;if PlayerMonitorScript.playerIsWeaponDrawnProtected()
+  ;  ; player is now protecting themselves, 
+  ;endif
   ;PlayerMonitorScript.equipmentChanged = true
   ;crdeInvChange.SetValue(1)
 endEvent

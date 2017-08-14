@@ -12,15 +12,20 @@ crdePlayerMonitorScript Property PlayerMon auto
 ;BEGIN FRAGMENT Fragment_2
 Function Fragment_2(ObjectReference akTargetRef, Actor akActor)
 ;BEGIN CODE
-  if  !akTargetRef.IsLocked() && akTargetRef.GetNumItems() >= 1  ; hope this limits us to chests and stuff
+  if akTargetRef.GetNumItems() >= 1  ; hope this limits us to chests and stuff
     actor body = akTargetRef as actor
     if body && !body.isDead()
       ; do nothing, not dead yet
       ;  follower can't find items pickpocketing other people
+    elseif !body && akTargetRef.IsLocked()
+      ; do nothing, todo: figure out if we can detect the object was locked previously
     else
       ; lets not count containers in the player's home
       Location current_loc = akTargetRef.GetCurrentLocation()
-      if !current_loc.haskeyword(LocTypePlayerHouse)
+      if current_loc == None
+        debug.Trace("[CRDE] ERR: Container check lookup: cell was NULL, leaving early ") ; how the fuck does this even happen? does it happen if we leave the cell?
+        return
+      elseif ! current_loc.haskeyword(LocTypePlayerHouse)
         PlayerMon.playerContainerOpenCount += 1
         if followerSearchesContainers == None
           ;debug.Trace("[CRDE] ERROR: followersearchcontainers is NONE" )
@@ -67,4 +72,3 @@ EndFunction
 ;END FRAGMENT
 
 ;END FRAGMENT CODE - Do not edit anything between this and the begin comment
-

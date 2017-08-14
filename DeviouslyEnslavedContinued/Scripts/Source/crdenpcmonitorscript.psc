@@ -140,26 +140,26 @@ endFunction
 ;  for this we have to check those conditions in papyrus
 actor[] function getClosestActor(actor actorRef, bool skipSlavers = false)
 	
-	int curSearch = 0
-  int npcIndex = 0
-	actor npcActor = none
-  Actor[] valid = new Actor[10]
+	int searchIndex   = 0
+  int npcIndex      = 0
+	actor npcActor    = none
+  Actor[] validNpcs = new Actor[10]
   Cell c = actorRef.GetParentCell()
-  int searchLen = c.GetNumRefs(43) ;MCM.iNPCSearchCount
+  int foundActorCount = c.GetNumRefs(43) 
   
-	while curSearch < searchLen && npcIndex < 9
+	while searchIndex < foundActorCount && npcIndex < MCM.iNPCSearchCount
 		;Debug.Trace("checking " + npcActor.GetDisplayName())
 		;npcActor = Game.FindRandomActorFromRef(actorRef, MCM.iSearchRange) ;200.0)	; old method, full of holes (lots of actor=player and actor=follower most of the time)
-    npcActor = c.GetNthRef(curSearch, 43) as actor
+    npcActor = c.GetNthRef(searchIndex, 43) as actor
     if npcActor == None ; if we get a none, then there are no actors nearby, might as well quit early
-      return valid
+      return validNpcs
 		elseif isActorIneligable(npcActor, skipSlavers) == false 
-			valid[npcIndex] = npcActor ; elegible, return now, we don't need anything more from this function
+			validNpcs[npcIndex] = npcActor ; elegible, return now, we don't need anything more from this function
       npcIndex += 1
 		endif
-		curSearch += 1
+		searchIndex += 1
 	endWhile
-	return valid ; passed through the whole loop, no valid actors
+	return validNpcs ; passed through the whole loop, no valid actors
 	
 endFunction
 

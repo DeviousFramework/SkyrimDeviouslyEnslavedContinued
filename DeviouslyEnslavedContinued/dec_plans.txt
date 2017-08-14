@@ -425,16 +425,25 @@ more recent (not mothballed either):
   sexlab kidnapped and pitfall detection are broken and need to be fixed
   make sure the items found are acceptable to user
   
-  add a dialogue for follower finding lucky charms from DCL if they exist
-  add dialogue for nipple piercings
   check if new DD items can be integrated
   check what we have to do with this new keyword
   add an NPC from morvunskar to SD distant, especially with the cages could be good place, lots of NPC, beds, cages, chairs, enchanting tables, walking distance
 
-  ;bug: if guy approaching player has a NONE actorRef, we don't catch it until it throws an error in the log
-  ;if no items found, don't shuffle?
+  add a dialogue for follower finding lucky charms from DCL if they exist
+  add DF API calls instead of doing everything myself...? hope this is actually useful
   
-  make the NPC count MCM option grey out only if you aren't using alternate search
+  ; fixed greyed out follower remember hitting MCM
+  ; added item drawn feature for follower
+  ; hit them has been switched with brawling
+  ; option for sex lock out while follower
+  
+  followers that found keys did not actually get keys
+  add special finding key stuff, not just pocketing it
+    - removing and masterbating
+    - removing and running to player for sex
+    - bringing key to player for safe keeping
+  
+  detect proximity to bed for sex approach percentage (1.5?)
   
   always: new followers system needs to be tested more
   
@@ -447,25 +456,7 @@ more recent (not mothballed either):
       +###############+
   
   Stuff to do when I get access to the esp again:
-    Did I ever set the follower remembering putting items on player? no specific dialogue right?
-    Follower dialogue:
-      If the follower has no key to unlock you, and you beg to be unlocked, they'll say they have no key
-        The option to beg is missing when they DO have a key
-          + "Are you horny? Sure we can take a break" <- arousal requirement
-          - "Nah I'm not interested" - doesn't work in context because they are approaching us here
-          + "That's not necessary, I want you to suck my " - heavy dom requirement
-          + "not until you *" after they ask you to do something
-          + "I think we should gag you" <- if pissed, or really dom, and anal is an option
-          option to lock player in bondage while follower goes to get key? Might be too much work, requires nearby bondage funiture or bed
-        + random chance they found a key? Can we detect that the chance of finding a key in certain mods is >=0?
-      Additional dialogue for Have sex with me -> Are you STILL horny?
-        maybe it's time to check if follower and player are both girls and get some information from sexlab about which one of them should have gotten pleasure and MANUALLY reduce arousal, since fishburger won't listen to me
-      Can we make a short dialogue that always goes off when player is horny and belted and it drops into regular dialogue after?
-        ... might be annoying, maybe cooldown?      
-      Avoid follower interaction when player is sneaking? I got approached for items when sneaking, just as I fired an arrow at someone
-      "Follower has released your bindings for now" ?
-      Dialogue "At least I can put armor over it" but it was a collar??? is this still possible with random one?
-      
+          
       
   Follower sold/rescue:
     Need to know if we need more than one quest per follower
@@ -816,17 +807,6 @@ Things I need to learn:
            beltChance + "/" +\
            cuffsChance + "/" +\
            ") roll:" + roll)
-           
-  if roll <= glovesbootsChance
-    success = equipRandomDDxRGlovesBoots()
-    if success && actorRef != None && actorRef != PlayerMon.player
-      Debug.Notification(actorRef.GetDisplayName() + " gave you some lovely boots and gloves before leaving!")
-    endif 
-  elseif roll <= glovesbootsChance + armbinderChance
-    success = equipRandomDDArmbinders()
-    if success && actorRef != None && actorRef != PlayerMon.player
-      Debug.Notification(actorRef.GetDisplayName() + " locks a armbinder on you before leaving!")
-    endif
 
   player.playidle <name not id>
     is it possible this lingers after sex?

@@ -96,7 +96,7 @@ bool Property hasMetPersuasionReq    Auto Conditional
 bool Property hasFollowers           Auto Conditional
 bool Property hasSlaveFollowers      Auto Conditional
 
-bool Property wearingWeapon          Auto Conditional
+bool Property weaponProtected          Auto Conditional
 bool Property wearingArmbinder       Auto Conditional
 bool Property wearingBlindfold       Auto
 bool Property wearingCollar          Auto Conditional
@@ -801,9 +801,6 @@ bool function tryEnslavableSexEnd(actor actorRef)
 	return false
 endFunction
 
-; does returning true or false mean completed with/without error? You can return None if you don't have anything to return you know
-; previously named bool tryEnslaveEvent, renamed because it didn't mention the sex approach and other approaches that should be handled here
-;   also not event, don't put event in the function name unless it's an event
 ; I know this function is huge, but since papyrus doesn't likely inline functions...
 ; TODO: move follower to a different subfunction, I think that at least is reasonable
 bool function attemptApproach()
@@ -822,7 +819,14 @@ bool function attemptApproach()
     clear_force_variables(true) 
     return false ; if busy, nothing else to do here, leave
   elseif forceGreetIncomplete &&  attackerRefAlias != None && attackerRefAlias.GetActorRef() != player  ;forceGreetSex || forceGreetSlave
-    debugmsg("player is being approached by " + attackerRefAlias.GetActorRef().GetDisplayName() ,1)
+    actor tmp = attackerRefAlias.GetActorRef()
+    if tmp 
+      debugmsg("player is being approached by " + tmp.GetDisplayName() ,1)
+    elseif followerRefAlias01.GetActorRef()
+      debugmsg("player is being approached by " + followerRefAlias01.GetActorRef().GetDisplayName() ,1)
+    else
+      debugmsg("player is being approached by a null actor... ?" ,1)
+    endif
     return false ; approach in progress, just don't do anything else here, but no reset
   endif
   
@@ -857,8 +861,9 @@ bool function attemptApproach()
   
   follower_attack_cooldown = (CurrentGameTime >= timeoutFollowerApproach + (120 * (1.0/1400.0))) ; this is the cooldown release
   
-  if (playerScriptAlias as crdePlayerScript).weaponChanged == true
-    isWeaponProtected()
+  if (playerScriptAlias as crdePlayerScript).weaponChanged == true 
+    isWeaponProtected() ; save it for later
+    (playerScriptAlias as crdePlayerScript).weaponChanged == false
     ;CheckGuardApproachable()
   endif
   
@@ -888,10 +893,11 @@ bool function attemptApproach()
     actor[] current_followers = new actor[15]
     actor follower
     int valid_count         = 0
-    int current_count       = 0
     timeoutFollowerNag      = 0
     actor slave             = None
     actor tmp_follower      = None
+    
+    ; look for slave followers
     int i = 0
     while i < followers.length
       tmp_follower = followers[i]
@@ -914,6 +920,7 @@ bool function attemptApproach()
     i = 0
     ; what this does is gives us the nearest generic follower, and
     ;  all the followers we've previously had sex with, ignoring jimmy
+    int current_count       = 0
     while i < followers.length
       tmp_follower = followers[i]
       ; if follower is tied up at CDx
@@ -930,8 +937,7 @@ bool function attemptApproach()
           if tmp_follower.IsInFaction(CurrentFollowerFaction) || tmp_follower.IsInFaction(Mods.paradiseFollowingFaction)
             current_followers[current_count] = tmp_follower
             current_count += 1
-            ; might as well add the continer counts here
-            ;int old_container_count = StorageUtil.GetIntValue(tmp_follower, "crdeFollContainersSearched")
+            ; while we're here lets update our current followers container counts
             StorageUtil.AdjustIntValue(tmp_follower, "crdeFollContainersSearched", playerContainerOpenCount)
           endif
         endif
@@ -940,7 +946,8 @@ bool function attemptApproach()
     endWhile
     playerContainerOpenCount = 0 ; reset
     
-    ; and then we pick ONE at random
+    ; and then we pick ONE at random (for sex)
+    ; TODO: consider searching for one that is horny enough
     if valid_count > 0
       follower = valid_followers[Utility.RandomInt(0, valid_count - 1)]
       debugmsg("Follower chosen randomly is " + follower.GetDisplayName() + " out of " + valid_count , 1)
@@ -983,21 +990,29 @@ bool function attemptApproach()
         reshuffleFollowerAliases(follower);
       endif
     endif
-
-    ; deprecated, this is where the separate follower valid check was before I merged it above
-    ;i = 0
-    ;while i < valid_count
-    ;  follower = valid_followers[i]
-    ;  i += 1
-    ;endWhile
     
     if current_count == 0
       debugmsg("not high enough for sex appraoch, and the current friendlies aren't followers so no item possible",3)
-    elseif follower 
-      follower = current_followers[Utility.RandomInt(0, current_count - 1)]
-      debugmsg("Follower re-chosen randomly is " + follower.GetDisplayName() + " out of " + current_count , 1)
+    endif;if follower ; REALLY just randomly reroll regardless?
+    
+    ; lets make sure we have a follower with items to find before continuing
+    int  follower_item_count  = StorageUtil.GetIntValue(follower, "crdeFollContainersSearched") 
+    int  randomStart          = Utility.RandomInt(0, current_count - 1)
+    int  followerRemaining    = current_count 
+    while follower_item_count <= 0 && followerRemaining >= 0
+      follower = current_followers[(current_count + randomStart - followerRemaining) % current_count]
+      follower_item_count  = StorageUtil.GetIntValue(follower, "crdeFollContainersSearched")
+      followerRemaining -= 1
+    endWhile
+    if followerRemaining == -1
+      debugmsg("No present followers have seen the player open any containers, exiting early")
+      return false
     endif
-  
+    debugmsg("Follower re-chosen randomly is " + follower.GetDisplayName() + \
+             " out of " + current_count  + \
+             " after " + (current_count - followerRemaining) + " rechecks", 1)
+    
+
     int validItemsFound = 0
     i = 1 ; start at present index -1, the last location written.
     int absoluteIndex
@@ -1009,12 +1024,13 @@ bool function attemptApproach()
     form testForm
     objectReference testContainer
     
+    ; check the containers we found for DD itmems and keys still there
     bool alreadyFoundOneKey = false
-    while i < 31
+    while i < 32
       ; we need to count how many items we have, and calculate additional chance of item being found for this one cycle
       absoluteIndex = (followerFoundDDItemsIndex + 32 - i) % 32
       testForm = followerFoundDDItems[absoluteIndex] 
-      followerFoundDDItems[absoluteIndex] = NONE ; clear as we go
+      ;followerFoundDDItems[absoluteIndex] = NONE ; clear as we go
         ; maybe we should clear per approach after all?
       if testForm == NONE
         i = 100 ; end loop
@@ -1045,7 +1061,7 @@ bool function attemptApproach()
     
     float item_approach_roll      = Utility.RandomFloat(0,100) - validItemsFound * 5 ; for now, 5% per item, need something better TODO
     float goal                    = MCM.fFollowerFindChanceMaxPercentage
-    int   follower_item_count     = StorageUtil.GetIntValue(follower, "crdeFollContainersSearched") ;playerContainerOpenCount)
+    ;int   follower_item_count     = StorageUtil.GetIntValue(follower, "crdeFollContainersSearched") ;playerContainerOpenCount)
     if follower_item_count < MCM.iFollowerFindChanceMaxContainers
       goal = ( Math.pow(follower_item_count, MCM.fFollowerItemApproachExp) * MCM.itemParabolicModifier) 
     endif
@@ -1168,15 +1184,20 @@ bool function attemptApproach()
   
   
   ;old isplayerenslaved location
-  debugmsg("slave lvl: " + enslavedLevel + " weapon: " + wearingWeapon as int , 3) 
+  debugmsg("slave lvl: " + enslavedLevel + " weapon: " + weaponProtected as int , 3) 
   
-  if wearingWeapon 
-    debugmsg("Player is armed, protected", 3)  
+  if weaponProtected
+    debugmsg("Player is holding weapon or robed, protected", 3)  
+    return false
+  elseif playerIsWeaponDrawnProtected()
+    debugmsg("Player is waving a weapon or spell, protected", 3)  
     return false
   endif
   
+  ;     (weaponProtected == false || (weaponProtected && MCM.iWeaponHoldingProtectionLevel < playerVulnerability)) && \
+  ;   (isWeaponProtected()) && \
+
   if enslavedLevel != 3 && (playerVulnerability > 0 || enslavedLevel == 1) && \
-     (wearingWeapon == false || (wearingWeapon && MCM.iWeaponProtectionLevel < playerVulnerability)) && \
      forceGreetIncomplete == false 
     
     ;updateMaster()
@@ -1201,7 +1222,7 @@ bool function attemptApproach()
         nearest[0] = nearest[i] ; lazy hack
         i = 1000
       else
-        debugmsg(nearest[i].GetDisplayName() + " is not slaver and Confidence isn't high enough for the vulnerability, Attacker:" + actorConfidence + ", Req:" + reqConfidence, 3)
+        debugmsg(nearest[i].GetDisplayName() + " is not slaver and Confidence isn't high enough for the vulnerability, Attacker:" + (actorConfidence as int) + ", Req:" + (reqConfidence as int), 3)
         i += 1
       endif
     endwhile
@@ -1224,8 +1245,8 @@ bool function attemptApproach()
         debugmsg(("Player is not vulnerable enough for enslave, MCM:" + MCM.iMinEnslaveVulnerable + ", Player:" + playerVulnerability), 3)
       elseif ((actorMorality > MCM.iMaxEnslaveMorality) && isSlaver == false)
         debugmsg("Attacker is not slaver and Morality is not low enough, Attacker:" + actorMorality + ", Req:" + MCM.iMaxEnslaveMorality, 3)
-      elseif isWeaponProtected() == true && isSlaver == false
-        debugmsg("Player is protected by weapon (has weapon and MCM option is selected)", 3)    
+      ;elseif isWeaponProtected() == true && isSlaver == false ; moved further up
+      ;  debugmsg("Player is protected by weapon (has weapon and MCM option is selected)", 3)    
       elseif enslavedLevel > 0
         debugmsg("Player is un-enslaveable, cannot re-enslave yet: level " + enslavedLevel, 3)
       elseif MCM.bEnslaveFollowerLockToggle && hasFollowers  
@@ -1248,7 +1269,8 @@ bool function attemptApproach()
     ;elseif  nearest[0].GetFactionRank(Mods.sexlabArousedFaction) < MCM.iMinApproachArousal && !isSlaver
     elseif rollSex > MCM.iChanceSexConvo
       debugmsg("rolled too low for sex or enslavement, exiting...", 3)
-
+    elseif MCM.bSexFollowerLockToggle && hasFollowers
+      debugmsg("player protected from sex approach by follower " + followers, 3)
     else
       ;busyGameTime = Utility.GetCurrentRealTime() + 20 ;(20 * 24) ; 20 seconds? give it some time to work
       busyGameTime = CurrentGameTime + (approach_duration * (1.0/1400.0)) ; in-game minutes
@@ -1766,7 +1788,7 @@ Event crdeSexHook(int tid, bool HasPlayer);(string eventName, string argString, 
       ItemScript.equipRegularDDItem(player, ItemScript.previousBelt, libs.zad_DeviousBelt)
       return
     endif
-    if victim == None
+    if  ! vicIsPlayer || victim == None
       debugmsg("sexlabhook: player not victim, not started by DEC, mcm override is off, ignoring...", 3)
       return
     endif
@@ -2035,27 +2057,39 @@ bool function isNude(actor actorRef)
 	return true
 endFunction
 	
-; need to wait until vulnerability is done before we test weapon because of level setting
+; need to wait until vulnerability is done before we test weapon because of playerVulnerability setting
 bool function isWeaponProtected()
-  if (MCM.iWeaponProtectionLevel < playerVulnerability || playerIsNotArmed()) && \
-      ( playerIsNotWearingWizRobes() ) ;MCM.iWeaponProtectionLevel < playerVulnerability) ; robe variant added to MCM later
-    wearingWeapon = false
+  ; so long as we are not hands out while armed, and we do not have
+  debugmsg("Rechecking weapon protection")
+  bool notArmed = playerIsNotArmed()
+  bool notRobed = playerIsNotWearingWizRobes()
+  if (MCM.iWeaponHoldingProtectionLevel < playerVulnerability || notArmed) && \
+      ( notRobed ) 
+    weaponProtected = false
     return false
   endif 
-  wearingWeapon = true
+  weaponProtected = true
   return true
 endFunction
   
 ; is the player armed? can't remember why I set it to default negative
 ;  food for thought: the papyrus compiler can't rectify a double negative
 bool function playerIsNotArmed()
-  if  player.GetEquippedWeapon() != None || player.GetEquippedWeapon(true) != None ;||\
+  return player.GetEquippedWeapon() == None && player.GetEquippedWeapon(true) == None
+  ;if  player.GetEquippedWeapon() != None || player.GetEquippedWeapon(true) != None ;||\
       ;player.GetEquippedSpell(0) != None || player.GetEquippedSpell(1) != None
       ; for now, we'll ignore shouts
     ;debugmsg("pina: Player is armed")
-    return false
-  endif 
-  return true
+  ;  return false
+  ;endif 
+  ;return true
+endFunction
+  
+bool function playerIsWeaponDrawnProtected()
+  return  ( MCM.iWeaponWavingProtectionLevel >= playerVulnerability && player.IsWeaponDrawn() && \
+            (( ! playerIsNotArmed() ) || \
+            ( player.GetEquippedSpell(0) != NONE || player.GetEquippedSpell(1) != NONE )))
+           
 endFunction
   
 ; detects if the player is wearinga wizard robe, and is therefor dangerous like having a weapon
@@ -2068,11 +2102,22 @@ bool function playerIsNotWearingWizRobes()
     return true
   endif
   Form wornForm = player.getWornForm(0x00000004)
+  ; todo clean to return statement
   if WICommentCollegeRobesList.hasform(wornForm)
     return false
   endif
   return true
 endFunction
+
+; is the player weapon ready and holding weapons that you can see
+; IE not just fists
+;bool function playerIsNotWeaponDrawn()
+;  if player.IsWeaponDrawn()
+;    form f = player.
+;  endif
+;  return true
+;endFunction
+
 
 ; pre-check on if the player is intimidating or presuasent enough to pass dialogue checks, 
 ;  downside: if a user knows how to use SQV they can look this result up in console before and know the result
@@ -2689,28 +2734,74 @@ function testTestButton7()
     ; Utility.Wait(5)
   ; endWhile
   
+  ;Cell c = player.GetParentCell()
+	; ObjectReference [] containers = new ObjectReference [15]
+  ; ObjectReference  test_form
+	; int index = 0
+  ; int booknum = 0
+	; Int NumRefs = c.GetNumRefs(28)
+  ; String output = ""
+  ; Keyword bookshelf = Game.GetFormFromFile(0x000d5abe, "Skyrim.esm" ) as Keyword
+  ; Book deviousbook = Game.GetFormFromFile(0x09029ADC, "Devious Devices - Integration.esm" ) as Book
+  ; debugmsg("stuff: " + bookshelf.GetName() + " " + deviousbook.GetName() )
+	; While NumRefs > 0  && index < 15
+		; NumRefs -= 1
+		; test_form = c.GetNthRef(NumRefs, 28) as ObjectReference 
+    ; output = output + test_form.GetDisplayName() + " +"
+    ;; test_form.AddItem(deviousbook) ; works fine
+    ;; Container testc = (test_form as Form) as Container
+    ; if test_form.HasKeyword(bookshelf)
+      ; booknum += 1
+    ; endif
+  ; EndWhile 
+  ; debugmsg("Containers: " + output)
+  ; debugmsg("Books: " + booknum)
+  
+  ;actor[] nearby = NPCMonitorScript.getClosestActor(player)
+  
+  int searchIndex   = 0
+  int npcIndex      = 0
+	actor npcActor    = none
+  Actor[] nearby = new Actor[40]
   Cell c = player.GetParentCell()
-	ObjectReference [] containers = new ObjectReference [15]
-  ObjectReference  test_form
-	int index = 0
-  int booknum = 0
-	Int NumRefs = c.GetNumRefs(28)
-  String output = ""
-  Keyword bookshelf = Game.GetFormFromFile(0x000d5abe, "Skyrim.esm" ) as Keyword
-  Book deviousbook = Game.GetFormFromFile(0x09029ADC, "Devious Devices - Integration.esm" ) as Book
-  debugmsg("stuff: " + bookshelf.GetName() + " " + deviousbook.GetName() )
-	While NumRefs > 0  && index < 15
-		NumRefs -= 1
-		test_form = c.GetNthRef(NumRefs, 28) as ObjectReference 
-    output = output + test_form.GetDisplayName() + " +"
-    ;test_form.AddItem(deviousbook) ; works fine
-    ;Container testc = (test_form as Form) as Container
-    if test_form.HasKeyword(bookshelf)
-      booknum += 1
+  int foundActorCount = c.GetNumRefs(43) 
+  
+	while searchIndex < foundActorCount 
+		;Debug.Trace("checking " + npcActor.GetDisplayName())
+		;npcActor = Game.FindRandomActorFromRef(actorRef, MCM.iSearchRange) ;200.0)	; old method, full of holes (lots of actor=player and actor=follower most of the time)
+    npcActor = c.GetNthRef(searchIndex, 43) as actor
+		nearby[npcIndex] = npcActor ; elegible, return now, we don't need anything more from this function
+    npcIndex += 1
+    searchIndex += 1
+	endWhile
+
+  int i = 0
+  while i < searchIndex ;&& nearby[i] != None
+    if nearby[i] == None
+      debugmsg("NPC is none: " + i)
+    else
+      package p = nearby[i].GetCurrentPackage()
+      if p
+        String  pn = ""
+        quest q = p.GetOwningQuest()
+        String  qn = ""
+        if q
+          qn = q.GetName()
+        endif
+
+        String st = " <no scene>"
+        scene s = nearby[i].GetCurrentScene()
+        if s 
+          st = " and is in scene: " + s
+        endif
+        debugmsg("NPC " + nearby[i].GetDisplayName() +\
+                 " has AI package:" + p +\
+                 " from quest:"  + q + " " + qn +\
+                 st )
+        endif
     endif
-  EndWhile 
-  debugmsg("Containers: " + output)
-  debugmsg("Books: " + booknum)
+    i += 1
+  endWhile
 
   Debug.Notification("Test has completed.")
 endFunction
@@ -3066,10 +3157,18 @@ bool function isNight()
   return (Time >= 20 || Time < 5)
 endFunction
 
-; ... did I really write this?
+; this exists here so that we can start combat from dialogue with the same function
+; also StartCombat() wouldn't compile in a fragment according to my old comments, odd.
 function StartCombat(actor Attacker)
-  ; testing
-  Attacker.StartCombat(player)
+  ; works, but we want brawl rather than actual combat since they die from guards alot
+  ;Attacker.StartCombat(player)
+  
+  ; testing 
+  ; taken from mod: Fighting words
+	;BrawlKeyword.SendStoryEvent(None, pTarget, pTargetFriend)
+	BrawlKeyword.SendStoryEvent(None, Attacker, None)
+  
+  
 endFunction
 
 ; was going to be used for stalker and follower-drags-you-home concepts, both stalled
@@ -3222,3 +3321,6 @@ Worldspace Property markarthSpace Auto ; used with slaverun
 ;Worldspace Property riftenSpace Auto ; used with slaverun
 
 Race Property WerewolfBeastRace Auto
+
+Keyword Property BrawlKeyword  Auto  
+

@@ -32,6 +32,7 @@ Scriptname crdeFollowerScript extends ReferenceAlias
 ;crdeStartQuestScript Property Startup  Auto  
 crdePlayerMonitorScript Property PlayerMon Auto
 crdeModsMonitorScript Property Mods Auto
+crdeMCMScript Property MCM Auto
 crdePlayerScript Property PlayerScript Auto
 
 int Property hasEnteredCombat Auto
@@ -114,7 +115,7 @@ EndFunction
 ; if master is hit by player, punishment
 ; works fine, healing counts as a hit though
 Event OnHit(ObjectReference akAggressor, Form akSource, Projectile akProjectile, bool abPowerAttack, bool abSneakAttack, bool abBashAttack, bool abHitBlocked)
-  if akAggressor == PlayerMon.player 
+  if akAggressor == PlayerMon.player && MCM.bFollowerRemembersHit
     if akSource as Shout
       PlayerMon.debugmsg("follower was shouted on:" + akSource.GetName() ,2)
       hitByPlayer += 1

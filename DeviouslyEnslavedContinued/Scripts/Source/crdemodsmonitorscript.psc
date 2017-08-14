@@ -455,11 +455,13 @@ Function Maintenance()
   ; for a few versions, we'll just reapply the perk every update
   ;  why? because the perk doesn't auto refresh when a newer version of code is installed
   ;  so the parameters don't get re-init
+  int i = ( MCM.bFollowerDialogueToggle.GetValueInt() == 0) as int
   if player.HasPerk(crdeContainerPerk)
     player.removePerk(crdeContainerPerk)
   endif
-  player.addPerk(crdeContainerPerk)
-  
+  if i == 1 ; we want the perk to be re-added
+    player.addPerk(crdeContainerPerk)
+  endif
   finishedCheckingMods = false
   updateForms()
   checkStatuses()
