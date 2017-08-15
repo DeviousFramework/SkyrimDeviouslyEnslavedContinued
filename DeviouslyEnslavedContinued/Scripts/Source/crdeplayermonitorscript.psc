@@ -828,7 +828,7 @@ bool function attemptApproach()
       if tmp
         name == tmp.GetDisplayName()
       endif
-      debugmsg("player spooked off the attacker with weapon: " + name() ,1)
+      debugmsg("player spooked off the attacker with weapon: " + name ,1)
       clear_force_variables(true)
       return false 
     endif
@@ -2074,7 +2074,7 @@ endFunction
 ; need to wait until vulnerability is done before we test weapon because of playerVulnerability setting
 bool function isWeaponProtected()
   ; so long as we are not hands out while armed, and we do not have
-  debugmsg("Rechecking weapon protection")
+  ;debugmsg("Rechecking weapon protection")
   bool notArmed = playerIsNotArmed()
   bool notRobed = playerIsNotWearingWizRobes()
   if (MCM.iWeaponHoldingProtectionLevel < playerVulnerability || notArmed) && \

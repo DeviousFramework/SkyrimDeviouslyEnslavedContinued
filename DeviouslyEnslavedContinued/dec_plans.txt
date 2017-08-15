@@ -444,6 +444,17 @@ more recent (not mothballed either):
     - bringing key to player for safe keeping
   
   detect proximity to bed for sex approach percentage (1.5?)
+  make sure resetting dhlp works
+  weapon rechecking every cycle regardless if we detect it? not a big problem
+  UI busy removed, might be an issue at some points
+  add random chance follower already had key (even if you have to add them yourself)
+  add random chance attacker already had a key (even if you have to add them yourself)
+  NPC analysis takes too long to work, we need to look deeper
+  test maria eden again? maybe one day
+  
+  Lets check the follower to see if they look like an owner/master, and if not can backfire
+  attacker + follower 3 some if follower is horny?
+  lower arousal of attacking NPC if follower scares them off?
   
   always: new followers system needs to be tested more
   
