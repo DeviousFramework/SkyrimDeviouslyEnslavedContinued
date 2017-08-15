@@ -202,13 +202,13 @@ Event OnUpdate()
       if !wasInCombat
         debugmsg("player in combat, busy...", 1) ; only show this once, no need to spam
         wasInCombat = true
-        Utility.Wait(MCM.fEventInterval*2)
+        Utility.Wait(MCM.fEventInterval)
       endif
-      RegisterForSingleUpdate(MCM.fEventInterval + 5)
+      RegisterForSingleUpdate(MCM.fEventInterval)
     elseif wasInCombat == true ;&& not in combat, but we can't get here if this is false anyway
       wasInCombat = false
-      debugmsg("player has left combat, do nothing and wait 10 seconds before returning to normal", 1)
-      RegisterForSingleUpdate(10)
+      debugmsg("player has left combat, DEC will resume next cycle ...", 1)
+      RegisterForSingleUpdate(5)
       ; while we wait, lets check if player has a master and hit them at all
       if masterRefAlias != None
       ; TODO
@@ -218,23 +218,24 @@ Event OnUpdate()
       float onupdatetimeteststart = Utility.GetCurrentRealTime()
       CurrentGameTime 	          = Utility.GetCurrentGameTime() ; use gametime, since realtime gets reset per game session, cannot work through game saves
       if forceGreetIncomplete
-        debugmsg("force greet is Incomplete, " + ((busyGameTime - CurrentGameTime)*1400) + " GMin remain", 1) ; game minute
+        ; moved to the attemptapproach function, there we have more details
+        ;debugmsg("force greet is Incomplete, " + ((busyGameTime - CurrentGameTime)*1400) + " GMin remain", 1) ; game minute
         
-        ; debug
-        if attackerRefAlias== None
-          debugmsg("attackerRefAlias empty!",5)
-        ;else
-        ;  debugmsg("attackerRefAlias currently: " + attackerRefAlias.GetActorReference().GetDisplayName(),1)
-        endif
+        ; removed in 13.10
+        ;if attackerRefAlias == None
+        ;  debugmsg("attackerRefAlias empty!", 5)
+        ;;else
+        ;;  debugmsg("attackerRefAlias currently: " + attackerRefAlias.GetActorReference().GetDisplayName(),1)
+        ;endif
         
-        ;if busyGameTime + (24 * MCM.iApproachTimeout) < CurrentGameTime ; took too long, reset
-        if MCM.bResetDHLP ; debug option to release the lock, might remove since this wasn't really a good idea anymore
-          Mods.dhlpResume()
-          ;attackerRefAlias.ForceRefTo(previousAttacker)
-          debugmsg("reset MCM on, resetting", 1)
-          clear_force_variables(true)
-          MCM.bResetDHLP = false
-        endif
+        ; commented out in 13.10 I think this was redundant, I can't find evidence that it fires here it might work elsewhere
+        ;if MCM.bResetDHLP ; debug option to release the lock, might remove since this wasn't really a good idea anymore
+        ;  Mods.dhlpResume()
+        ;  ;attackerRefAlias.ForceRefTo(previousAttacker)
+        ;  debugmsg("reset DHLP on, resetting", 1)
+        ;  clear_force_variables(true)
+        ;  MCM.bResetDHLP = false
+        ;endif
 
         if busyGameTime < CurrentGameTime ; took too long, reset
           Mods.dhlpResume()
@@ -260,7 +261,7 @@ Event OnUpdate()
       ;debugmsg("Calling isPlayerinjail ...")
       ;Mods.isPlayerInJail()
       if forceGreetIncomplete
-        RegisterForSingleUpdate(5) ; 5 seconds, faster because we want to catch conditions, for now static
+        RegisterForSingleUpdate(2) ; boosted to 2 seconds in 13.10; 5 seconds, faster because we want to catch conditions, for now static
       else
         RegisterForSingleUpdate(MCM.fEventInterval)
       endif
@@ -426,9 +427,10 @@ bool function isPlayerBusy()
 	if( player.GetCurrentScene() != none )
 		debugmsg("Player is in scene, busy", 1)
 		return true
-	elseif   UI.IsMenuOpen("Dialogue Menu")  ;UI.IsMenuOpen("InventoryMenu") |||| UI.IsMenuOpen("ContainerMenu")
- 		debugmsg("Player is in UI, busy", 1)
-		return true
+    ; disabled in 13.10 as experiment
+	;elseif   UI.IsMenuOpen("Dialogue Menu")  ;UI.IsMenuOpen("InventoryMenu") |||| UI.IsMenuOpen("ContainerMenu")
+ 	;	debugmsg("Player is in UI, busy", 1)
+	;	return true
   ;elseif( player.IsSneaking()  ) ; moved up, since detection catching requires knowing if the other user can see the player, adding to player detection
   elseif  SexLab.IsActorActive(player)  
     debugmsg("Player is busy with Sexlab", 1)
@@ -818,14 +820,26 @@ bool function attemptApproach()
   if isPlayerBusy ; lets test this sooner, fewer moot cycles
     clear_force_variables(true) 
     return false ; if busy, nothing else to do here, leave
-  elseif forceGreetIncomplete &&  attackerRefAlias != None && attackerRefAlias.GetActorRef() != player  ;forceGreetSex || forceGreetSlave
+  ; while being approached, look for stuff to make sure we haven't broken approach
+  elseif forceGreetIncomplete ;&&  attackerRefAlias != None && attackerRefAlias.GetActorRef() != player ; removed in 13.10
+    ; recheck vulnerability here too for weapons
+    if playerIsWeaponDrawnProtected() || isWeaponProtected()
+      string name = "<NULL actor>"
+      if tmp
+        name == tmp.GetDisplayName()
+      endif
+      debugmsg("player spooked off the attacker with weapon: " + name() ,1)
+      clear_force_variables(true)
+      return false 
+    endif
+    float timeLeft = (busyGameTime - CurrentGameTime) * 1400
     actor tmp = attackerRefAlias.GetActorRef()
     if tmp 
-      debugmsg("player is being approached by " + tmp.GetDisplayName() ,1)
+      debugmsg("ForceGreet incomplete, " + timeLeft + " GMins remaining, approached by " + tmp.GetDisplayName() ,1)
     elseif followerRefAlias01.GetActorRef()
-      debugmsg("player is being approached by " + followerRefAlias01.GetActorRef().GetDisplayName() ,1)
+      debugmsg("ForceGreet incomplete, " + timeLeft + " GMins remaining, approached by " + followerRefAlias01.GetActorRef().GetDisplayName() ,1)
     else
-      debugmsg("player is being approached by a null actor... ?" ,1)
+      debugmsg("ForceGreet incomplete, " + timeLeft + " GMins remaining, approached by NULL actor???"  ,1)
     endif
     return false ; approach in progress, just don't do anything else here, but no reset
   endif
