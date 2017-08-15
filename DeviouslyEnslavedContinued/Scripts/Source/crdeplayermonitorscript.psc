@@ -428,10 +428,9 @@ bool function isPlayerBusy()
 		debugmsg("Player is in scene, busy", 1)
 		return true
     ; disabled in 13.10 as experiment
-	;elseif   UI.IsMenuOpen("Dialogue Menu")  ;UI.IsMenuOpen("InventoryMenu") |||| UI.IsMenuOpen("ContainerMenu")
- 	;	debugmsg("Player is in UI, busy", 1)
-	;	return true
-  ;elseif( player.IsSneaking()  ) ; moved up, since detection catching requires knowing if the other user can see the player, adding to player detection
+	elseif   UI.IsMenuOpen("Dialogue Menu")  ;UI.IsMenuOpen("InventoryMenu") |||| UI.IsMenuOpen("ContainerMenu")
+ 		debugmsg("Player is in UI, busy", 1)
+		return true
   elseif  SexLab.IsActorActive(player)  
     debugmsg("Player is busy with Sexlab", 1)
 		return true
