@@ -511,6 +511,7 @@ event OnPageReset(string a_page)
     iDistanceWeightSLUTSEnslaveOID  = AddSliderOption("SLUTS enslavement", iDistanceWeightSLUTSEnslave, "{0}", (!Mods.modLoadedSLUTS) as int)
     iDistanceWeightIOMEnslaveOID    = AddSliderOption("Isle of mara enslavement", iDistanceWeightIOMEnslave, "{0}", (!Mods.modLoadedIsleofMara) as int)
     iDistanceWeightDCLLeonOID       = AddSliderOption("Cursed loot Leon", iDistanceWeightDCLLeon, "{0}", (!Mods.modLoadedCursedLoot) as int)
+    iDistanceWeightDCLLeahOID       = AddSliderOption("Cursed loot Leah", iDistanceWeightDCLLeah, "{0}", (!Mods.modLoadedCursedLoot) as int)
     iDistanceWeightDCVampireOID     = AddSliderOption("Devious Cidhna (Vampires) Weight", iDistanceWeightDCVampire, "{0}", (!Mods.modLoadedDeviousCidhna) as int)
     iDistanceWeightDCBanditsOID     = AddSliderOption("Devious Cidhna (Bandits) Weight", iDistanceWeightDCBandits, "{0}", (!Mods.modLoadedDeviousCidhna) as int)
 
@@ -795,17 +796,18 @@ event OnOptionSelect(int a_option)
     bConfidenceToggle = ! bConfidenceToggle
     SetToggleOptionValue(a_option, bConfidenceToggle) 
   elseif (a_option == bFollowerDialogueToggleOID)
-    int i = ( bFollowerDialogueToggle.GetValueInt() == 0) as int
-    bFollowerDialogueToggle.SetValueInt( i )
+    bool new_value = bFollowerDialogueToggle.GetValueInt() == 0
+    bFollowerDialogueToggle.SetValueInt( new_value as int )
     ; add/remove the perk
     Perk containerPerk  = Mods.crdeContainerPerk
     actor player        = Mods.player
-    if i == 1 && ! player.HasPerk(containerPerk)
+    if new_value && ! player.HasPerk(containerPerk)
       player.addPerk(containerPerk)
-    elseif i == 0 && player.HasPerk(containerPerk)
+    elseif !new_value && player.HasPerk(containerPerk)
       player.removePerk(containerPerk)
     endif
-    SetToggleOptionValue(a_option, bFollowerDialogueToggle.GetValueInt())
+
+    SetToggleOptionValue(a_option, new_value)
   elseif (a_option == bVulnerableFurnitureOID)
     bVulnerableFurniture = ! bVulnerableFurniture
     SetToggleOptionValue(a_option, bVulnerableFurniture) ; 
@@ -1067,10 +1069,10 @@ event OnOptionSelect(int a_option)
     bNightAddsToVulnerable = ! bNightAddsToVulnerable
     SetToggleOptionValue(a_option, bNightAddsToVulnerable)
 
-
   elseif a_option == gForceGreetItemFindOID 
-    gForceGreetItemFind.SetValueInt( (gForceGreetItemFind.GetValueInt() == 0) as int )
-    SetToggleOptionValue(a_option, gForceGreetItemFind.GetValueInt() as bool)
+    bool new_value = ( gForceGreetItemFind.GetValueInt() == 0)
+    gForceGreetItemFind.SetValueInt( new_value as int )
+    SetToggleOptionValue(a_option, new_value)
   elseif a_option == bFollowerDungeonEnterRequiredOID
     bFollowerDungeonEnterRequired = ! bFollowerDungeonEnterRequired
     SetToggleOptionValue(a_option, bFollowerDungeonEnterRequired)
@@ -1365,8 +1367,12 @@ event OnOptionSliderOpen(int a_option)
     SetSliderDialogStartValue(iDistanceWeightIOMEnslave)
     SetSliderDialogRange(0, 150)
     SetSliderDialogInterval( 1 )
-  elseif (a_option == iDistanceWeightDCLLeonOID)
+  elseif (a_option == iDistanceWeightDCLLeonOID) 
     SetSliderDialogStartValue(iDistanceWeightDCLLeon)
+    SetSliderDialogRange(0, 150)
+    SetSliderDialogInterval( 1 )
+  elseif (a_option == iDistanceWeightDCLLeahOID) ;
+    SetSliderDialogStartValue(iDistanceWeightDCLLeah)
     SetSliderDialogRange(0, 150)
     SetSliderDialogInterval( 1 )
     
@@ -1946,14 +1952,17 @@ event OnOptionSliderAccept(int a_option, float a_value)
   elseif (a_option == iDistanceWeightSlaverunRSoldOID)
     iDistanceWeightSlaverunRSold = a_value as int
     SetSliderOptionValue(a_option, a_value, "{0}")
-  elseif (a_option == iDistanceWeightSLUTSEnslaveOID) ;iDistanceWeightIOMEnslave
+  elseif (a_option == iDistanceWeightSLUTSEnslaveOID) ;
     iDistanceWeightSLUTSEnslave = a_value as int
     SetSliderOptionValue(a_option, a_value, "{0}")
-  elseif (a_option == iDistanceWeightIOMEnslaveOID) ;iDistanceWeightIOMEnslave
+  elseif (a_option == iDistanceWeightIOMEnslaveOID) ;
     iDistanceWeightIOMEnslave = a_value as int
     SetSliderOptionValue(a_option, a_value, "{0}")
-  elseif (a_option == iDistanceWeightDCLLeonOID) ;iDistanceWeightIOMEnslave
+  elseif (a_option == iDistanceWeightDCLLeonOID) ;
     iDistanceWeightDCLLeon = a_value as int
+    SetSliderOptionValue(a_option, a_value, "{0}")
+  elseif (a_option == iDistanceWeightDCLLeahOID) ;
+    iDistanceWeightDCLLeah = a_value as int
     SetSliderOptionValue(a_option, a_value, "{0}")
   elseif a_option == iDistanceWeightDCVampireOID
     iDistanceWeightDCVampire = a_value as int
@@ -2664,6 +2673,11 @@ event OnOptionHighlight(int a_option)
   elseif a_option == fFollowerSexApproachChanceMaxPercentageOID
     SetInfoText("Chance your follower will approach you with 100 arousal.")
 
+  elseif a_option == iDistanceWeightDCLLeonOID
+    SetInfoText("Chance of getting the Cursed loot Leon enslavement outcome when enslaved. (given)")
+  elseif a_option == iDistanceWeightDCLLeahOID
+    SetInfoText("Chance of getting the Cursed loot Leah enslavement outcome when enslaved. (given)")
+
   elseif a_option == bSDGeneralLockoutOID
     SetInfoText("Toggles if DEC shouldn't be active during SD+ Enslavement, if ON DEC will do nothing")
 
@@ -2965,6 +2979,8 @@ Int Property iDistanceWeightIOMEnslave Auto
 Int iDistanceWeightIOMEnslaveOID
 Int Property iDistanceWeightDCLLeon Auto 
 int iDistanceWeightDCLLeonOID
+Int Property iDistanceWeightDCLLeah Auto 
+int iDistanceWeightDCLLeahOID
 Int Property  iDistanceWeightDCVampire Auto
 Int iDistanceWeightDCVampireOID
 Int Property  iDistanceWeightDCBandits Auto

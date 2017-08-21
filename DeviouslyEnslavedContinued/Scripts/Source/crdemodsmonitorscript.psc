@@ -442,6 +442,9 @@ Faction Property sltSlaveFaction auto
 
 MagicEffect Property dawnguardLordForm Auto
 
+Quest Property dflowQuest Auto
+
+
 bool property bRefreshModDetect Auto
 
 Perk property crdeContainerPerk Auto
@@ -455,11 +458,11 @@ Function Maintenance()
   ; for a few versions, we'll just reapply the perk every update
   ;  why? because the perk doesn't auto refresh when a newer version of code is installed
   ;  so the parameters don't get re-init
-  int i = ( MCM.bFollowerDialogueToggle.GetValueInt() == 0) as int
+  int i = ( MCM.bFollowerDialogueToggle.GetValueInt() == 1) as int
   if player.HasPerk(crdeContainerPerk)
     player.removePerk(crdeContainerPerk)
   endif
-  if i == 1 ; we want the perk to be re-added
+  if  i == 1 ; we want the perk to be re-added
     player.addPerk(crdeContainerPerk)
   endif
   finishedCheckingMods = false
@@ -1034,6 +1037,8 @@ function updateForms()
   
   dawnguardLordForm =  Game.GetFormFromFile(0x0200283C, "Dawnguard.esm") as MagicEffect 
 
+  dflowQuest = Quest.GetQuest("_DFlow")
+  
   Debug.Trace("[CRDE] ******** ignore any errors between these two messages FINISH ********", 1)
   finishedCheckingMods = true
 endFunction
@@ -1618,8 +1623,14 @@ int function isPlayerEnslaved()
   endif
   
   if modLoadedSGOMSE && ( player.isEquipped(sgomseCowBelt) || player.isEquipped(sgomseCowCollar) )
-      debugmsg("enslaved: SGOMES collar or belt 2", 3)
-      setEnslavedLevel(2) ; up to master if the player is vulnerable
+    debugmsg("enslaved: SGOMES collar or belt 2", 3)
+    setEnslavedLevel(2) ; up to master if the player is vulnerable
+  endif
+  
+  if dflowQuest && dflowQuest.isRunning() && dflowQuest.GetStage() >= 2
+    debugmsg("enslaved: Devious followers has locked the player", 3)
+    setEnslavedLevel(3)
+
   endif
   
   ;if player.isInFaction(zazFactionSlave) && player.isInFaction(zazFactionSlaveState)

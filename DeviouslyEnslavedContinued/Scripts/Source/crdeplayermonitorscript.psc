@@ -143,12 +143,12 @@ armor knownBlindfold
 armor knownCollar
 armor knownGag
 
-bool 	Property forceGreetIncomplete   Auto Conditional
-int 	Property forceGreetSlave        Auto Conditional
-int 	Property forceGreetSex          Auto Conditional
-int   Property forceGreetWanted       Auto Conditional
+bool    Property forceGreetIncomplete   Auto Conditional
+int     Property forceGreetSlave        Auto Conditional
+int     Property forceGreetSex          Auto Conditional
+int     Property forceGreetWanted       Auto Conditional
 ; 1 is items, 10 is being hit by player and wanting to talk to them
-int 	Property forceGreetFollower     Auto Conditional
+int     Property forceGreetFollower     Auto Conditional
 
 form[] Property followerFoundDDItems Auto
 objectReference[] Property followerFoundDDItemsContainers Auto
@@ -822,19 +822,16 @@ bool function attemptApproach()
   ; while being approached, look for stuff to make sure we haven't broken approach
   elseif forceGreetIncomplete ;&&  attackerRefAlias != None && attackerRefAlias.GetActorRef() != player ; removed in 13.10
     ; recheck vulnerability here too for weapons
-    if playerIsWeaponDrawnProtected() || isWeaponProtected()
-      string name = "<NULL actor>"
-      if tmp
-        name == tmp.GetDisplayName()
-      endif
-      debugmsg("player spooked off the attacker with weapon: " + name ,1)
-      clear_force_variables(true)
-      return false 
-    endif
-    float timeLeft = (busyGameTime - CurrentGameTime) * 1400
     actor tmp = attackerRefAlias.GetActorRef()
+    float timeLeft = (busyGameTime - CurrentGameTime) * 1400
     if tmp 
-      debugmsg("ForceGreet incomplete, " + timeLeft + " GMins remaining, approached by " + tmp.GetDisplayName() ,1)
+      if playerIsWeaponDrawnProtected() || isWeaponProtected()
+        debugmsg("player spooked off the attacker with weapon: " + tmp.GetDisplayName() ,1)
+        clear_force_variables(true)
+        return false 
+      else
+        debugmsg("ForceGreet incomplete, " + timeLeft + " GMins remaining, approached by " + tmp.GetDisplayName() ,1)
+      endif
     elseif followerRefAlias01.GetActorRef()
       debugmsg("ForceGreet incomplete, " + timeLeft + " GMins remaining, approached by " + followerRefAlias01.GetActorRef().GetDisplayName() ,1)
     else

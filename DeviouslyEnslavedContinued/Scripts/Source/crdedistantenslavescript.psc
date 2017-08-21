@@ -192,6 +192,7 @@ function enslaveGiven(actor actorRef = none)
   int IOM         = MCM.iDistanceWeightIOMEnslave     * (Mods.modLoadedIsleofMara ) as int
   int DCLBADV     = MCM.iDistanceWeightDCLBondageAdv  * (Mods.modLoadedCursedLoot ) as int
   int DCLLeon     = MCM.iDistanceWeightDCLLeon        * (Mods.modLoadedCursedLoot ) as int
+  int DCLLeah     = MCM.iDistanceWeightDCLLeah        * (Mods.modLoadedCursedLoot ) as int
   int DCVampires  = MCM.iDistanceWeightDCVampire      * (Mods.modLoadedDeviousCidhna ) as int
   
   int total = Maria + WC + SD + DC + DCLDamsel + IOM + DCLBADV + DCLLeon + DCVampires
@@ -200,7 +201,9 @@ function enslaveGiven(actor actorRef = none)
     return
   endif
   int roll = Utility.RandomInt(1, total) ; going to assume weights are zero if not enabled, yeah? DCVampires
-  debugmsg("Given:maria/wc/sd/dc/damsel/IOM/Badv/leon(" + Maria + "/" + WC + "/" + SD + "/" + DC + "/" + DCLDamsel + "/" + IOM + "/" + DCLBADV + "/" + DCLLeon + "/" + DCVampires + ")roll/total:(" + roll + "/" + (total) + ")", 2)
+  debugmsg("Given:maria/wc/sd/dc/damsel/IOM/Badv/leon/leah/dcVamp(" +\
+            Maria + "/" + WC + "/" + SD + "/" + DC + "/" + DCLDamsel + "/" + IOM + "/" +\
+            DCLBADV + "/" + DCLLeon + "/" + DCLLeah + "/" + DCVampires + ")roll/total:(" + roll + "/" + (total) + ")", 2)
   if roll <= Maria
     if Mods.modLoadedMariaEden == false
       debugmsg("Err: reached MariasEden enslave, but mod is not loaded", 4)
@@ -252,7 +255,13 @@ function enslaveGiven(actor actorRef = none)
     else
       enslaveLeon() 
     endif
-  else ; roll <= Maria + WC + DC + SD + DCLDamsel + IOM + DCLBADV + DCLLeon + DCVampires
+  elseif roll <= Maria + WC + DC + SD + DCLDamsel + IOM + DCLBADV + DCLLeon + DCLLeah
+    if Mods.modLoadedCursedLoot == false
+      debugmsg("Err: reached DCLLeah enslave, but mod is not loaded", 4)
+    else
+      enslaveLeon() 
+    endif
+  else ; roll <= Maria + WC + DC + SD + DCLDamsel + IOM + DCLBADV + DCLLeon + DCLLeah + DCVampires
     if Mods.modLoadedDeviousCidhna == false
       debugmsg("Err: reached cidna vampires enslave, but mod is not loaded", 4)
     else
@@ -560,16 +569,23 @@ function enslaveLeon()
   
   ;might need to do an auto save here, since it can crash the whole thing
   
-  int roll          = Utility.RandomInt(1, 100)
   
-  if MCM.iGenderPrefMaster == 2 || ( MCM.iGenderPrefMaster == 0 && roll < 50 )
-    SendModEvent("dcur_triggerLeonSlavery")
-  else
-    SendModEvent("dcur_triggerLeahSlavery")
-  endif
+  SendModEvent("dcur_triggerLeonSlavery")
   ;enslaveLeon2() ; leon 2
 endFunction
 
+; both leon and leah, roll chance is 50/50 for now
+function enslaveLeah()
+  ; disable player controls
+  ; teleport player to location
+  ; start quest
+  
+  ;might need to do an auto save here, since it can crash the whole thing
+  SendModEvent("dcur_triggerLeahSlavery")
+  
+endFunction
+
+; this was a test function, I wanted the player to be teleported to them instead of this
 function enslaveLeon2()
   Mods.dcurLeonQuest.Stop()
   ; teleport player to house ;0x7A078A51: front doorish area

@@ -432,10 +432,10 @@ more recent (not mothballed either):
   add a dialogue for follower finding lucky charms from DCL if they exist
   add DF API calls instead of doing everything myself...? hope this is actually useful
   
-  ; fixed greyed out follower remember hitting MCM
-  ; added item drawn feature for follower
-  ; hit them has been switched with brawling
-  ; option for sex lock out while follower
+  ;split leon/leah
+  recheck dialogue output
+  ;added devious follower detection
+  
   
   followers that found keys did not actually get keys
   add special finding key stuff, not just pocketing it

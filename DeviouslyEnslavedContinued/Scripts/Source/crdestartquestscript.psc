@@ -37,11 +37,11 @@ bool Property needsMaintenance Auto
 ; float version is Xxx.Yy.Zz = > Xxx.yYzZ
 ; IE 3.2.1 would be 3.0201, 2.13.2 would be 2.1302
 float function getVersion()
-  return 13.1000
+  return 13.1003
   EndFunction
 
 string function getVersionString()
-  return "13.10.0"
+  return "13.10.3"
 EndFunction
 
 Function Maintenance()
