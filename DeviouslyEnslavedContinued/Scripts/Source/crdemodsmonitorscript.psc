@@ -33,7 +33,7 @@ SexLabFramework Property SexLab Auto
 import GlobalVariable
 ;crds_SubmissionScript    Property submissionQuest Auto
 crdePlayerMonitorScript   Property PlayMonScript Auto
-crdeVars                  Property Vars Auto
+;crdeVars                  Property Vars Auto
 ;crdeDebugScript           Property DebugOut Auto
 crdeMCMScript             Property MCM Auto
 crdeDistantEnslaveScript  Property DistantEnslaveScript  Auto
@@ -1818,30 +1818,30 @@ endEvent
 
 bool function isTiedUpCDFollower( actor actorRef)
 
-  if modLoadedCD
-    actor[] suspected_actors = new actor[10]
-    CDxCellController cell_controller = cdxCellControl as CDxCellController
-    suspected_actors[0] = cell_controller.Alias_NewBarracksPrisoner.GetActorRef()
-    suspected_actors[1] = cell_controller.Alias_NewCagePrisoner.GetActorRef()
-    suspected_actors[2] = cell_controller.Alias_NewManorPrisoner.GetActorRef()
-    suspected_actors[3] = cell_controller.Alias_NewShopPrisoner.GetActorRef()
-    suspected_actors[4] = cell_controller.Alias_Prisoner01_Shop01.GetActorRef()
-    suspected_actors[5] = cell_controller.Alias_Prisoner02_Shop02.GetActorRef()
-    suspected_actors[6] = cell_controller.Alias_Prisoner03_Shop03.GetActorRef()
-    suspected_actors[7] = cell_controller.Alias_Prisoner04_Shop04_Player.GetActorRef()
-    suspected_actors[8] = cell_controller.Alias_Prisoner05_Manor01.GetActorRef()
+  ;if modLoadedCD
+  ;  actor[] suspected_actors = new actor[10]
+  ;  CDxCellController cell_controller = cdxCellControl as CDxCellController
+  ;  suspected_actors[0] = cell_controller.Alias_NewBarracksPrisoner.GetActorRef()
+  ;  suspected_actors[1] = cell_controller.Alias_NewCagePrisoner.GetActorRef()
+  ;  suspected_actors[2] = cell_controller.Alias_NewManorPrisoner.GetActorRef()
+  ;  suspected_actors[3] = cell_controller.Alias_NewShopPrisoner.GetActorRef()
+  ;  suspected_actors[4] = cell_controller.Alias_Prisoner01_Shop01.GetActorRef()
+  ;  suspected_actors[5] = cell_controller.Alias_Prisoner02_Shop02.GetActorRef()
+  ;  suspected_actors[6] = cell_controller.Alias_Prisoner03_Shop03.GetActorRef()
+  ;  suspected_actors[7] = cell_controller.Alias_Prisoner04_Shop04_Player.GetActorRef()
+  ;  suspected_actors[8] = cell_controller.Alias_Prisoner05_Manor01.GetActorRef()
 
   
-    int i = 0
-    actor tmp_actor
-    while i < 10
-      tmp_actor = suspected_actors[i]
-      if tmp_actor != None && actorRef != tmp_actor
-        return true
-      endif
-      i += 1
-    endWhile
-  endif
+  ;  int i = 0
+  ;  actor tmp_actor
+  ;  while i < 10
+  ;    tmp_actor = suspected_actors[i]
+  ;    if tmp_actor != None && actorRef != tmp_actor
+  ;      return true
+  ;    endif
+  ;    i += 1
+  ;  endWhile
+  ;endif
   return false
 
 endFunction
