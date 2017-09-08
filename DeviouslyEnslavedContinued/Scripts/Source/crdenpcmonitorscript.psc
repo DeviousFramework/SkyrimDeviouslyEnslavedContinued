@@ -369,7 +369,7 @@ bool function isActorIneligable(actor actorRef, bool includeSlaveTraders = false
   elseif(actorRef.IsHostileToActor(player) || actorRef.IsInCombat() )
     debugmsg("invalid: " + actorRef.GetDisplayName() + " is hostile or in combat", 3)
 		return true
-  elseif(actorRef.HasKeyword(ActorTypeNPC) == false);: 00013794
+  elseif(actorRef.HasKeyword(ActorTypeNPC) == false)
 		debugmsg("invalid: " + actorRef.GetDisplayName() + " is not an NPC actor", 3)
 		return true
   elseif(actorRef.GetRelationshipRank(player) > MCM.iRelationshipProtectionLevel)
@@ -587,14 +587,11 @@ bool function isActorRefIneligable(actor actorRef, bool includeSlaveTraders = fa
 endFunction
 
 bool function isWearingSlaveXaz(actor actorRef)
+  
   return !MCM.bIgnoreZazOnNPC && ( actorRef.WornHasKeyword(Mods.zazKeywordWornGag) || actorRef.WornHasKeyword(Mods.zazKeywordWornBlindfold) ||\
             actorRef.WornHasKeyword(Mods.zazKeywordWornBelt) || actorRef.WornHasKeyword(Mods.zazKeywordWornYoke) ||\
             actorRef.WornHasKeyword(Mods.zazKeywordAnimWrists)) ||\
          (actorRef.WornHasKeyword(Mods.zazKeywordWornCollar) && !(actorRef.GetWornForm(0x00000004) != None || MCM.bIgnoreZazOnNPC)) ; must also be naked for collar to work
-
-  ;return actorRef.WornHasKeyword(Mods.zazKeywordWornGag) || actorRef.WornHasKeyword(Mods.zazKeywordWornBlindfold) ||\
-  ;       actorRef.WornHasKeyword(Mods.zazKeywordAnimWrists) || actorRef.WornHasKeyword(Mods.zazKeywordWornYoke) ||\
-  ;       actorRef.WornHasKeyword(Mods.zazKeywordWornBelt) || actorRef.WornHasKeyword(Mods.zazKeywordWornCollar) 
 endFunction
 
 bool function isWearingSlaveDD(actor actorRef)

@@ -1117,7 +1117,7 @@ function clearHelpless()
 endFunction
 
 ; this is for NPCs, for player use isplayerenslaved
-; for factions and keywords, items are checked at isWearingSlave**
+; this is for factions and keywords, items are checked at isWearingSlave**
 bool function isSlave(actor actorRef)
  
   ; fuck you paparus, giving me generic parameters unless they are objects
@@ -1842,8 +1842,17 @@ bool function isTiedUpCDFollower( actor actorRef)
   ;    i += 1
   ;  endWhile
   ;endif
+  
+  ; TODO fix this or depreciate it
+  
   return false
 
+endFunction
+
+function sendPlayerToCDShop()
+  ; weird, I've never actually moved the player before without a target object...
+  ;player.moveto(cdMain)
+  Debug.CenterOnCell(cdMainShop)
 endFunction
 
 

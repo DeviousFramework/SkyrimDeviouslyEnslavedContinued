@@ -30,7 +30,7 @@ Debug report form:
   Memory patch?  
   Can you hand me the save in addition to the log? save could have interesting information
   
----------vvv--------- THIS IS OLD, SKIP TO "more recent" ---------vvv---------
+ vvv------vVv------vvv THIS IS OLD, SKIP TO "more recent" vvv------vVv------vvv
  legend (start of the line):
  ; <- fixed, leave for a version before removing
  * <- high priority 
@@ -415,6 +415,9 @@ more recent (not mothballed either):
   If player is in brothel, more vulnerable?
     Extra dialogue for in brothel/freeuse zone?
 
+  detect proximity to bed for sex approach percentage (1.5?)
+
+    
   Follower game planning:
     Items: Book with DD stuff, DD vibrating spells, collar, set of items (rubber, leather, heavy collar/gag/blindfold)
       whip, harness? Piercings.
@@ -424,6 +427,7 @@ more recent (not mothballed either):
 
   sexlab kidnapped and pitfall detection are broken and need to be fixed
   make sure the items found are acceptable to user
+    god this one could be annoying, you would have to have a switch case for keywords
   
   check if new DD items can be integrated
   check what we have to do with this new keyword
@@ -432,10 +436,6 @@ more recent (not mothballed either):
   add a dialogue for follower finding lucky charms from DCL if they exist
   add DF API calls instead of doing everything myself...? hope this is actually useful
   
-  ;split leon/leah
-  recheck dialogue output
-  ;added devious follower detection
-  
   
   followers that found keys did not actually get keys
   add special finding key stuff, not just pocketing it
@@ -443,18 +443,47 @@ more recent (not mothballed either):
     - removing and running to player for sex
     - bringing key to player for safe keeping
   
-  detect proximity to bed for sex approach percentage (1.5?)
-  make sure resetting dhlp works
-  weapon rechecking every cycle regardless if we detect it? not a big problem
-  UI busy removed, might be an issue at some points
+  UI busy removed, might be an issue at some points * became issue, would interupt dialogue
   add random chance follower already had key (even if you have to add them yourself)
   add random chance attacker already had a key (even if you have to add them yourself)
   NPC analysis takes too long to work, we need to look deeper
-  test maria eden again? maybe one day
+  test maria eden again? 
+  
+  ;fix typo in follower approach
+
+  ;fix TODO get name
+  ;fix TODO do sex?
+  ; cleaned up dialogue
+  ;add dialogue for second follower sex?
+    needs more though
+  ;fix the dual MCM slider
+  ;set that unfinished guard dialogue to unfinished
+  ;fix the negative frustration
+  look for permanent follower reset reason
+  ;finish the threesome script, and others
+  check to make sure the follower replaces items with the right one
+  check to make sure cursed loot items cannot be super imposed * not seeing anything here...
+  
+  ;"now how are we going to have sex" for boots and gloves
+  ;Follower gagged, how does it feel, happy response?
+  Can we test for PAHE slave being angry?
+  - maybe special dialogue though...
+  make sure our hasFollowers change didn't break everything, need to test with 2 slave followers
+  
+  
+  ;sex ignores chastity belt blocking vagina on old save <- bad belts, CD
+  approaches at lvl 0...? why does wearings boots show lvl 0 but allow appraoches?
+  ;bandit, gagged and naked with zbf items wasn't considered slave and attacked me
+  ;  zbf items was turned off, but the slave and slaver factions weren't loaded into mods either, hope that fixes it.
+  weapon out doesn't help with enslave approach???
+  
   
   Lets check the follower to see if they look like an owner/master, and if not can backfire
-  attacker + follower 3 some if follower is horny?
+  ;attacker + follower 3 some if follower is horny?
   lower arousal of attacking NPC if follower scares them off?
+  
+  Dialogue option to beg for keys back and/or unlocking from previous items
+  - needs additional dialogue
   
   always: new followers system needs to be tested more
   
@@ -487,7 +516,6 @@ more recent (not mothballed either):
     Full CD set?
     Maybe the full set can replace everything else, so keep it open as an option even when currently locked up tight
     Harness
-  
     
     
     &$&$&&$&$&&$&$&&$&$&&$&$&&$&$&&$&$&&$&$&&$&$&&$&$&&$&$&&$&$&&$&$&&$&$&&$&$&&$&$&&$&$&
@@ -582,7 +610,7 @@ Ideas for dialogue:
     
 Unanswered Modding questions:
   is there a way to turn on/off all lighting effects (reset)
-  Is there a way to quiet papyrus errors or warnings that are of no consequence?
+  Is there a way to quiet papyrus errors or warnings that are of no consequence? no exception/error catching it seems
   Is there a way to detect if quest states have advanced?
     like an event, you can detect if the stage has increased manually with a saved variable, but doesn't buy us much over state
   Is there a way to view the current factions an actor has in-game?
@@ -622,10 +650,10 @@ ASM Discovery:
   HOLY FUCKING BALLS the compiler can't rectify a double negative
   It just compiles what it sees one for one, regardless of whether it can shorten a cpu cycle off or not
  		NOT [ID[::temp22], ID[::temp22]] ; fucking pos -> neg toggle
-		JMPF [ID[::temp22], 7]           ; jump on neg
+		JMPF [ID[::temp22], 7]           ; jump on neg, instead of jump on pos
     
   This is weird, why the fuck does it need to cast from a string to an int instead of saving it as an int into the comparison??
-  Almost every modern CPU instruction set lets you add a constant inline within the instruction
+  Almost every modern CPU instruction set lets you add a constant inline within the instruction, is this left over from xb360?
 		CAST [ID[::temp391], 20]
 		CMP_GE [ID[::temp393], ID[QQZQQ083], ID[::temp391]]
 		CAST [ID[::temp393], ID[::temp393]]
@@ -642,7 +670,7 @@ ASM Discovery:
     ASSIGN actorMorality ::temp51
   
   WAT
-  no seriously what fucking flag setting bullshit is this
+  no seriously what fucking flag blackmagic bullshit is this
   CAST ::temp80 ::temp81
   CAST ::temp81 ::temp80
   JMPF ::temp81 13
@@ -781,12 +809,14 @@ bleed out events:
 IdleForceDefaultState
 BleedOutStart <- locks movement
 BleedOutStop
-  
-Things I need to learn:
-  how to scene
-  slow get up
-    how to stagger from laying position
-  how to detect if a dungeon is cleared
+
+(69)(69)(69)(69)(69)(69)(69)(69)(69)(69)(69)(69)(69)(69)(69)(69)(69)(69)(69)(69)(69)(69)(69)(69)
+
+  Recompile boatloads of shit:
+  add to ~/.bashrc: alias notepad="/c/Program\ Files/Notepad++/notepad++.exe"
+  grep <thing> *.psc | while read -r line; do
+    notepad &line
+  done
   
 (*)  (*)  (*)  (*)  (*)  working on the copy paste themer
   
@@ -826,3 +856,4 @@ Things I need to learn:
     Extra stuff I want to save goes below:
   [8][8][8][8][8][8][8][8][8][8][8][8][8][8][8][8]
 
+      if tmp_follower != None && ( NPCMonitorScript.isWearingSlaveDD(tmp_follower) || Mods.isSlave(tmp_follower))

@@ -941,7 +941,7 @@ bool function attemptApproach()
         debugmsg("follower " + tmp_follower.GetDisplayName() + " is tied up in CDx")
       elseif tmp_follower != None && !tmp_follower.WornHasKeyword(libs.zad_DeviousGag) && !tmp_follower.WornHasKeyword(libs.zad_DeviousArmbinder)
         
-        if SexLab.HadPlayerSex(tmp_follower) || StorageUtil.GetFloatValue(follower, "crdeThinksPCEnjoysSub") > 0 || valid_count == 0 
+        if SexLab.HadPlayerSex(tmp_follower) || StorageUtil.GetFloatValue(follower, "crdeThinksPCEnjoysSub") > 0 || valid_count == 0  ; TODO fix this shit, storageutil here??
           valid_followers[valid_count] = tmp_follower
           valid_count += 1
           if tmp_follower.IsInFaction(CurrentFollowerFaction) || tmp_follower.IsInFaction(Mods.paradiseFollowingFaction)
@@ -1137,7 +1137,8 @@ bool function attemptApproach()
   actor tmp = None
   while i < followers.length && hasFollowers == false
     tmp = followers[i]
-    if tmp != None && tmp.IsInFaction(CurrentFollowerFaction)
+    if tmp != None && tmp.IsInFaction(CurrentFollowerFaction) && \
+     !NPCMonitorScript.isWearingSlaveDD(tmp) && !Mods.isSlave(tmp) ; 13.11: we don't count followers if they are slaves
       hasFollowers = true
     endif
     i += 1
@@ -1376,10 +1377,13 @@ function modThinksPlayerSub(actor actorRef , float value, float max = 30.0)
   endif
 endFunction
 
-function modFollowerFrustration(actor actorRef, float value, float max = 30.0)
+function modFollowerFrustration(actor actorRef, float value, float max = 40.0)
   float current_value = StorageUtil.GetFloatValue(actorRef, "crdeFollowerFrustration")
   if current_value > max && value > 0 
     ; we're already too high for us to be affected by this adjustment
+  elseif value + current_value < 0
+    ; shouldn't go negative, lets set at zero
+    StorageUtil.SetFloatValue(actorRef, "crdeFollowerFrustration", 0)
   elseif value + current_value > max
     StorageUtil.SetFloatValue(actorRef, "crdeFollowerFrustration", max)
   else
@@ -1603,8 +1607,14 @@ int function prepareForDoPlayerSex(actor actorRef, bool both = false, bool skip_
   return 0  
 EndFunction
 
-; soft specifies if the sex can allow for softer sexual animations, like cuddling
+; this exists because I don't want to recompile > 40 fragments to update to threesome.
+; just keep this as a pointer to the other one, at least until I have another reason to change it then update it
 function doPlayerSex(actor actorRef, bool rape = false, bool soft = false, bool oral_only = false)
+  doPlayerSexFull(actorRef, none, rape, soft, oral_only )
+endFunction
+
+; soft specifies if the sex can allow for softer sexual animations, like cuddling
+function doPlayerSexFull(actor actorRef, actor actorRef2, bool rape = false, bool soft = false, bool oral_only = false)
 	;timeoutEnslaveGameTime = Utility.GetCurrentGameTime() + MCM.fEventTimeout
   ;debugmsg("Resetting approach at start of doSex",1)
   Debug.SendAnimationEvent(actorRef, "IdleNervous") ; should work well enough; no longer works...what
@@ -1614,9 +1624,17 @@ function doPlayerSex(actor actorRef, bool rape = false, bool soft = false, bool 
   ; start some animations while we wait
   
   ;if MCM.bAggresiveAnimations
-  actor[] sexActors = new actor[2] ; only 3 if we ever decide to have threesomes and such
+  actor[] sexActors
+  if actorRef2 != None
+   sexActors = new actor[3]
+  else
+   sexActors = new actor[2] 
+  endif
   sexActors[0] = player
   sexActors[1] = actorRef
+  if actorRef2 != none
+    sexActors[2] = actorRef2
+  endif
   int actorGender = 0
   if MCM.bUseSexlabGender
     actorGender     = SexLab.GetGender(actorRef)

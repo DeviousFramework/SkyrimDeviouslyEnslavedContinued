@@ -39,12 +39,6 @@ actor Property player auto
 
 ; these are armors to be equipped on the player or other, 
 ;Formlist Property followerArmorFormList Auto ; don't think I'll end up using this... 
-; Armor Property FollowerArmor1 Auto
-; Armor Property FollowerArmor2 Auto
-; Armor Property FollowerArmor3 Auto
-; Armor Property FollowerArmor4 Auto
-; Armor Property FollowerArmor5 Auto
-; Armor Property FollowerArmor6 Auto
 
 Armor Property previousBelt Auto ; for reapplication
 Armor Property previousGag Auto ; for reapplication
@@ -791,9 +785,9 @@ armor[] function getRandomStuff(actor actorRef, Armor belt, bool punishment = fa
      elseif vRoll < newSoulGem + newInflate + newCharging
       vplug = PlayerMon.randomDDVagPlugs[0]
     elseif vRoll < newSoulGem + newInflate + newCharging + newShock
-      vplug = PlayerMon.randomDDPunishmentVagPlugs[1]    
+      vplug = PlayerMon.randomDDPunishmentVagPlugs[1]
     elseif vRoll < newSoulGem + newInflate + newCharging + newShock + newTraining
-      vplug = PlayerMon.randomDDPunishmentVagPlugs[0]    
+      vplug = PlayerMon.randomDDPunishmentVagPlugs[0]
     else;if vRoll < newSoulGem + newInflate + newCharging + newShock + newTraining + newCDEffect
       if belt.HasKeyword(libs.zad_PermitAnal)  
         int pRoll = Utility.RandomInt(1,4)

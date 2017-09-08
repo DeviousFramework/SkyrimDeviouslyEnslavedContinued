@@ -35,37 +35,9 @@ int lastChosenFollower
 actor currentFollower 
 string[] property actorNames Auto
 
-;string Property ModName auto
-
 int function GetVersion()
   return (StartScript.GetVersion() *10000) as int 
 endFunction
-
-; OIDs (T:Text B:Toggle S:Slider M:Menu, C:Color, K:Key)
-int      _toggle1OID_B
-int      _toggle2OID_B
-int      _toggle3OID_B
-int      _textOID_T
-int      _counterOID_T
-int      _sliderFormatOID_S
-int      _difficultyMenuOID_M
-; State
-bool    _toggleState1      = false
-bool    _toggleState2      = false
-bool    _toggleState3      = false
-int      _counter        = 0
-float    _sliderPercent      = 50.0
-int      _curDifficulty      = 0
-; --- Version 2 ---
-; OIDs
-int      _colorOID_C
-; State
-int      _color          = 0xFFFFFF
-; --- Version 3 ---
-; OIDs
-int      _keymapOID_K
-; State
-int      _myKey          = -1
 
 ; @implements SKI_ConfigBase
 event OnOptionMenuOpen(int a_option)
@@ -99,22 +71,6 @@ event OnOptionMenuAccept(int a_option, int a_index)
     ;OnPageReset("Follower dialogue") ; might fix it
     ForcePageReset()
     ;SetMenuOptionValue(a_option, actorNames[lastChosenFollower])
-  endIf
-endEvent
-; @implements SKI_ConfigBase
-event OnOptionColorOpen(int a_option)
-  {Called when a color option has been selected}
-  if (a_option == _colorOID_C)
-    SetColorDialogStartColor(_color)
-    SetColorDialogDefaultColor(0xFFFFFF)
-  endIf
-endEvent
-; @implements SKI_ConfigBase
-event OnOptionColorAccept(int a_option, int a_color)
-  {Called when a new color has been accepted}
-  if (a_option == _colorOID_C)
-    _color = a_color
-    SetColorOptionValue(a_option, a_color)
   endIf
 endEvent
 
@@ -372,7 +328,7 @@ event OnPageReset(string a_page)
     ;bChastityToggleOID              = AddToggleOption("Chastity Protection", bChastityToggle); deprecated: duplicate
     bVulnerableLOSOID                 = AddToggleOption("Line of sight", bVulnerableLOS)
     iWeaponHoldingProtectionLevelOID  = AddSliderOption("Holding weapon Protection", iWeaponHoldingProtectionLevel, "Level {0}")
-    iWeaponWavingProtectionLevelOID   = AddSliderOption("Waving weapon Protection", iWeaponHoldingProtectionLevel, "Level {0}")
+    iWeaponWavingProtectionLevelOID   = AddSliderOption("Waving weapon Protection", iWeaponWavingProtectionLevel, "Level {0}")
     iRelationshipProtectionLevelOID   = AddSliderOption("Relationship Protection Level", iRelationshipProtectionLevel, "Level {0}")
     bVulnerableFurnitureOID           = AddToggleOption("Xaz Furniture", bVulnerableFurniture)
     bAttackersGuardsOID               = AddToggleOption("Guards Toggle",  bAttackersGuards)
@@ -1238,7 +1194,7 @@ event OnOptionSliderOpen(int a_option)
     SetSliderDialogRange(0, 4)
     SetSliderDialogInterval(1)
   elseif a_option == iWeaponWavingProtectionLevelOID
-		SetSliderDialogStartValue(iWeaponHoldingProtectionLevel)
+		SetSliderDialogStartValue(iWeaponWavingProtectionLevel)
     SetSliderDialogRange(0, 4)
     SetSliderDialogInterval( 1 )
     
@@ -2250,27 +2206,6 @@ endEvent
 ;  elseif (a_option == zzzOID)
 ;    zzz = a_value as int
 ;    SetSliderOptionValue(a_option, a_value, "{0}")
-
-; @implements SKI_ConfigBase ; is this even used?
-event OnOptionKeyMapChange(int a_option, int a_keyCode, string a_conflictControl, string a_conflictName)
-  {Called when a key has been remapped}
-  if (a_option == _keymapOID_K)
-    bool continue = true
-    if (a_conflictControl != "")
-      string msg
-      if (a_conflictName != "")
-        msg = "This key is already mapped to:\n'" + a_conflictControl + "'\n(" + a_conflictName + ")\n\nAre you sure you want to continue?"
-      else
-        msg = "This key is already mapped to:\n'" + a_conflictControl + "'\n\nAre you sure you want to continue?"
-      endIf
-      continue = ShowMessage(msg, true, "$Yes", "$No")
-    endIf
-    if (continue)
-      _myKey = a_keyCode
-      SetKeymapOptionValue(a_option, a_keyCode)
-    endIf
-  endIf
-endEvent
 
 ; @implements SKI_ConfigBase
 event OnOptionHighlight(int a_option)
