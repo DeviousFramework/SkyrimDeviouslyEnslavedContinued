@@ -41,8 +41,8 @@ endEvent
 
 function enslave(actor actorRef = none)
   ; broken zombie  code, works but isn't soft dependency??? missing conclusive proof
-	;Quest wolfclub = (Quest.getQuest("crdeModsMonitor") as crdeModsMonitorScript).wolfclubQuest
-	;(wolfclub as pchsWolfclubDAYMOYL).QuestStart(none, none, none)
+  ;Quest wolfclub = (Quest.getQuest("crdeModsMonitor") as crdeModsMonitorScript).wolfclubQuest
+  ;(wolfclub as pchsWolfclubDAYMOYL).QuestStart(none, none, none)
   ;(Mods.wolfclubQuest as pchsWolfclubDAYMOYL).QuestStart(none, none, none)
   ;Mods.wolfclubQuest.QuestStart(none, none, none) ; Can I not just start the quest without the specifics? NOPE, why the fuck have inheritance then bethesda?
   
@@ -53,23 +53,23 @@ function enslave(actor actorRef = none)
   ; lets try a try get instead, getting the quest from the ether rather than from a dependency
     ; nope, still issues for some users
   ;Quest wolfclub = (Quest.GetQuest("pchsWolfclub"))
-	;(wolfclub as pchsWolfclubDAYMOYL).QuestStart(none, none, none)
+  ;(wolfclub as pchsWolfclubDAYMOYL).QuestStart(none, none, none)
   
   ; mod event might work better, if we can get it to work
   SendModEvent("WolfClubEnslavePlayer") ; maybe this one is broken?
 endFunction
 
 bool function canRun()
-	
+  
   ; maybe this code is what was giving me greif? I doubt it frankly.
   ;Quest wolfclub = Mods.wolfclubQuest
-	;if (wolfclub.getStage() > 0 || wolfclub.isRunning() == false)
+  ;if (wolfclub.getStage() > 0 || wolfclub.isRunning() == false)
   
   if Mods.modLoadedWolfclub == false
-		canRunQuest = false
-		return false
-	else
-		canRunQuest = true
-		return true
-	endif
+    canRunQuest = false
+    return false
+  else
+    canRunQuest = true
+    return true
+  endif
 endFunction

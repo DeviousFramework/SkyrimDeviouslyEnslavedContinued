@@ -43,9 +43,9 @@ FormList Property playersRemovedItems Auto
 
 ; needs detailed description
 Event OnPlayerLoadGame()
-	Startup.needsMaintenance = true
-	Startup.RegisterForSingleUpdate(2)
-	equipmentChanged  = true
+  Startup.needsMaintenance = true
+  Startup.RegisterForSingleUpdate(2)
+  equipmentChanged  = true
   weaponChanged     = true
   if Mods.bRefreshModDetect
     SendModEvent("crdemodsreset")
@@ -57,7 +57,7 @@ EndEvent
 ;  so instead, we set the variable to check, and we check once every onUpdate loop like before, we just don't need 
 ;  to check if no items are being swapped, should be a tad lighter on the scripts
 Event OnObjectEquipped(Form akBaseObject, ObjectReference akReference)
-	
+  
   if akBaseObject as Armor ; aparently eating/potions/herbs counts as equiping, also weapons
     equipmentChanged  = true
   ;elseif akBaseObject as Weapon
@@ -74,8 +74,8 @@ endEvent
 
 Event OnObjectUnequipped(Form akBaseObject, ObjectReference akReference)
   ; COULD put clause to check if player was already vulnerable first, you can't become vulnerable from not
-	
-	if akBaseObject as Armor ; apparently eating/potions/herbs counts as equiping, also weapons
+  
+  if akBaseObject as Armor ; apparently eating/potions/herbs counts as equiping, also weapons
     equipmentChanged = true
     if akBaseObject != None && playersRemovedItems != None
       playersRemovedItems.addForm(akBaseObject)
@@ -114,5 +114,5 @@ EndEvent
 
 
 ;bool Function getEquipmentChanged()
-;	return equipmentChanged
+;  return equipmentChanged
 ;EndFunction

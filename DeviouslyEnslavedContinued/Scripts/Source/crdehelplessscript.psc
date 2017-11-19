@@ -29,8 +29,8 @@ Scriptname crdeHelplessScript extends Quest  Conditional
 Quest helpless
 
 function StopSceneAndClear()
-	Debug.Trace("[CRDE] Clearing Helpless for real...")
-	helpless = Game.GetFormFromFile(0x00000D62, "DeviouslyHelpless.esp") as quest
-	(helpless as WD_Util).StopSceneAndClear()
-	Debug.Trace("[CRDE] Clearing Helpless is done!")
+  Debug.Trace("[CRDE] Clearing Helpless for real...")
+  helpless = Game.GetFormFromFile(0x00000D62, "DeviouslyHelpless.esp") as quest
+  (helpless as WD_Util).StopSceneAndClear()
+  Debug.Trace("[CRDE] Clearing Helpless is done!")
 endFunction

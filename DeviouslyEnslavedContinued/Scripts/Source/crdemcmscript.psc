@@ -141,6 +141,7 @@ endEvent
 event OnVersionUpdate(int a_version)
   {Called when a version update of this script has been detected}
   ; what. nothing? why even override?
+  
 endEvent
 
 
@@ -213,7 +214,7 @@ event OnPageReset(string a_page)
     iWeightSingleDDOID         = AddSliderOption("Standard Devious Device", iWeightSingleDD, "{0}")
     iWeightMultiDDOID          = AddSliderOption("Multiple Devious Devices", iWeightMultiDD, "{0}")
     iWeightUniqueCollarsOID    = AddSliderOption("Unique Collars", iWeightUniqueCollars, "{0}")
-    iWeightRandomCDOID         = AddSliderOption("Random CD collection", iWeightRandomCD, "{0}")
+    iWeightRandomCDOID         = AddSliderOption("Random CD collection", iWeightRandomCD, "{0}", (!Mods.modLoadedCD) as int)
 
     
     AddEmptyOption() ; spacer
@@ -251,28 +252,24 @@ event OnPageReset(string a_page)
     iWeightDeviousPunishEquipmentProstitutedCollarOID = AddSliderOption("Prostituted Collar", iWeightDeviousPunishEquipmentProstitutedCollar, "{0}", (!Mods.modLoadedDeviousPunishEquipment) as int)
     iWeightDeviousPunishEquipmentNakedCollarOID       = AddSliderOption("Naked Collar", iWeightDeviousPunishEquipmentNakedCollar, "{0}",(!Mods.modLoadedDeviousPunishEquipment) as int)
     iWeightStripCollarOID             = AddSliderOption("Strip Collar", iWeightStripCollar, "{0}", (!Mods.modLoadedCursedLoot) as int)
-    
+    iWeightHeavyCollarOID             = AddSliderOption("DCUR Heavy Collar", iWeightHeavyCollar, "{0}", (!Mods.modLoadedCursedLoot) as int);
+
     AddEmptyOption() ; spacer
     ;AddHeaderOption("Event weights")
         ;AddEmptyOption() ; spacer
 
     SetCursorPosition(1) ; switched sides
-    
-    AddHeaderOption("Theme weights")
-    ;iWeightDDRegularOID           = AddSliderOption("Single DD Items", iWeightDDRegular, "{0}", 1);(!Mods.iWeightDDRegular) as int)
-    iWeightDDZazVelOID            = AddSliderOption("Single DD-Zaz Items", iWeightDDZazVel, "{0}", 1);(!Mods.iWeightDDZazVel) as int)
-    iWeightZazRegOID              = AddSliderOption("Single Zaz Items", iWeightZazReg, "{0}", 1);(!Mods.iWeightZazReg) as int)
+    AddHeaderOption("Belts")
+    iWeightBeltPunishmentOID      = AddSliderOption("Punishment Belt", iWeightBeltPunishment, "{0}")
+    iWeightBeltRegularOID         = AddSliderOption("Regular Belt", iWeightBeltRegular, "{0}")
     AddEmptyOption() ; spacer
+    iWeightBeltPaddedOID                  = AddSliderOption("Padded Belt", iWeightBeltPadded, "{0}")
+    iWeightBeltIronOID                    = AddSliderOption("Iron Belt",  iWeightBeltIron, "{0}")
+    iWeightBeltRegulationsImperialOID     = AddSliderOption("Imperial Belt", iWeightBeltRegulationsImperial, "{0}", (!Mods.modLoadedDeviousRegulations) as int)
+    iWeightBeltRegulationsStormCloakOID   = AddSliderOption("StormCloak Belt", iWeightBeltRegulationsStormCloak, "{0}", (!Mods.modLoadedDeviousRegulations) as int)
+    iWeightBeltShameOID                   = AddSliderOption("Shame belt", iWeightBeltShame, "{0}", (!Mods.modLoadedCursedLoot) as int)
+    iWeightBeltCDOID                      = AddSliderOption("CD belt", iWeightBeltCD, "{0}", (!Mods.modLoadedCD) as int)
 
-    iWeightEboniteRegularOID      = AddSliderOption("Black Ebonite", iWeightEboniteRegular, "{0}", 1)
-    iWeightEboniteRedOID          = AddSliderOption("Red Ebonite", iWeightEboniteRed, "{0}" , 1)
-    iWeightEboniteWhiteOID        = AddSliderOption("White Ebonite", iWeightEboniteWhite, "{0}", 1)
-    iWeightZazMetalBrownOID       = AddSliderOption("Brown Metal Zaz", iWeightZazMetalBrown, "{0}", 1);(!Mods.iWeightZazMetalBrown) as int)
-    iWeightZazMetalBlackOID       = AddSliderOption("Black Metal Zaz", iWeightZazMetalBlack, "{0}", 1);(!Mods.iWeightZazMetalBlack) as int)
-    iWeightZazLeatherOID          = AddSliderOption("Leather Zaz", iWeightZazLeather, "{0}", 1);(!Mods.iWeightZazLeather) as int)
-    iWeightZazRopeOID             = AddSliderOption("Rope Zaz", iWeightZazRope, "{0}", 1);(!Mods.iWeightZazRope) as int)
-    iWeightCDGoldOID              = AddSliderOption("CD Gold", iWeightCDGold, "{0}", 1);(!Mods.iWeightCDGold) as int)
-    iWeightCDSilverOID            = AddSliderOption("CD Silver", iWeightCDSilver, "{0}", 1);(!Mods.iWeightCDSilver) as int)
     
     AddEmptyOption() ; spacer
     AddHeaderOption("Plugs and stuff")
@@ -291,30 +288,37 @@ event OnPageReset(string a_page)
     iWeightPlugWoodOID            = AddSliderOption("Wood plugs", iWeightPlugWood, "{0}", 1);(!Mods.iWeightPlugWood) as int)
     iWeightPlugDashaOID           = AddSliderOption("Devious Toys Plugs", iWeightPlugDasha, "{0}", 1);(!Mods.iWeightPlugDasha) as int)
 
-    AddEmptyOption() ; spacer
-    AddHeaderOption("Belts")
-    iWeightBeltPunishmentOID      = AddSliderOption("Punishment Belt", iWeightBeltPunishment, "{0}")
-    iWeightBeltRegularOID         = AddSliderOption("Regular Belt", iWeightBeltRegular, "{0}")
-    AddEmptyOption() ; spacer
-    iWeightBeltPaddedOID                  = AddSliderOption("Padded Belt", iWeightBeltPadded, "{0}")
-    iWeightBeltIronOID                    = AddSliderOption("Iron Belt",  iWeightBeltIron, "{0}")
-    iWeightBeltRegulationsImperialOID     = AddSliderOption("Imperial Belt", iWeightBeltRegulationsImperial, "{0}", (!Mods.modLoadedDeviousRegulations) as int)
-    iWeightBeltRegulationsStormCloakOID   = AddSliderOption("StormCloak Belt", iWeightBeltRegulationsStormCloak, "{0}", (!Mods.modLoadedDeviousRegulations) as int)
-    iWeightBeltShameOID                   = AddSliderOption("Shame belt", iWeightBeltShame, "{0}", (!Mods.modLoadedCursedLoot) as int)
-    iWeightBeltCDOID                      = AddSliderOption("CD belt", iWeightBeltCD, "{0}", (!Mods.modLoadedCD) as int)
+    ;AddEmptyOption() ; spacer
 
     AddEmptyOption() ; spacer
-    AddHeaderOption("Boots")
-    iWeightBootsSlaveOID        = AddSliderOption("iWeightBootsSlave", iWeightBootsSlave, "{0}", 1);(!Mods.iWeightBootsSlave) as int)
-    iWeightBootsRestrictiveOID  = AddSliderOption("iWeightBootsRestrictive", iWeightBootsRestrictive, "{0}", 1);(!Mods.iWeightBootsRestrictive) as int)
-    iWeightBootsPonyOID         = AddSliderOption("iWeightBootsPony", iWeightBootsPony, "{0}", 1);(!Mods.iWeightBootsPony) as int)
-    ; punishment boots from that one guys mod
+    AddHeaderOption("Gags")
+    iWeightGagBallOID          = AddSliderOption("Ball gag", iWeightGagBall, "{0}");
+    iWeightGagRingOID          = AddSliderOption("Ring Gag", iWeightGagRing, "{0}");
+    iWeightGagPanelOID         = AddSliderOption("Panal Gag", iWeightGagPanel, "{0}");
+    iWeightGagPenisOID         = AddSliderOption("DCUR Penis Gag", iWeightGagPenis, "{0}", (!Mods.modLoadedCursedLoot) as int);
+    ; penis gag from DCUR
     
     AddEmptyOption() ; spacer
     AddHeaderOption("Tattoos")
     iWeightSlutTattooOID    = AddSliderOption("iWeightSlutTattoo", iWeightSlutTattoo, "{0}", 1);(!Mods.iWeightSlutTattoo) as int)
     iWeightSlaveTattooOID   = AddSliderOption("iWeightSlaveTattoo", iWeightSlaveTattoo, "{0}", 1);(!Mods.iWeightSlaveTattoo) as int)
     iWeightWhoreTattooOID   = AddSliderOption("iWeightWhoreTattoo", iWeightWhoreTattoo, "{0}", 1);(!Mods.iWeightWhoreTattoo) as int)
+
+    ;AddHeaderOption("Theme weights")
+    ;iWeightDDRegularOID           = AddSliderOption("Single DD Items", iWeightDDRegular, "{0}", 1);(!Mods.iWeightDDRegular) as int)
+    ;iWeightDDZazVelOID            = AddSliderOption("Single DD-Zaz Items", iWeightDDZazVel, "{0}", 1);(!Mods.iWeightDDZazVel) as int)
+    ;iWeightZazRegOID              = AddSliderOption("Single Zaz Items", iWeightZazReg, "{0}", 1);(!Mods.iWeightZazReg) as int)
+    ;AddEmptyOption() ; spacer
+
+    ;iWeightEboniteRegularOID      = AddSliderOption("Black Ebonite", iWeightEboniteRegular, "{0}", 1)
+    ;iWeightEboniteRedOID          = AddSliderOption("Red Ebonite", iWeightEboniteRed, "{0}" , 1)
+    ;iWeightEboniteWhiteOID        = AddSliderOption("White Ebonite", iWeightEboniteWhite, "{0}", 1)
+    ;iWeightZazMetalBrownOID       = AddSliderOption("Brown Metal Zaz", iWeightZazMetalBrown, "{0}", 1);(!Mods.iWeightZazMetalBrown) as int)
+    ;iWeightZazMetalBlackOID       = AddSliderOption("Black Metal Zaz", iWeightZazMetalBlack, "{0}", 1);(!Mods.iWeightZazMetalBlack) as int)
+    ;iWeightZazLeatherOID          = AddSliderOption("Leather Zaz", iWeightZazLeather, "{0}", 1);(!Mods.iWeightZazLeather) as int)
+    ;iWeightZazRopeOID             = AddSliderOption("Rope Zaz", iWeightZazRope, "{0}", 1);(!Mods.iWeightZazRope) as int)
+    ;iWeightCDGoldOID              = AddSliderOption("CD Gold", iWeightCDGold, "{0}", 1);(!Mods.iWeightCDGold) as int)
+    ;iWeightCDSilverOID            = AddSliderOption("CD Silver", iWeightCDSilver, "{0}", 1);(!Mods.iWeightCDSilver) as int)
 
     
   elseif a_page == Pages[3] ; vulnerability
@@ -939,6 +943,7 @@ event OnOptionSelect(int a_option)
     ; lets try this instead, since we can't call the reset without issues in the thread, lets just reset the quest
     if Mods.bRefreshModDetect
       SendModEvent("crderesetmods")
+      ; This is here because we want to reset this only when the user specifies, not every save load, that is worthless.
     endif
   elseif a_option == bSetValidRaceOID
     ;bSetValidRace = ! bSetValidRace
@@ -1147,7 +1152,7 @@ event OnOptionSliderOpen(int a_option)
     SetSliderDialogStartValue(iWeightSlutCollar)
     SetSliderDialogDefaultValue(8)
     SetSliderDialogRange(0, 100)
-    SetSliderDialogInterval(1) ;iWeightRubberDollCollar
+    SetSliderDialogInterval(1)
   elseif (a_option == iWeightRubberDollCollarOID)
     SetSliderDialogStartValue(iWeightRubberDollCollar)
     SetSliderDialogDefaultValue(8)
@@ -1194,7 +1199,7 @@ event OnOptionSliderOpen(int a_option)
     SetSliderDialogRange(0, 4)
     SetSliderDialogInterval(1)
   elseif a_option == iWeaponWavingProtectionLevelOID
-		SetSliderDialogStartValue(iWeaponWavingProtectionLevel)
+    SetSliderDialogStartValue(iWeaponWavingProtectionLevel)
     SetSliderDialogRange(0, 4)
     SetSliderDialogInterval( 1 )
     
@@ -1205,31 +1210,31 @@ event OnOptionSliderOpen(int a_option)
     SetSliderDialogInterval(1)
   
   elseif a_option == iWeightConfidenceArousalOverrideOID
-		SetSliderDialogStartValue(iWeightConfidenceArousalOverride)
+    SetSliderDialogStartValue(iWeightConfidenceArousalOverride)
     SetSliderDialogRange(0, 150)
     SetSliderDialogInterval( 1 )
   elseif a_option == iReqLevelSLSFExhibIncreaseVulnerableOID
-		SetSliderDialogStartValue(iReqLevelSLSFExhibIncreaseVulnerable)
+    SetSliderDialogStartValue(iReqLevelSLSFExhibIncreaseVulnerable)
     SetSliderDialogRange(0, 150)
     SetSliderDialogInterval( 1 )
   elseif a_option == iReqLevelSLSFExhibMakeVulnerableOID
-		SetSliderDialogStartValue(iReqLevelSLSFExhibMakeVulnerable)
+    SetSliderDialogStartValue(iReqLevelSLSFExhibMakeVulnerable)
     SetSliderDialogRange(0, 150)
     SetSliderDialogInterval( 1 )
   elseif a_option == iReqLevelSLSFSlutIncreaseVulnerableOID
-		SetSliderDialogStartValue(iReqLevelSLSFSlutIncreaseVulnerable)
+    SetSliderDialogStartValue(iReqLevelSLSFSlutIncreaseVulnerable)
     SetSliderDialogRange(0, 150)
     SetSliderDialogInterval( 1 )
   elseif a_option == iReqLevelSLSFSlutMakeVulnerableOID
-		SetSliderDialogStartValue(iReqLevelSLSFSlutMakeVulnerable)
+    SetSliderDialogStartValue(iReqLevelSLSFSlutMakeVulnerable)
     SetSliderDialogRange(0, 150)
     SetSliderDialogInterval( 1 )
   elseif a_option == iReqLevelSLSFSlaveIncreaseVulnerableOID
-		SetSliderDialogStartValue(iReqLevelSLSFSlaveIncreaseVulnerable)
+    SetSliderDialogStartValue(iReqLevelSLSFSlaveIncreaseVulnerable)
     SetSliderDialogRange(0, 150)
     SetSliderDialogInterval( 1 )
   elseif a_option == iReqLevelSLSFSlaveMakeVulnerableOID
-		SetSliderDialogStartValue(iReqLevelSLSFSlaveMakeVulnerable)
+    SetSliderDialogStartValue(iReqLevelSLSFSlaveMakeVulnerable)
     SetSliderDialogRange(0, 150)
     SetSliderDialogInterval( 1 )
   
@@ -1333,12 +1338,12 @@ event OnOptionSliderOpen(int a_option)
     SetSliderDialogInterval( 1 )
     
   elseif a_option == iDistanceWeightDCVampireOID
-		SetSliderDialogStartValue(iDistanceWeightDCVampire)
+    SetSliderDialogStartValue(iDistanceWeightDCVampire)
     SetSliderDialogDefaultValue(0)
     SetSliderDialogRange(0, 150)
     SetSliderDialogInterval( 1 )
   elseif a_option == iDistanceWeightDCBanditsOID
-		SetSliderDialogStartValue(iDistanceWeightDCBandits)
+    SetSliderDialogStartValue(iDistanceWeightDCBandits)
     SetSliderDialogDefaultValue(0)
     SetSliderDialogRange(0, 150)
     SetSliderDialogInterval( 1 ) 
@@ -1360,292 +1365,304 @@ event OnOptionSliderOpen(int a_option)
     SetSliderDialogInterval( 1 )
 
   elseif a_option == iWeightSingleCollarOID
-		SetSliderDialogStartValue(iWeightSingleCollar)
+    SetSliderDialogStartValue(iWeightSingleCollar)
     SetSliderDialogRange(0, 150)
     SetSliderDialogInterval( 1 )
   elseif a_option == iWeightSingleGagOID
-		SetSliderDialogStartValue(iWeightSingleGag)
+    SetSliderDialogStartValue(iWeightSingleGag)
     SetSliderDialogRange(0, 150)
     SetSliderDialogInterval( 1 )
   elseif a_option == iWeightSingleArmbinderOID
-		SetSliderDialogStartValue(iWeightSingleArmbinder)
+    SetSliderDialogStartValue(iWeightSingleArmbinder)
     SetSliderDialogRange(0, 150)
     SetSliderDialogInterval( 1 )
   elseif a_option == iWeightSingleCuffsOID
-		SetSliderDialogStartValue(iWeightSingleCuffs)
+    SetSliderDialogStartValue(iWeightSingleCuffs)
     SetSliderDialogRange(0, 150)
     SetSliderDialogInterval( 1 )
   elseif a_option == iWeightSingleBlindfoldOID
-		SetSliderDialogStartValue(iWeightSingleBlindfold)
+    SetSliderDialogStartValue(iWeightSingleBlindfold)
     SetSliderDialogRange(0, 150)
     SetSliderDialogInterval( 1 )
   elseif a_option == iWeightSingleHarnessOID
-		SetSliderDialogStartValue(iWeightSingleHarness)
+    SetSliderDialogStartValue(iWeightSingleHarness)
     SetSliderDialogRange(0, 150)
     SetSliderDialogInterval( 1 )
   elseif a_option == iWeightSingleBeltOID
-		SetSliderDialogStartValue(iWeightSingleBelt)
+    SetSliderDialogStartValue(iWeightSingleBelt)
     SetSliderDialogRange(0, 150)
     SetSliderDialogInterval( 1 )
   elseif a_option == iWeightSingleGlovesBootsOID
-		SetSliderDialogStartValue(iWeightSingleGlovesBoots)
+    SetSliderDialogStartValue(iWeightSingleGlovesBoots)
     SetSliderDialogRange(0, 150)
     SetSliderDialogInterval( 1 )
   elseif a_option == iWeightSingleYokeOID
-		SetSliderDialogStartValue(iWeightSingleYoke)
+    SetSliderDialogStartValue(iWeightSingleYoke)
     SetSliderDialogRange(0, 150)
     SetSliderDialogInterval( 1 )
   elseif a_option == iWeightPiercingsOID
-		SetSliderDialogStartValue(iWeightPiercings)
+    SetSliderDialogStartValue(iWeightPiercings)
     SetSliderDialogRange(0, 150)
     SetSliderDialogInterval( 1 )
   elseif a_option == iWeightPlugsOID
-		SetSliderDialogStartValue(iWeightPlugs)
+    SetSliderDialogStartValue(iWeightPlugs)
     SetSliderDialogRange(0, 150)
     SetSliderDialogInterval( 1 )
   elseif a_option == iWeightEboniteRegularOID
-		SetSliderDialogStartValue(iWeightEboniteRegular)
+    SetSliderDialogStartValue(iWeightEboniteRegular)
     SetSliderDialogRange(0, 150)
     SetSliderDialogInterval( 1 )
   elseif a_option == iWeightEboniteRedOID
-		SetSliderDialogStartValue(iWeightEboniteRed)
+    SetSliderDialogStartValue(iWeightEboniteRed)
     SetSliderDialogRange(0, 150)
     SetSliderDialogInterval( 1 )
   elseif a_option == iWeightEboniteWhiteOID
-		SetSliderDialogStartValue(iWeightEboniteWhite)
+    SetSliderDialogStartValue(iWeightEboniteWhite)
     SetSliderDialogRange(0, 150)
     SetSliderDialogInterval( 1 )
   elseif a_option == iWeightZazMetalBrownOID
-		SetSliderDialogStartValue(iWeightZazMetalBrown)
+    SetSliderDialogStartValue(iWeightZazMetalBrown)
     SetSliderDialogRange(0, 150)
     SetSliderDialogInterval( 1 )
   elseif a_option == iWeightZazMetalBlackOID
-		SetSliderDialogStartValue(iWeightZazMetalBlack)
+    SetSliderDialogStartValue(iWeightZazMetalBlack)
     SetSliderDialogRange(0, 150)
     SetSliderDialogInterval( 1 )
   elseif a_option == iWeightZazLeatherOID
-		SetSliderDialogStartValue(iWeightZazLeather)
+    SetSliderDialogStartValue(iWeightZazLeather)
     SetSliderDialogRange(0, 150)
     SetSliderDialogInterval( 1 )
   elseif a_option == iWeightZazRopeOID
-		SetSliderDialogStartValue(iWeightZazRope)
+    SetSliderDialogStartValue(iWeightZazRope)
     SetSliderDialogRange(0, 150)
     SetSliderDialogInterval( 1 )
   elseif a_option == iWeightCDGoldOID
-		SetSliderDialogStartValue(iWeightCDGold)
+    SetSliderDialogStartValue(iWeightCDGold)
     SetSliderDialogRange(0, 150)
     SetSliderDialogInterval( 1 )
   elseif a_option == iWeightCDSilverOID
-		SetSliderDialogStartValue(iWeightCDSilver)
+    SetSliderDialogStartValue(iWeightCDSilver)
     SetSliderDialogRange(0, 150)
     SetSliderDialogInterval( 1 )
   elseif a_option == iWeightDDRegularOID
-		SetSliderDialogStartValue(iWeightDDRegular)
+    SetSliderDialogStartValue(iWeightDDRegular)
     SetSliderDialogRange(0, 150)
     SetSliderDialogInterval( 1 )
   elseif a_option == iWeightDDZazVelOID
-		SetSliderDialogStartValue(iWeightDDZazVel)
+    SetSliderDialogStartValue(iWeightDDZazVel)
     SetSliderDialogRange(0, 150)
     SetSliderDialogInterval( 1 )
   elseif a_option == iWeightZazRegOID
-		SetSliderDialogStartValue(iWeightZazReg)
+    SetSliderDialogStartValue(iWeightZazReg)
     SetSliderDialogRange(0, 150)
     SetSliderDialogInterval( 1 )
   elseif a_option == iWeightMultiPonyOID
-		SetSliderDialogStartValue(iWeightMultiPony)
+    SetSliderDialogStartValue(iWeightMultiPony)
     SetSliderDialogRange(0, 150)
     SetSliderDialogInterval( 1 )
   elseif a_option == iWeightMultiRedBNCOID
-		SetSliderDialogStartValue(iWeightMultiRedBNC)
+    SetSliderDialogStartValue(iWeightMultiRedBNC)
     SetSliderDialogRange(0, 150)
     SetSliderDialogInterval( 1 )
   elseif a_option == iWeightMultiSeveralOID
-		SetSliderDialogStartValue(iWeightMultiSeveral)
+    SetSliderDialogStartValue(iWeightMultiSeveral)
     SetSliderDialogRange(0, 150)
     SetSliderDialogInterval( 1 )
   elseif a_option == iWeightMultiTransparentOID
-		SetSliderDialogStartValue(iWeightMultiTransparent)
+    SetSliderDialogStartValue(iWeightMultiTransparent)
     SetSliderDialogRange(0, 150)
     SetSliderDialogInterval( 1 )
   elseif a_option == iWeightMultiRubberOID
-		SetSliderDialogStartValue(iWeightMultiRubber)
+    SetSliderDialogStartValue(iWeightMultiRubber)
     SetSliderDialogRange(0, 150)
     SetSliderDialogInterval( 1 )
   elseif a_option == iWeightPiercingsSoulGemOID
-		SetSliderDialogStartValue(iWeightPiercingsSoulGem)
+    SetSliderDialogStartValue(iWeightPiercingsSoulGem)
     SetSliderDialogRange(0, 150)
     SetSliderDialogInterval( 1 )
   elseif a_option == iWeightPiercingsShockOID
-		SetSliderDialogStartValue(iWeightPiercingsShock)
+    SetSliderDialogStartValue(iWeightPiercingsShock)
     
     SetSliderDialogRange(0, 150)
     SetSliderDialogInterval( 1 )
   elseif a_option == iWeightPlugSoulGemOID
-		SetSliderDialogStartValue(iWeightPlugSoulGem)
+    SetSliderDialogStartValue(iWeightPlugSoulGem)
     SetSliderDialogRange(0, 150)
     SetSliderDialogInterval( 1 )
   elseif a_option == iWeightPlugWoodOID
-		SetSliderDialogStartValue(iWeightPlugWood)
+    SetSliderDialogStartValue(iWeightPlugWood)
     SetSliderDialogRange(0, 150)
     SetSliderDialogInterval( 1 )
   elseif a_option == iWeightPlugInflatableOID
-		SetSliderDialogStartValue(iWeightPlugInflatable)
+    SetSliderDialogStartValue(iWeightPlugInflatable)
     SetSliderDialogRange(0, 150)
     SetSliderDialogInterval( 1 )
   elseif a_option == iWeightPlugTrainingOID
-		SetSliderDialogStartValue(iWeightPlugTraining)
+    SetSliderDialogStartValue(iWeightPlugTraining)
     SetSliderDialogRange(0, 150)
     SetSliderDialogInterval( 1 )
   elseif a_option == iWeightPlugCDClassOID
-		SetSliderDialogStartValue(iWeightPlugCDSpecial)
+    SetSliderDialogStartValue(iWeightPlugCDSpecial)
     SetSliderDialogRange(0, 150)
     SetSliderDialogInterval( 1 )
   elseif a_option == iWeightPlugCDEffectOID
-		SetSliderDialogStartValue(iWeightPlugCDEffect)
+    SetSliderDialogStartValue(iWeightPlugCDEffect)
     SetSliderDialogRange(0, 150)
     SetSliderDialogInterval( 1 )
   elseif a_option == iWeightPlugChargingOID
-		SetSliderDialogStartValue(iWeightPlugCharging)
+    SetSliderDialogStartValue(iWeightPlugCharging)
     SetSliderDialogRange(0, 150)
     SetSliderDialogInterval( 1 )
   elseif a_option == iWeightPlugDashaOID
-		SetSliderDialogStartValue(iWeightPlugDasha)
+    SetSliderDialogStartValue(iWeightPlugDasha)
     SetSliderDialogRange(0, 150)
     SetSliderDialogInterval( 1 )
   elseif a_option == iWeightBeltPunishmentOID
-		SetSliderDialogStartValue(iWeightBeltPunishment)
+    SetSliderDialogStartValue(iWeightBeltPunishment)
     SetSliderDialogRange(0, 150)
     SetSliderDialogInterval( 1 )
   elseif a_option == iWeightBeltRegularOID
-		SetSliderDialogStartValue(iWeightBeltRegular)
+    SetSliderDialogStartValue(iWeightBeltRegular)
     SetSliderDialogRange(0, 150)
     SetSliderDialogInterval( 1 )
   elseif a_option == iWeightBeltShameOID
-		SetSliderDialogStartValue(iWeightBeltShame)
+    SetSliderDialogStartValue(iWeightBeltShame)
     SetSliderDialogRange(0, 150)
     SetSliderDialogInterval( 1 )
   elseif a_option == iWeightBeltCDOID
-		SetSliderDialogStartValue(iWeightBeltCD)
+    SetSliderDialogStartValue(iWeightBeltCD)
     SetSliderDialogRange(0, 150)
     SetSliderDialogInterval( 1 )
   elseif a_option == iWeightBeltRegulationsImperialOID
-		SetSliderDialogStartValue(iWeightBeltRegulationsImperial)
+    SetSliderDialogStartValue(iWeightBeltRegulationsImperial)
     SetSliderDialogRange(0, 150)
     SetSliderDialogInterval( 1 )
   elseif a_option == iWeightBeltRegulationsStormCloakOID
-		SetSliderDialogStartValue(iWeightBeltRegulationsStormCloak)
+    SetSliderDialogStartValue(iWeightBeltRegulationsStormCloak)
     SetSliderDialogRange(0, 150)
     SetSliderDialogInterval( 1 )
   elseif a_option == iWeightUniqueCollarsOID
-		SetSliderDialogStartValue(iWeightUniqueCollars)
+    SetSliderDialogStartValue(iWeightUniqueCollars)
     SetSliderDialogRange(0, 150)
     SetSliderDialogInterval( 1 )  
   elseif a_option == iWeightRandomCDOID
-		SetSliderDialogStartValue(iWeightRandomCD)
+    SetSliderDialogStartValue(iWeightRandomCD)
     SetSliderDialogRange(0, 150)
     SetSliderDialogInterval( 1 )
     
     
   elseif a_option == iWeightDeviousPunishEquipmentBannnedCollarOID
-		SetSliderDialogStartValue(iWeightDeviousPunishEquipmentBannnedCollar)
+    SetSliderDialogStartValue(iWeightDeviousPunishEquipmentBannnedCollar)
     SetSliderDialogRange(0, 150)
     SetSliderDialogInterval( 1 )
   elseif a_option == iWeightDeviousPunishEquipmentProstitutedCollarOID
-		SetSliderDialogStartValue(iWeightDeviousPunishEquipmentProstitutedCollar)
+    SetSliderDialogStartValue(iWeightDeviousPunishEquipmentProstitutedCollar)
     SetSliderDialogRange(0, 150)
     SetSliderDialogInterval( 1 )
   elseif a_option == iWeightDeviousPunishEquipmentNakedCollarOID
-		SetSliderDialogStartValue(iWeightDeviousPunishEquipmentNakedCollar)
+    SetSliderDialogStartValue(iWeightDeviousPunishEquipmentNakedCollar)
     SetSliderDialogRange(0, 150)
     SetSliderDialogInterval( 1 )
     
   elseif a_option == iWeightBeltPaddedOID
-		SetSliderDialogStartValue(iWeightBeltPadded)
+    SetSliderDialogStartValue(iWeightBeltPadded)
     SetSliderDialogDefaultValue(0)
     SetSliderDialogRange(0, 150)
     SetSliderDialogInterval( 1 )
   elseif a_option == iWeightBeltIronOID
-		SetSliderDialogStartValue(iWeightBeltIron)
+    SetSliderDialogStartValue(iWeightBeltIron)
     SetSliderDialogDefaultValue(0)
     SetSliderDialogRange(0, 150)
     SetSliderDialogInterval( 1 )    
   elseif a_option == iWeightPlugShockOID
-		SetSliderDialogStartValue(iWeightPlugShock)
+    SetSliderDialogStartValue(iWeightPlugShock)
     SetSliderDialogDefaultValue(0)
     SetSliderDialogRange(0, 150)
     SetSliderDialogInterval( 1 )
   
   elseif a_option == iWeightSingleBootsOID
-		SetSliderDialogStartValue(iWeightSingleBoots)
+    SetSliderDialogStartValue(iWeightSingleBoots)
     SetSliderDialogDefaultValue(0)
     SetSliderDialogRange(0, 150)
     SetSliderDialogInterval( 1 )
   elseif a_option == iWeightSingleAnkleChainsOID
-		SetSliderDialogStartValue(iWeightSingleAnkleChains)
+    SetSliderDialogStartValue(iWeightSingleAnkleChains)
     SetSliderDialogDefaultValue(0)
     SetSliderDialogRange(0, 150)
     SetSliderDialogInterval( 1 )
   elseif a_option == iWeightSingleHoodOID
-		SetSliderDialogStartValue(iWeightSingleHood)
+    SetSliderDialogStartValue(iWeightSingleHood)
     SetSliderDialogDefaultValue(0)
     SetSliderDialogRange(0, 150)
     SetSliderDialogInterval( 1 )
-  elseif a_option == iWeightBootsSlaveOID
-		SetSliderDialogStartValue(iWeightBootsSlave)
+    
+
+  elseif a_option == iWeightGagBallOID
+    SetSliderDialogStartValue(iWeightGagBall)
     SetSliderDialogDefaultValue(0)
     SetSliderDialogRange(0, 150)
     SetSliderDialogInterval( 1 )
-  elseif a_option == iWeightBootsRestrictiveOID
-		SetSliderDialogStartValue(iWeightBootsRestrictive)
+  elseif a_option == iWeightGagRingOID
+    SetSliderDialogStartValue(iWeightGagRing)
     SetSliderDialogDefaultValue(0)
     SetSliderDialogRange(0, 150)
     SetSliderDialogInterval( 1 )
-  elseif a_option == iWeightBootsPonyOID
-		SetSliderDialogStartValue(iWeightBootsPony)
+  elseif a_option == iWeightGagPanelOID
+    SetSliderDialogStartValue(iWeightGagPanel)
     SetSliderDialogDefaultValue(0)
     SetSliderDialogRange(0, 150)
     SetSliderDialogInterval( 1 )
-  elseif a_option == iWeightStripCollarOID
-		SetSliderDialogStartValue(iWeightStripCollar)
+  elseif a_option == iWeightGagPenisOID
+    SetSliderDialogStartValue(iWeightGagPenis)
+    SetSliderDialogDefaultValue(0)
+    SetSliderDialogRange(0, 150)
+    SetSliderDialogInterval( 1 )
+  elseif a_option == iWeightStripCollarOID 
+    SetSliderDialogStartValue(iWeightStripCollar)
+    SetSliderDialogDefaultValue(0)
+    SetSliderDialogRange(0, 150)
+    SetSliderDialogInterval( 1 )
+  elseif a_option == iWeightHeavyCollarOID
+    SetSliderDialogStartValue(iWeightHeavyCollar)
     SetSliderDialogDefaultValue(0)
     SetSliderDialogRange(0, 150)
     SetSliderDialogInterval( 1 )
   elseif a_option == iWeightSlutTattooOID
-		SetSliderDialogStartValue(iWeightSlutTattoo)
+    SetSliderDialogStartValue(iWeightSlutTattoo)
     SetSliderDialogDefaultValue(0)
     SetSliderDialogRange(0, 150)
     SetSliderDialogInterval( 1 )
   elseif a_option == iWeightSlaveTattooOID
-		SetSliderDialogStartValue(iWeightSlaveTattoo)
+    SetSliderDialogStartValue(iWeightSlaveTattoo)
     SetSliderDialogDefaultValue(0)
     SetSliderDialogRange(0, 150)
     SetSliderDialogInterval( 1 )
   elseif a_option == iWeightWhoreTattooOID
-		SetSliderDialogStartValue(iWeightWhoreTattoo)
+    SetSliderDialogStartValue(iWeightWhoreTattoo)
     SetSliderDialogDefaultValue(0)
     SetSliderDialogRange(0, 150)
     SetSliderDialogInterval( 1 )
     
   elseif a_option == fNightReqArousalModifierOID
-		;SetSliderDialogStartValue(fNightReqArousalModifier)
- 		SetSliderDialogStartValue(1.0)
+    ;SetSliderDialogStartValue(fNightReqArousalModifier)
+     SetSliderDialogStartValue(1.0)
     SetSliderDialogDefaultValue(1)
     SetSliderDialogRange(0.1, 10)
     SetSliderDialogInterval( 0.1 )
   elseif a_option == fNightDistanceModifierOID
-		SetSliderDialogStartValue(1.0)
+    SetSliderDialogStartValue(1.0)
     SetSliderDialogDefaultValue(1)
     SetSliderDialogRange(0.1, 10)
     SetSliderDialogInterval( 0.1 )
   elseif a_option == fNightChanceModifierOID
-		;SetSliderDialogStartValue(fNightChanceModifier)
-		SetSliderDialogStartValue(1.0)
+    ;SetSliderDialogStartValue(fNightChanceModifier)
+    SetSliderDialogStartValue(1.0)
     SetSliderDialogDefaultValue(1)
     SetSliderDialogRange(0.1, 10)
     SetSliderDialogInterval( 0.1 )
     
   elseif a_option == iNightReqConfidenceReductionOID
-		SetSliderDialogStartValue(iNightReqConfidenceReduction)
+    SetSliderDialogStartValue(iNightReqConfidenceReduction)
     SetSliderDialogDefaultValue(0)
     SetSliderDialogRange(-3, 4)
     SetSliderDialogInterval( 1 )
@@ -1653,33 +1670,33 @@ event OnOptionSliderOpen(int a_option)
 
   
   elseif a_option == fFollowerSpecEnjoysDomOID
-		SetSliderDialogStartValue(fFollowerSpecEnjoysDom)
+    SetSliderDialogStartValue(fFollowerSpecEnjoysDom)
     SetSliderDialogDefaultValue(0)
     SetSliderDialogRange(-20, 50)
     SetSliderDialogInterval( 0.1 )
   elseif a_option == fFollowerSpecEnjoysSubOID
-		SetSliderDialogStartValue(fFollowerSpecEnjoysSub)
+    SetSliderDialogStartValue(fFollowerSpecEnjoysSub)
     SetSliderDialogDefaultValue(0)
     SetSliderDialogRange(-20, 50)
     SetSliderDialogInterval( 0.1 )
   elseif a_option == fFollowerSpecThinksPlayerDomOID
-		SetSliderDialogStartValue(fFollowerSpecThinksPlayerDom)
+    SetSliderDialogStartValue(fFollowerSpecThinksPlayerDom)
     SetSliderDialogDefaultValue(0)
     SetSliderDialogRange(-20, 50)
     SetSliderDialogInterval( 0.1 )
   elseif a_option == fFollowerSpecThinksPlayerSubOID
-		SetSliderDialogStartValue(fFollowerSpecThinksPlayerSub)
+    SetSliderDialogStartValue(fFollowerSpecThinksPlayerSub)
     SetSliderDialogDefaultValue(0)
     SetSliderDialogRange(-20, 50)
     SetSliderDialogInterval( 0.1 )
   elseif a_option == fFollowerSpecContainersCountOID
-		SetSliderDialogStartValue(fFollowerSpecContainersCount)
+    SetSliderDialogStartValue(fFollowerSpecContainersCount)
     SetSliderDialogDefaultValue(0)
     SetSliderDialogRange(-20, 50)
     SetSliderDialogInterval( 0.1 )
     
   elseif a_option == fFollowerSpecFrustrationOID
-		SetSliderDialogStartValue(fFollowerSpecFrustration)
+    SetSliderDialogStartValue(fFollowerSpecFrustration)
     SetSliderDialogDefaultValue(0)
     SetSliderDialogRange(-20, 50)
     SetSliderDialogInterval( 0.1 )
@@ -1687,41 +1704,41 @@ event OnOptionSliderOpen(int a_option)
 
     
   elseif a_option == gFollowerArousalMinOID
-		SetSliderDialogStartValue(gFollowerArousalMin.GetValueInt())
+    SetSliderDialogStartValue(gFollowerArousalMin.GetValueInt())
     SetSliderDialogRange(0, 101)
     SetSliderDialogInterval( 1 )  
   elseif a_option == fFollowerSexApproachExpOID
-		SetSliderDialogStartValue(fFollowerSexApproachExp)
+    SetSliderDialogStartValue(fFollowerSexApproachExp)
     SetSliderDialogRange(1, 10)
     SetSliderDialogInterval( 0.1 )
   elseif a_option == fFollowerSexApproachChanceMaxPercentageOID
-		SetSliderDialogStartValue(fFollowerSexApproachChanceMaxPercentage)
+    SetSliderDialogStartValue(fFollowerSexApproachChanceMaxPercentage)
     SetSliderDialogRange(0, 100)
     SetSliderDialogInterval( 1 )
 
     
   elseif a_option == fFollowerFindMinContainersOID
-		SetSliderDialogStartValue(fFollowerFindMinContainers)
+    SetSliderDialogStartValue(fFollowerFindMinContainers)
     SetSliderDialogRange(-20, 50)
     SetSliderDialogInterval( 1 )
   elseif a_option == fFollowerFindChanceMaxPercentageOID
-		SetSliderDialogStartValue(fFollowerFindChanceMaxPercentage)
+    SetSliderDialogStartValue(fFollowerFindChanceMaxPercentage)
     SetSliderDialogRange(0, 100)
     SetSliderDialogInterval( 1 )
   elseif a_option == iFollowerFindChanceMaxContainersOID
-		SetSliderDialogStartValue(iFollowerFindChanceMaxContainers)
+    SetSliderDialogStartValue(iFollowerFindChanceMaxContainers)
     SetSliderDialogRange(0, 150)
     SetSliderDialogInterval( 1 )
   elseif a_option == iFollowerMinVulnerableApproachableOID 
-		SetSliderDialogStartValue(iFollowerMinVulnerableApproachable)
+    SetSliderDialogStartValue(iFollowerMinVulnerableApproachable)
     SetSliderDialogRange(0, 150)
     SetSliderDialogInterval( 1 )
   elseif a_option == iFollowerRelationshipLimitOID
-		SetSliderDialogStartValue(iFollowerRelationshipLimit.GetValueInt())
+    SetSliderDialogStartValue(iFollowerRelationshipLimit.GetValueInt())
     SetSliderDialogRange(1, 5)
     SetSliderDialogInterval( 1 )
   elseif a_option == fFollowerItemApproachExpOID
-		SetSliderDialogStartValue(fFollowerItemApproachExp)
+    SetSliderDialogStartValue(fFollowerItemApproachExp)
     SetSliderDialogRange(1, 10)
     SetSliderDialogInterval( 0.1 )
     
@@ -2104,17 +2121,24 @@ event OnOptionSliderAccept(int a_option, float a_value)
   elseif a_option == iWeightSingleHoodOID
     iWeightSingleHood = a_value as int
     SetSliderOptionValue(a_option, a_value, "{0}")
-  elseif a_option == iWeightBootsSlaveOID
-    iWeightBootsSlave = a_value as int
+
+  elseif a_option == iWeightGagBallOID
+    iWeightGagBall = a_value as int
     SetSliderOptionValue(a_option, a_value, "{0}")
-  elseif a_option == iWeightBootsRestrictiveOID
-    iWeightBootsRestrictive = a_value as int
+  elseif a_option == iWeightGagRingOID
+    iWeightGagRing = a_value as int
     SetSliderOptionValue(a_option, a_value, "{0}")
-  elseif a_option == iWeightBootsPonyOID
-    iWeightBootsPony = a_value as int
+  elseif a_option == iWeightGagPanelOID
+    iWeightGagPanel = a_value as int
+    SetSliderOptionValue(a_option, a_value, "{0}")
+  elseif a_option == iWeightGagPenisOID
+    iWeightGagPenis = a_value as int
     SetSliderOptionValue(a_option, a_value, "{0}")
   elseif a_option == iWeightStripCollarOID
     iWeightStripCollar = a_value as int
+    SetSliderOptionValue(a_option, a_value, "{0}")
+  elseif a_option ==  iWeightHeavyCollarOID
+    iWeightHeavyCollar = a_value as int
     SetSliderOptionValue(a_option, a_value, "{0}")
   elseif a_option == iWeightSlutTattooOID
     iWeightSlutTattoo = a_value as int
@@ -2535,14 +2559,19 @@ event OnOptionHighlight(int a_option)
     SetInfoText("Weight for getting Ankle chains")
   elseif a_option == iWeightSingleHoodOID
     SetInfoText("Weight for getting TODO FINISH TOOLTIPS")
-  elseif a_option == iWeightBootsSlaveOID
-    SetInfoText("Weight for getting TODO FINISH TOOLTIPS")
-  elseif a_option == iWeightBootsRestrictiveOID
-    SetInfoText("Weight for getting TODO FINISH TOOLTIPS")
-  elseif a_option == iWeightBootsPonyOID
-    SetInfoText("Weight for getting TODO FINISH TOOLTIPS")
+
+  elseif a_option == iWeightGagBallOID
+    SetInfoText("Weight for getting a single Ball Gag.")
+  elseif a_option == iWeightGagRingOID
+    SetInfoText("Weight for getting a single Ring Gag")
+  elseif a_option == iWeightGagPanelOID
+    SetInfoText("Weight for getting a single panel gag")
+  elseif a_option == iWeightGagPenisOID
+    SetInfoText("Weight for getting a single penis gag")
   elseif a_option == iWeightStripCollarOID
     SetInfoText("Weight for getting the Cursed loot Strip Tease Collar")
+  elseif a_option == iWeightHeavyCollarOID
+    SetInfoText("Weight for getting the Cursed loot Heavy Collar")
   elseif a_option == iWeightSlutTattooOID
     SetInfoText("Weight for getting TODO FINISH TOOLTIPS")
   elseif a_option == iWeightSlaveTattooOID
@@ -3116,6 +3145,7 @@ Int  iWeightRandomCDOID
 Int Property  iWeightConfidenceArousalOverride Auto
 Int  iWeightConfidenceArousalOverrideOID
 
+
 Int Property  iWeightDeviousPunishEquipmentBannnedCollar Auto
 Int  iWeightDeviousPunishEquipmentBannnedCollarOID
 Int Property  iWeightDeviousPunishEquipmentProstitutedCollar Auto
@@ -3135,14 +3165,20 @@ Int Property  iWeightSingleAnkleChains Auto
 Int  iWeightSingleAnkleChainsOID
 Int Property  iWeightSingleHood Auto
 Int  iWeightSingleHoodOID
-Int Property  iWeightBootsSlave Auto
-Int  iWeightBootsSlaveOID
-Int Property  iWeightBootsRestrictive Auto
-Int  iWeightBootsRestrictiveOID
-Int Property  iWeightBootsPony Auto
-Int  iWeightBootsPonyOID
+
+Int Property  iWeightGagBall Auto
+Int  iWeightGagBallOID
+Int Property  iWeightGagRing Auto
+Int  iWeightGagRingOID
+Int Property  iWeightGagPanel Auto
+Int  iWeightGagPanelOID
+Int Property  iWeightGagPenis Auto
+Int  iWeightGagPenisOID
 Int Property  iWeightStripCollar Auto
 Int  iWeightStripCollarOID
+Int Property  iWeightHeavyCollar Auto
+Int  iWeightHeavyCollarOID
+
 Int Property  iWeightSlutTattoo Auto
 Int  iWeightSlutTattooOID
 Int Property  iWeightSlaveTattoo Auto

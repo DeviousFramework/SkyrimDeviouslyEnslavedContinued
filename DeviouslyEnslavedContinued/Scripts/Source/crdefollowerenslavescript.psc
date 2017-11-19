@@ -78,7 +78,7 @@ Event OnInit()
   while Mods.finishedCheckingMods == false
     Debug.Trace("[CRDE] distant:mods not finished yet")
     Utility.Wait(2)
-	endwhile
+  endwhile
   RegisterForSingleUpdate(1)
 EndEvent
 

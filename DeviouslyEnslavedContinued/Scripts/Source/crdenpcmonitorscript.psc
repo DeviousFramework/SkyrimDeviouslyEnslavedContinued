@@ -106,7 +106,7 @@ endEvent
 
 ;tests if actor is in a zaz bondage device
 bool function checkActorBoundInFurniture(actor actorRef)
-	;if(actorRef.WornHasKeyword(Keyword.GetKeyword("zbfEffectRefreshAnim")))
+  ;if(actorRef.WornHasKeyword(Keyword.GetKeyword("zbfEffectRefreshAnim")))
   ;if Mods.modLoadedZazAnimations ; should always be true
   if Mods.zazKeywordEffectRefresh != None && actorRef.WornHasKeyword(Mods.zazKeywordEffectRefresh)
     debugmsg("debug: " + actorRef.GetDisplayName() + " has zbf refresh keyword", 3)
@@ -139,28 +139,28 @@ endFunction
 ; we need a different NPC invalid function because the quest reset checks in conditions if an NPC is invalid to some extent
 ;  for this we have to check those conditions in papyrus
 actor[] function getClosestActor(actor actorRef, bool skipSlavers = false)
-	
-	int searchIndex   = 0
+  
+  int searchIndex   = 0
   int npcIndex      = 0
-	actor npcActor    = none
+  actor npcActor    = none
   Actor[] validNpcs = new Actor[10]
   Cell c = actorRef.GetParentCell()
   int foundActorCount = c.GetNumRefs(43) 
   
-	while searchIndex < foundActorCount && npcIndex < MCM.iNPCSearchCount
-		;Debug.Trace("checking " + npcActor.GetDisplayName())
-		;npcActor = Game.FindRandomActorFromRef(actorRef, MCM.iSearchRange) ;200.0)	; old method, full of holes (lots of actor=player and actor=follower most of the time)
+  while searchIndex < foundActorCount && npcIndex < MCM.iNPCSearchCount
+    ;Debug.Trace("checking " + npcActor.GetDisplayName())
+    ;npcActor = Game.FindRandomActorFromRef(actorRef, MCM.iSearchRange) ;200.0)  ; old method, full of holes (lots of actor=player and actor=follower most of the time)
     npcActor = c.GetNthRef(searchIndex, 43) as actor
     if npcActor == None ; if we get a none, then there are no actors nearby, might as well quit early
       return validNpcs
-		elseif isActorIneligable(npcActor, skipSlavers) == false 
-			validNpcs[npcIndex] = npcActor ; elegible, return now, we don't need anything more from this function
+    elseif isActorIneligable(npcActor, skipSlavers) == false 
+      validNpcs[npcIndex] = npcActor ; elegible, return now, we don't need anything more from this function
       npcIndex += 1
-		endif
-		searchIndex += 1
-	endWhile
-	return validNpcs ; passed through the whole loop, no valid actors
-	
+    endif
+    searchIndex += 1
+  endWhile
+  return validNpcs ; passed through the whole loop, no valid actors
+  
 endFunction
 
 ; searches through the the quest ReferenceAlias' for a match
@@ -281,19 +281,19 @@ endfunction
 ; why? because the MCM can't call quest status code while the game is paused, so we can't use NPCSearch in the menu
 actor[] function getClosestFollowersLinear()
   Cell c = libs.playerref.GetParentCell()
-	Actor[] followers = new actor[6]
+  Actor[] followers = new actor[6]
   actor currentTest
-	int index = 0
-	Int NumRefs = c.GetNumRefs(43)
-	While (NumRefs > 0) 
-		NumRefs -= 1
-		currentTest = c.GetNthRef(NumRefs, 43) as Actor
-		If currentTest.IsInFaction(CurrentFollowerFaction) ; or is pah slave..?
-			followers[index] = currentTest
+  int index = 0
+  Int NumRefs = c.GetNumRefs(43)
+  While (NumRefs > 0) 
+    NumRefs -= 1
+    currentTest = c.GetNthRef(NumRefs, 43) as Actor
+    If currentTest.IsInFaction(CurrentFollowerFaction) ; or is pah slave..?
+      followers[index] = currentTest
       index += 1
-  	endIf						
-	EndWhile 
-	Return followers 
+    endIf            
+  EndWhile 
+  Return followers 
 endFunction
 
 ; so that we can skip the follower protection in the future
@@ -360,30 +360,30 @@ bool function isActorIneligable(actor actorRef, bool includeSlaveTraders = false
   endif
   
   
-	if(SexLab.IsActorActive(actorRef))
-		debugmsg("invalid: " + actorRef.GetDisplayName() + " actor is 'sexlab active', busy", 3)
+  if(SexLab.IsActorActive(actorRef))
+    debugmsg("invalid: " + actorRef.GetDisplayName() + " actor is 'sexlab active', busy", 3)
   ; don't need to check distance if the search function is based on search
   elseif(actorRef.isDisabled())
   ; in case they are disabled because player disabled them or quest NPC hidden until later
-  	return true
+    return true
   elseif(actorRef.IsHostileToActor(player) || actorRef.IsInCombat() )
     debugmsg("invalid: " + actorRef.GetDisplayName() + " is hostile or in combat", 3)
-		return true
+    return true
   elseif(actorRef.HasKeyword(ActorTypeNPC) == false)
-		debugmsg("invalid: " + actorRef.GetDisplayName() + " is not an NPC actor", 3)
-		return true
+    debugmsg("invalid: " + actorRef.GetDisplayName() + " is not an NPC actor", 3)
+    return true
   elseif(actorRef.GetRelationshipRank(player) > MCM.iRelationshipProtectionLevel)
-		debugmsg("invalid: " + actorRef.GetDisplayName() + " has too high of relationship: " + actorRef.GetRelationshipRank(player), 3)
-		return true
+    debugmsg("invalid: " + actorRef.GetDisplayName() + " has too high of relationship: " + actorRef.GetRelationshipRank(player), 3)
+    return true
   elseif !MCM.bAttackersGuards && actorRef.IsGuard() ;actorRef.IsInFaction(Vars.isGuardFaction)
-		debugmsg("invalid: " + actorRef.GetDisplayName() + " is in guards faction", 3)
-		return true
-	elseif(Mods.ModLoadedCD == true && actorRef.IsInFaction(Mods.cdGeneralFaction) || actorRef.IsInFaction(Mods.cdCustomerFaction)) 
-		debugmsg("invalid: " + actorRef.GetDisplayName() + " is in a CD faction", 3)
-		return true
-	elseif(actorRef.HasLOS(player) == false && MCM.bVulnerableLOS )
-		debugmsg("invalid: " + actorRef.GetDisplayName() + " has no los", 3)
-		return true
+    debugmsg("invalid: " + actorRef.GetDisplayName() + " is in guards faction", 3)
+    return true
+  elseif(Mods.ModLoadedCD == true && actorRef.IsInFaction(Mods.cdGeneralFaction) || actorRef.IsInFaction(Mods.cdCustomerFaction)) 
+    debugmsg("invalid: " + actorRef.GetDisplayName() + " is in a CD faction", 3)
+    return true
+  elseif(actorRef.HasLOS(player) == false && MCM.bVulnerableLOS )
+    debugmsg("invalid: " + actorRef.GetDisplayName() + " has no los", 3)
+    return true
   endif
   
   float arousal_modifier = (1 + ((PlayerMonScript.isNight() as int) * (MCM.fNightReqArousalModifier - 1)) )
@@ -391,7 +391,7 @@ bool function isActorIneligable(actor actorRef, bool includeSlaveTraders = false
     int arousal = actorRef.GetFactionRank(Mods.sexlabArousedFaction)
     if arousal < MCM.gMinApproachArousal.GetValueInt() / arousal_modifier ;&& !isSlaver ;aroused enough?
       debugmsg("invalid: " + actorRef.GetDisplayName() + " arousal too low (faction): " + arousal + "/" + (MCM.gMinApproachArousal.GetValueInt() / arousal_modifier) as int + " Night:" + PlayerMonScript.isNight(), 3)
-  	  return true
+      return true
     Endif
   elseif MCM.bArousalFunctionWorkaround 
     int arousal = Aroused.GetActorArousal(actorRef) 
@@ -404,40 +404,40 @@ bool function isActorIneligable(actor actorRef, bool includeSlaveTraders = false
   float actorMorality = actorRef.GetAV("Morality") ; holy fuck this can hang the thread on some actors
   bool isSlaver = Mods.isSlaveTrader(actorRef)
   if isWearingSlaveDD(actorRef) && !isSlaver
-		debugmsg("invalid: " + actorRef.GetDisplayName() + " is wearing slave DD gear", 3)
-		return true
+    debugmsg("invalid: " + actorRef.GetDisplayName() + " is wearing slave DD gear", 3)
+    return true
   elseif isWearingSlaveXaz(actorRef) && !isSlaver
-		debugmsg("invalid: " + actorRef.GetDisplayName() + " is wearing slave ZAZ gear", 3)
-		return true
+    debugmsg("invalid: " + actorRef.GetDisplayName() + " is wearing slave ZAZ gear", 3)
+    return true
   elseif(actorRef == master)
-		debugmsg("invalid: " + actorRef.GetDisplayName() + " is your master", 3)
-		return true
+    debugmsg("invalid: " + actorRef.GetDisplayName() + " is your master", 3)
+    return true
   elseif(actorRef.isDead() || actorRef.isChild())
-	  debugmsg("invalid: " + actorRef.GetDisplayName() + " is dead, or child", 3)
-		return true
+    debugmsg("invalid: " + actorRef.GetDisplayName() + " is dead, or child", 3)
+    return true
   elseif isInvalidRace(actorRef) 
-		debugmsg("invalid: " + actorRef.GetDisplayName() + " is not valid race", 3)
-		return true
+    debugmsg("invalid: " + actorRef.GetDisplayName() + " is not valid race", 3)
+    return true
     
     
   elseif ((MCM.iMaxEnslaveMorality as float) < actorMorality) && ((MCM.iMaxSolicitMorality as float) < actorMorality) && !Mods.isSlaveTrader(actorRef)
-		debugmsg("invalid: " + actorRef.GetDisplayName() + " has too high of a morality ", 3)
-		return true
+    debugmsg("invalid: " + actorRef.GetDisplayName() + " has too high of a morality ", 3)
+    return true
 
   elseif(actorRef.IsPlayerTeammate())
-		debugmsg("invalid: " + actorRef.GetDisplayName() + " is your team mate (follower)", 3)
-		return true
+    debugmsg("invalid: " + actorRef.GetDisplayName() + " is your team mate (follower)", 3)
+    return true
   elseif(actorRef.IsInFaction(CurrentFollowerFaction))
-		debugmsg("invalid: " + actorRef.GetDisplayName() + " is in currentfollowerfaction", 3)
-		return true
+    debugmsg("invalid: " + actorRef.GetDisplayName() + " is in currentfollowerfaction", 3)
+    return true
   elseif player.IsSneaking() && !player.IsDetectedBy(actorRef)   
     debugmsg("invalid: player is sneaking, and " + actorRef.GetDisplayName() + " doesn't see them", 3)
-		return true
+    return true
   ;heavier
   elseif checkActorBoundInFurniture(actorRef) 
-		debugmsg("invalid: " + actorRef.GetDisplayName() + " is locked in furniture", 3)
-		return true
-	
+    debugmsg("invalid: " + actorRef.GetDisplayName() + " is locked in furniture", 3)
+    return true
+  
   endif
   
   int actor_sex = 0
@@ -447,33 +447,33 @@ bool function isActorIneligable(actor actorRef, bool includeSlaveTraders = false
     actor_sex     = actorRef.GetActorBase().getSex()
   endif 
   int gender_pref   = MCM.iGenderPref
-	if( actor_sex == 0 && gender_pref == 2) || (actor_sex == 1 && gender_pref == 1)
-		debugmsg("invalid: " + actorRef.GetDisplayName() + " is the wrong gender", 3) ; 0 is male, 1 is female
-		return true
+  if( actor_sex == 0 && gender_pref == 2) || (actor_sex == 1 && gender_pref == 1)
+    debugmsg("invalid: " + actorRef.GetDisplayName() + " is the wrong gender", 3) ; 0 is male, 1 is female
+    return true
   elseif Mods.modLoadedAngrim && StorageUtil.GetIntValue( actorRef, "Angrim_iEnthralled" ) > 0
     debugmsg(actorRef.GetDisplayName() + " is an angrim's apprentice thrawl, and loves the player", 3)
-		return true
-	elseif Mods.isSlave(actorRef) 
- 		debugmsg("invalid: " + actorRef.GetDisplayName() + " is a slave", 3)
     return true
-	elseif actorRef.GetCurrentScene() != None 
- 		debugmsg("invalid: " + actorRef.GetDisplayName() + " is in a scene", 3)
+  elseif Mods.isSlave(actorRef) 
+     debugmsg("invalid: " + actorRef.GetDisplayName() + " is a slave", 3)
+    return true
+  elseif actorRef.GetCurrentScene() != None 
+     debugmsg("invalid: " + actorRef.GetDisplayName() + " is in a scene", 3)
     return true
 
-	elseif(actorRef.getAV("Aggression") > 2)
-		debugmsg("invalid: " + actorRef.GetDisplayName() + " is aggressive? inactive", 3) ; this one might be needed for stealth after all
-		return true
+  elseif(actorRef.getAV("Aggression") > 2)
+    debugmsg("invalid: " + actorRef.GetDisplayName() + " is aggressive? inactive", 3) ; this one might be needed for stealth after all
+    return true
   elseif actorRef.IsDisabled()
-		debugmsg("invalid: " + actorRef.GetDisplayName() + " is disabled and does not exist", 3) ; this one might be needed for stealth after all
-		return true
-	endif
-	
-	return false
+    debugmsg("invalid: " + actorRef.GetDisplayName() + " is disabled and does not exist", 3) ; this one might be needed for stealth after all
+    return true
+  endif
+  
+  return false
 endFunction
 
 
 bool function isActorRefIneligable(actor actorRef, bool includeSlaveTraders = false)
-	;debugmsg("invalid: ", 0)
+  ;debugmsg("invalid: ", 0)
   
   if actorRef == None ; should be taken care of before this, but might as well play with save variables
     return false
@@ -483,32 +483,32 @@ bool function isActorRefIneligable(actor actorRef, bool includeSlaveTraders = fa
   ; get actor is slaver, ignore certain things if he is, like arousal
   
   ;string actorName = actorRef.GetDisplayName() ; doesn't seem to be used by anyone
-	if SexLab.IsActorActive(actorRef) ; || SexLab.IsActorActive(player); we check this twice otherwise already
-		debugmsg("invalid: " + actorRef.GetDisplayName() + " actor is 'sexlab active', busy", 3)
+  if SexLab.IsActorActive(actorRef) ; || SexLab.IsActorActive(player); we check this twice otherwise already
+    debugmsg("invalid: " + actorRef.GetDisplayName() + " actor is 'sexlab active', busy", 3)
     return true
   elseif ((actorRef.GetDistance(player) as float) > (crdeSearchRange.GetValue() * 1.25)) ;actor is too far away, needed because we're not just checking instantly anymore, now we're checking over time
     debugmsg("invalid: " + actorRef.GetDisplayName() + " actor is too far away from player now", 3)
     return true
-	elseif(actorRef.GetRelationshipRank(player) > MCM.iRelationshipProtectionLevel)
-		debugmsg("invalid: " + actorRef.GetDisplayName() + " has too high of relationship", 3)
-		return true
+  elseif(actorRef.GetRelationshipRank(player) > MCM.iRelationshipProtectionLevel)
+    debugmsg("invalid: " + actorRef.GetDisplayName() + " has too high of relationship", 3)
+    return true
 
-	elseif(actorRef.IsHostileToActor(player) || actorRef.IsInCombat()  )
-	  debugmsg("invalid: " + actorRef.GetDisplayName() + " is hostile, combat", 3)
-		return true
+  elseif(actorRef.IsHostileToActor(player) || actorRef.IsInCombat()  )
+    debugmsg("invalid: " + actorRef.GetDisplayName() + " is hostile, combat", 3)
+    return true
   elseif !MCM.bAttackersGuards && actorRef.IsGuard() ;actorRef.IsInFaction(Vars.isGuardFaction)
-		debugmsg("invalid: " + actorRef.GetDisplayName() + " is in guards faction", 3)
-		return true
-	elseif(Mods.ModLoadedCD == true && actorRef.IsInFaction(Mods.cdGeneralFaction) || actorRef.IsInFaction(Mods.cdCustomerFaction)) 
-		debugmsg("invalid: " + actorRef.GetDisplayName() + " is in a CD faction", 3)
-		return true
-	  
+    debugmsg("invalid: " + actorRef.GetDisplayName() + " is in guards faction", 3)
+    return true
+  elseif(Mods.ModLoadedCD == true && actorRef.IsInFaction(Mods.cdGeneralFaction) || actorRef.IsInFaction(Mods.cdCustomerFaction)) 
+    debugmsg("invalid: " + actorRef.GetDisplayName() + " is in a CD faction", 3)
+    return true
+    
   elseif Mods.modLoadedAngrim && StorageUtil.GetIntValue( actorRef, "Angrim_iEnthralled" ) > 0
     debugmsg(actorRef.GetDisplayName() + " is an angrim's apprentice thrawl, and loves the player", 3)
-		return true
-	elseif(MCM.bVulnerableLOS && actorRef.HasLOS(player) == false)
-		debugmsg("invalid: " + actorRef.GetDisplayName() + " has no los", 3)
-		return true
+    return true
+  elseif(MCM.bVulnerableLOS && actorRef.HasLOS(player) == false)
+    debugmsg("invalid: " + actorRef.GetDisplayName() + " has no los", 3)
+    return true
   endif
   
   float arousal_modifier = (1 + ((PlayerMonScript.isNight() as int) * (MCM.fNightReqArousalModifier - 1)) )
@@ -516,7 +516,7 @@ bool function isActorRefIneligable(actor actorRef, bool includeSlaveTraders = fa
     int arousal = actorRef.GetFactionRank(Mods.sexlabArousedFaction)
     if arousal < MCM.gMinApproachArousal.GetValueInt() / arousal_modifier ;&& !isSlaver ;aroused enough?
       debugmsg("invalid: " + actorRef.GetDisplayName() + " arousal too low (faction): " + arousal + "/" + (MCM.gMinApproachArousal.GetValueInt() / arousal_modifier) as int + " Night:" + PlayerMonScript.isNight(), 3)
-  	  return true
+      return true
     Endif
   elseif MCM.bArousalFunctionWorkaround 
     int arousal = Aroused.GetActorArousal(actorRef) 
@@ -530,32 +530,32 @@ bool function isActorRefIneligable(actor actorRef, bool includeSlaveTraders = fa
 
   bool isSlaver = Mods.isSlaveTrader(actorRef)
   if isWearingSlaveDD(actorRef) && !isSlaver
-		debugmsg("invalid: " + actorRef.GetDisplayName() + " is wearing slave DD gear", 3)
-		return true
+    debugmsg("invalid: " + actorRef.GetDisplayName() + " is wearing slave DD gear", 3)
+    return true
   elseif isWearingSlaveXaz(actorRef) && !isSlaver
-		debugmsg("invalid: " + actorRef.GetDisplayName() + " is wearing slave ZAZ gear", 3)
-		return true
+    debugmsg("invalid: " + actorRef.GetDisplayName() + " is wearing slave ZAZ gear", 3)
+    return true
   elseif(actorRef == master)
-		debugmsg("invalid: " + actorRef.GetDisplayName() + " is your master", 3)
-		return true
+    debugmsg("invalid: " + actorRef.GetDisplayName() + " is your master", 3)
+    return true
   elseif(actorRef.isDead() || actorRef.isChild())
-	  debugmsg("invalid: " + actorRef.GetDisplayName() + " is dead, or child", 3)
-		return true
+    debugmsg("invalid: " + actorRef.GetDisplayName() + " is dead, or child", 3)
+    return true
   elseif isInvalidRace(actorRef) 
-		debugmsg("invalid: " + actorRef.GetDisplayName() + " is not playable race", 3)
-		return true
+    debugmsg("invalid: " + actorRef.GetDisplayName() + " is not playable race", 3)
+    return true
   endif 
   
-	if ((MCM.iMaxEnslaveMorality as float) < actorMorality) && ((MCM.iMaxSolicitMorality as float) < actorMorality) && !isSlaver 
-		debugmsg("invalid: " + actorRef.GetDisplayName() + " has too high of a morality ", 3)
-		return true
+  if ((MCM.iMaxEnslaveMorality as float) < actorMorality) && ((MCM.iMaxSolicitMorality as float) < actorMorality) && !isSlaver 
+    debugmsg("invalid: " + actorRef.GetDisplayName() + " has too high of a morality ", 3)
+    return true
   
   elseif player.IsSneaking() && !player.IsDetectedBy(actorRef)   
     debugmsg("invalid: player is sneaking, and " + actorRef.GetDisplayName() + " doesn't see them", 3)
-		return true
+    return true
   elseif checkActorBoundInFurniture(actorRef) 
-		debugmsg("invalid: " + actorRef.GetDisplayName() + " is locked in furniture", 3)
-		return true
+    debugmsg("invalid: " + actorRef.GetDisplayName() + " is locked in furniture", 3)
+    return true
   endif
  
   int actor_sex = 0
@@ -565,25 +565,25 @@ bool function isActorRefIneligable(actor actorRef, bool includeSlaveTraders = fa
     actor_sex     = actorRef.GetActorBase().getSex()
   endif   
   int gender_pref   = MCM.iGenderPref
-	if( actor_sex == 0 && gender_pref == 2) || (actor_sex == 1 && gender_pref == 1)
-		debugmsg("invalid: " + actorRef.GetDisplayName() + " is the wrong gender", 3)
-		return true
+  if( actor_sex == 0 && gender_pref == 2) || (actor_sex == 1 && gender_pref == 1)
+    debugmsg("invalid: " + actorRef.GetDisplayName() + " is the wrong gender", 3)
+    return true
   elseif(actorRef.isUnconscious() ||  actorRef.GetSleepState() == 3 )
-	  debugmsg("invalid: " + actorRef.GetDisplayName() + " is unconscious, or asleep", 3)
-		return true
-	elseif(actorRef.getAV("Aggression") > 2) ; upgrading to lvl 2, since combat is considered a different thing anyway
-		debugmsg("invalid: " + actorRef.GetDisplayName() + " is too aggressive", 3) ; this one might be needed for stealth after all
+    debugmsg("invalid: " + actorRef.GetDisplayName() + " is unconscious, or asleep", 3)
+    return true
+  elseif(actorRef.getAV("Aggression") > 2) ; upgrading to lvl 2, since combat is considered a different thing anyway
+    debugmsg("invalid: " + actorRef.GetDisplayName() + " is too aggressive", 3) ; this one might be needed for stealth after all
     ; todo: replace with "is aggressive to player" check instead of this sillyness
-		return true
+    return true
   elseif Mods.isSlave(actorRef) ; needs cleaning with the faction upscale
- 		debugmsg("invalid: " + actorRef.GetDisplayName() + " is a slave", 3)
+     debugmsg("invalid: " + actorRef.GetDisplayName() + " is a slave", 3)
     return true
   ;elseif (PlayerMonScript.enslavedLevel > 1 || Mods.enslavedSD) && actorRef.IsInFaction(Mods.immersiveWenchGeneralFaction)
   ;  debugmsg("invalid: " + actorRef.GetDisplayName() + " is in immersive wench faction and already enslaved", 3) 
-	;	return true
-	endif
+  ;  return true
+  endif
   
-	return false
+  return false
 endFunction
 
 bool function isWearingSlaveXaz(actor actorRef)
@@ -605,17 +605,17 @@ endFunction
 ; there's one in playermon, do we need this one here?
 ; markedfordelete
 ;bool function isNude(actor actorRef)
-;	int index = 0
-;	;bool nude = true
-;	While (index < PlayerMonScript.clothingKeywords.length)
-;		if(actorRef.wornHasKeyword(PlayerMonScript.clothingKeywords[index]))
+;  int index = 0
+;  ;bool nude = true
+;  While (index < PlayerMonScript.clothingKeywords.length)
+;    if(actorRef.wornHasKeyword(PlayerMonScript.clothingKeywords[index]))
 ;      PlayerMonScript.isNude = false
-;			return false
-;		endif
-;		index += 1
-;	EndWhile
+;      return false
+;    endif
+;    index += 1
+;  EndWhile
 ;  PlayerMonScript.isNude = true
-;	return true
+;  return true
 ;endFunction
 
 function printNearbyValidActors()

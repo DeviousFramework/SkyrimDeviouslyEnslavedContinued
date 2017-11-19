@@ -48,7 +48,8 @@ endEvent
 
 ; enslave with target NPC
 function enslave(actor actorRef = none)
-  if getVersion() >= 2.0
+  ;if getVersion() >= 2.0
+  if true
     int handle = ModEvent.Create("MariaPlayerEnslaveBy")
     if(handle)
       if actorRef == None
@@ -65,9 +66,9 @@ function enslave(actor actorRef = none)
     endif;;
 
   else
-  ;  Quest meSlave = Mods.meSlaveQuest
-  ;  (meSlave as MariaEdensTools).Enslave(actorRef, 0)
-    Mods.debugmsg("ERROR: Calling ME Enslave through tools is deprecaited, doing nothing",5)
+    Quest meSlave = Mods.meSlaveQuest
+    (meSlave as MariaEdensTools).Enslave(actorRef, 0)
+    ;  Mods.debugmsg("ERROR: Calling ME Enslave through tools is deprecaited, doing nothing",5)
 
   endif
   
@@ -76,8 +77,8 @@ endFunction
 ; there are other ways to enter maria's eden, right? maybe we can use those too, for the slave holders for instance
 ; deprecated, never used after 1.2
 ;function abduction(actor actorRef = none)
-;	Quest meSlave = Mods.meSlaveQuest
-;	(meSlave as MariaEdensTools).Abduction(actorRef) 
+;  Quest meSlave = Mods.meSlaveQuest
+;  (meSlave as MariaEdensTools).Abduction(actorRef) 
 ;endFunction
 
 ;person tries to sell you to khajit
@@ -93,18 +94,18 @@ function defeat2(actor actorRef = none)
   
   int handle = ModEvent.Create("MariaPlayerDefeatBy")
   ;int result
-	if handle
-		ModEvent.PushForm(handle, actorRef as Form)
-		ModEvent.Send(handle)
+  if handle
+    ModEvent.PushForm(handle, actorRef as Form)
+    ModEvent.Send(handle)
     khajitEnslaveRanPreviously = true
   else
     PlayerMon.debugmsg("ERR: Maria Eden Defeat has failed: handle does not exist")
-	endif
+  endif
 endFunction
 
 ReferenceAlias function getMaster()
-	;ReferenceAlias master = (Mods.meSlaveQuest as MariaEdensTools).TheMaster as ReferenceAlias
-	;return master
+  ;ReferenceAlias master = (Mods.meSlaveQuest as MariaEdensTools).TheMaster as ReferenceAlias
+  ;return master
   Mods.debugmsg("ERROR: Getting Maria Master is no longer possible",5)
 
 endFunction
@@ -116,5 +117,5 @@ endFunction
 
 ; I'm not even sure this does anything right now, since you're permanently a slave under maria's eden it seems
 bool function khajit_ran_previously()
-	return khajitEnslaveRanPreviously
+  return khajitEnslaveRanPreviously
 endFunction

@@ -153,8 +153,8 @@ EndEvent
 Event OnCombatStateChanged(Actor akTarget, Int aeCombatState)
   if aeCombatState != 0 && !hasEnteredCombat
     hasEnteredCombat = 1
-    PlayerMon.debugmsg(" follower as entered combat ... ", 3)
-  elseif hasEnteredCombat
+    PlayerMon.debugmsg(" follower as entered combat ... ", 3)  
+  elseif  aeCombatState == 0 && hasEnteredCombat
     if hitByPlayer > 1
       PlayerMon.debugmsg(" follower was hit by player: " + hitByPlayer + " times", 3)
       PlayerMon.follower_thinks_player_dom = StorageUtil.GetFloatValue(akTarget, "crdeThinksPCEnjoysDom")
@@ -163,7 +163,8 @@ Event OnCombatStateChanged(Actor akTarget, Int aeCombatState)
     hitByPlayer = 0
     hasEnteredCombat = 0
   else
-    PlayerMon.debugmsg(" follower has changed combat states, under unknown condition", 3)
+    ; we get here from combat state 1 but at an odd time, but I'm not sure I care. probably just entered combat with multiple enemies
+    ;PlayerMon.debugmsg(" follower has changed combat states, under unknown state: " + aeCombatState, 3)
   endif
 EndEvent
 
@@ -201,7 +202,7 @@ endFunction
 ; we need to check if the followers watched the player have sex, helps the follower determine if they should talk to player about becoming slave
 ; potential conditions: Player is victim, Player is Wearing items, Player came, Player is sucking,anal?
 Function checkFollowersSawPlayerSex(int tif)
-    ;	StorageUtil.SetFloatValue(actorRef, "crdeLastEval", Utility.GetCurrentRealTime()) float lastEval = StorageUtil.GetFloatValue(actorRef, "crdeLastEval")
+    ;  StorageUtil.SetFloatValue(actorRef, "crdeLastEval", Utility.GetCurrentRealTime()) float lastEval = StorageUtil.GetFloatValue(actorRef, "crdeLastEval")
   actor player = PlayerMon.player ; might as well, since we check like 3 times
   if player.WornHasKeyword(Mods.zazKeywordWornCollar) || player.WornHasKeyword(Mods.zazKeywordWornGag) ; todo: offer alternative zbfWornStuff, all zbf or all DD
     ;actor ourFollower = getclosestfollower() ; TODO: expand this for all followers

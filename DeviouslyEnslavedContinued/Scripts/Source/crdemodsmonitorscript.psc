@@ -33,8 +33,6 @@ SexLabFramework Property SexLab Auto
 import GlobalVariable
 ;crds_SubmissionScript    Property submissionQuest Auto
 crdePlayerMonitorScript   Property PlayMonScript Auto
-;crdeVars                  Property Vars Auto
-;crdeDebugScript           Property DebugOut Auto
 crdeMCMScript             Property MCM Auto
 crdeDistantEnslaveScript  Property DistantEnslaveScript  Auto
 crdeSlaverunScript        Property SlaverunScript       Auto
@@ -44,6 +42,7 @@ crdeLolaScript            Property LolaScript Auto
 bool Property finishedCheckingMods Auto Conditional
 bool Property hasAnySlaveMods Auto Conditional
 bool Property dhlpSuspendStatus Auto Conditional
+float lastUpdateGameTime 
 
 ; here because all other quests keep resetting
 ;actor[]                  Property PreviousFollowers Auto 
@@ -104,9 +103,8 @@ bool Property enslavedSlaverun auto Conditional
 bool Property enslavedLola auto Conditional
 bool Property enslavedCD auto Conditional
 
-;dominia
 
-bool Property bEnslaved auto conditional ; TODO: get rid of this, replace with iEnslavedLevel > 0
+bool Property bEnslaved auto conditional 
 int Property iEnslavedLevel auto ; 0 = free, 1 = enslaved/free use, 2 = enslaved/ use if vulnerable, 3 = enslaved/no attack
 
 Actor Property player Auto
@@ -135,8 +133,6 @@ Quest Property meSlaveTraderQuest Auto ; when player is owned and being trained 
 ; new me stuff
 Quest Property meAuctionQuest Auto
 
-; more for the whore side needs to be done too
-
 ;Deviously Cursed Loot
 Armor Property dcurSlaveCollar Auto
 Armor Property dcurSlaveCollarS Auto
@@ -146,26 +142,27 @@ book  Property dcurCursedLetter Auto
 Armor Property dcurSlutCollar Auto
 Armor Property dcurSlutCollarS Auto
 Armor Property dcurRubberCollar auto
+Armor Property dcurRubberSuit auto
 Armor Property dcurTransparentSuit Auto
 Armor Property dcurTransparentBoots Auto
 Armor Property dcurBeltOfShame Auto
 Armor Property dcurStripTeaseCollar Auto
 Armor Property dcurAnkleChains Auto
-
-
 Quest Property dcurDamselQuest Auto
 Quest Property dcurBondageQuest Auto
 Keyword Property dcurDollCollarKeyword Auto
+
 ;5.0 DCL stuff 
 GlobalVariable Property dcurMisogynyDetect Auto
 GlobalVariable Property dcurMisogynyCooldown Auto
+Armor property dcurHeavyGag auto
+Armor property dcurHeavyCollar auto
 Quest Property dcurRoyalChastityQuest Auto
 Quest Property dcurLeonQuest Auto
 Quest Property dcurLeonGGQuest Auto
 Armor Property dcurLeonSlaveCollar Auto
 Actor Property dcurLeonActor Auto ; we need leon so we can enable him
 Cell Property dcurLeonHouse Auto ; we need his house to teleport to
-;Key  Property dcur
 FormList Property dcur_removableBlockedItems Auto
 
 ; sd+
@@ -184,7 +181,6 @@ Actor Property wolfclubGuy   Auto
 Quest tir_start01
 Quest tir_fw ; tir_fw_scr
 Faction tirWearingSuitFaction
-;Book Property tir_journal
 
 ;Captured Dreams
 quest cdExpQuest02
@@ -296,7 +292,6 @@ faction    property  mdeviousBusyFaction Auto
 ;simple slavery
 Quest Property simpleslaveryQuest Auto
 Cell Property   simpleslaveryCell Auto
-
 
 ;MistakenIdentity
 Quest Property mistakenIDQuest Auto
@@ -432,8 +427,11 @@ Armor Property deviousRegStormCloakBelt  Auto
 Keyword Property deviousRegImperialBeltKW  Auto 
 Keyword Property deviousRegStormCloakBeltKW  Auto 
 
+; huh?
 Quest   Property TITDQuest Auto
 Faction Property TITDSlaveFaction Auto
+
+Quest Property dfwFramework Auto
 
 Quest Property huntedHouseQuest Auto
 
@@ -443,13 +441,43 @@ Faction Property sltSlaveFaction auto
 MagicEffect Property dawnguardLordForm Auto
 
 Quest Property dflowQuest Auto
-
-
 bool property bRefreshModDetect Auto
 
 Perk property crdeContainerPerk Auto
 
-Function Maintenance()
+Event OnInit()
+  Debug.Trace("[CRDE] Mods::init() ...")
+  dhlpSuspendStatus = false
+  pointedValidRaces = new race[10]
+  RegisterForModEvent("dhlp-Suspend", "OnSuspend")
+  RegisterForModEvent("dhlp-Resume", "OnResume")
+  RegisterForModEvent("crderesetmods", "remoteResetCalled")
+  
+  Maintenance() ; don't call here, playerstartquest is calling it
+EndEvent
+
+Event onUpdate()
+  Debug.Trace("[CRDE]Mods:OnUpdate running ...")
+  ;if !player.HasPerk(crdeContainerPerk)
+  ;  Debug.Trace("[CRDE]Player Container Perk was missing, applying ...")
+  ;  player.addPerk(crdeContainerPerk)
+  ;endif
+  if bRefreshModDetect
+    ; if init called it already
+    Utility.Wait(2.0)
+    if lastUpdateGameTime != 0
+      Debug.Trace("CRDE: " + lastUpdateGameTime + "< " + Utility.GetCurrentGameTime() )
+      Maintenance() 
+    ;else
+    ;  Debug.Trace("[CRDE] Ignoring mods detection reset: not enough time has passed since last reset")
+    endif
+  endif
+endEvent
+;Event onGameLoad()
+
+Event Maintenance()
+  Debug.Trace("CRDE: " + lastUpdateGameTime + " < " + Utility.GetCurrentGameTime() )
+  lastUpdateGameTime = Utility.GetCurrentGameTime() as float; reset clock
   ;RegisterForSingleUpdate(9)
   Debug.Trace("[CRDE]Mods:Maintenance ...")
   ; think we have to wait for the other mods to load
@@ -468,41 +496,22 @@ Function Maintenance()
   finishedCheckingMods = false
   updateForms()
   checkStatuses()
-EndFunction
-; I THINK this is called with onUpdate, so they are redundant
-Event OnInit()
-  Debug.Trace("[CRDE]Mods:init ...")
-  dhlpSuspendStatus = false
-  pointedValidRaces = new race[10]
-  RegisterForModEvent("dhlp-Suspend", "OnSuspend")
-	RegisterForModEvent("dhlp-Resume", "OnResume")
-  RegisterForModEvent("crderesetmods", "Maintenance")
-  
-  ;updateForms() ; move to maintenance, let it be called there
-  ;checkStatuses()
-  Maintenance() ; don't call here, playerstartquest is calling it
-  ;RegisterForSingleUpdate(1)
 EndEvent
-Event onUpdate()
-  Debug.Trace("[CRDE]Mods:OnUpdate running ...")
-  ;if !player.HasPerk(crdeContainerPerk)
-  ;  Debug.Trace("[CRDE]Player Container Perk was missing, applying ...")
-  ;  player.addPerk(crdeContainerPerk)
-  ;endif
-  if bRefreshModDetect
-    Utility.Wait(10.0)
-    Maintenance() 
-  endif
+
+Event remoteResetCalled(string eventName, string strArg, float numArg, Form sender)
+;Event remoteResetCalled()
+  Maintenance()
   PreviousFollowers.revert()
+  Debug.Notification("CRDE: Refreshing mod detection finished.")
+  Debug.Trace("CRDE: Refreshing mod detection finished.")
 endEvent
-;Event onGameLoad()
 
 ; Deviously Helpless suspend system
 Event OnSuspend(string eventName, string strArg, float numArg, Form sender)
-	dhlpSuspendStatus = true
+  dhlpSuspendStatus = true
 EndEvent
 Event OnResume(string eventName, string strArg, float numArg, Form sender)
-	dhlpSuspendStatus = false
+  dhlpSuspendStatus = false
 EndEvent
 
 function dhlpSuspend()
@@ -524,11 +533,6 @@ endFunction
 ; this gets called so that the states can be checked and set as conditionals
 function checkStatuses()
   Debug.Trace("[CRDE]Mods:checkStatuses() start ...")
-  ;if(modLoadedWolfclub == true)
-  ;  (Quest.getQuest("crdeWolfclub") as crdeWolfclubScript).canRun()
-    ;debugmsg("wolfclub status: " +(Quest.getQuest("crdeWolfclub") as crdeWolfclubScript).canRun())
-  ;  (Quest.getQuest("crdeWolfclub") as crdeWolfclubScript).canRun()
-  ;endif
   if(modLoadedSlaverun == true)
     ;debugmsg("slaverun status: " +(Quest.getQuest("crdeSlaverun") as crdeSlaverunScript).canRun())
     (Quest.getQuest("crdeSlaverun") as crdeSlaverunScript).canRun()
@@ -539,7 +543,6 @@ function checkStatuses()
                                 || modLoadedWolfclub || modLoadedSimpleSlavery \
                                 || modLoadedSLUTS || modLoadedDeviousCidhna || modLoadedCursedLoot\
                                 || modLoadedSlaverunR || modLoadedIsleofMara
-  ;endif
   Debug.Trace("[CRDE]Mods:checkStatuses() finished ...")
 endFunction
 
@@ -554,37 +557,8 @@ function updateForms()
   Debug.Trace("[CRDE]Mods script updateForms() start ...")
   Debug.Trace("[CRDE] ******** ignore any errors between these two messages START ********", 1)
 
-  ; in the slow process of making these all disappear, it's faster to call the variable reference manually than to search through each mod order to find
-  ;modLoadedCursedLoot       = isModActive("Deviously Cursed Loot.esp")
-  ;modLoadedSD               = isModActive("sanguinesDebauchery.esp")
-  ;modLoadedMariaEden        = isModActive("Maria.esp")
-  ;modLoadedWolfclub         = isModActive("wolfclub.esp")
-  ;modLoadedTrappedInRubber  = isModActive("Trapped in Rubber.esp")
-  ;modLoadedCD               = isModActive("Captured Dreams.esp")
-  ;modLoadedHydra            = isModActive("hydra_slavegirls.esp")
-  ;modLoadedSlaverun         = isModActive("slaverun.esp")
-  ;modLoadedPetCollar        = isModActive("PetCollar.esp")
-  ;modLoadedParadiseHalls    = isModActive("paradise_halls.esm")
-  ;modLoadedCalyps           = isModActive("sextoys-calyps-2.esp")
-  ;modLoadedHelpless         = isModActive("DeviouslyHelpless.esp")
-  ;modLoadedMiasLair         = isModActive("MiasLair.esp")
-  ;modLoadedDefeat           = isModActive("Defeat.esp")
-  ;modLoadedMoreDevious      = isModActive("DeviousDevice - More Devious Quest.esp")
-  ;modLoadedSimpleSlavery    = isModActive("SimpleSlavery.esp")
-  ;modLoadedMistakenIdentity = isModActive("MistakenIdentity.esp")
-  ;modLoadedAngrim           = isModActive("AngrimApprentice.esp")
-  ;modLoadedDeviousCidhna    = isModActive("Devious Cidhna.esp")
-  ;modLoadedSGOMSE           = isModActive("soulgem-oven-100-milk-slave-experience.esp")
-  ;modLoadedZazAnimations    = isModActive("ZaZAnimationPack.esm") ; requirement, should always be true
-  ;modLoadedDarkwind         = isModActive("Darkwind.esp")
-  
-  ;modLoadedForswornStory    = isModActive("ZaForswornStory.esp")
-  ;modLoadedPrisonOverhaul   = isModActive("xazPrisonOverhaul - Patch.esp")
-  ;modLoadedQuickAsYouLike   = isModActive("qayl.esp")
   modLoadedDeathAlternative   = Quest.GetQuest("daymoyl_Monitor") != None
-  
-  ;zadlibs, need for keyword detection
-  
+    
   dcurDamselQuest           = Quest.GetQuest("dcur_lbquest")
   modLoadedCursedLoot       = (dcurDamselQuest != None)
   if(modLoadedCursedLoot )
@@ -596,7 +570,8 @@ function updateForms()
     dcurCursedLetter        = Game.GetFormFromFile(0x00010028, "Deviously Cursed Loot.esp") as Book
     dcurSlutCollar          = Game.GetFormFromFile(0x00034C37, "Deviously Cursed Loot.esp") as Armor
     dcurSlutCollarS         = Game.GetFormFromFile(0x00034C38, "Deviously Cursed Loot.esp") as Armor 
-    dcurRubberCollar        = Game.GetFormFromFile(0x00034C37, "Deviously Cursed Loot.esp") as Armor 
+    dcurRubberCollar        = Game.GetFormFromFile(0x00065656, "Deviously Cursed Loot.esp") as Armor 
+    dcurRubberSuit          = Game.GetFormFromFile(0x00049ac0, "Deviously Cursed Loot.esp") as Armor 
     ;dcurRubberCollarS       = Game.GetFormFromFile(0x0006CD51 , "Deviously Cursed Loot.esp") as Armor 
     dcurTransparentSuit     = Game.GetFormFromFile(0x0006CD51, "Deviously Cursed Loot.esp") as Armor 
     dcurTransparentBoots    = Game.GetFormFromFile(0x0006CD53, "Deviously Cursed Loot.esp") as Armor 
@@ -622,6 +597,8 @@ function updateForms()
     dcurLeonSlaveCollar     = Game.GetFormFromFile(0x7A077CC8, "Deviously Cursed Loot.esp") as Armor
     dcurMisogynyDetect      = Game.GetFormFromFile(0x08086911, "Deviously Cursed Loot.esp") as GlobalVariable
     dcurMisogynyCooldown    = Game.GetFormFromFile(0x080873E6, "Deviously Cursed Loot.esp") as GlobalVariable
+    dcurHeavyGag            = Game.GetFormFromFile(0x080A44A4, "Deviously Cursed Loot.esp") as Armor 
+    dcurHeavyCollar         = Game.GetFormFromFile(0x080A44A6, "Deviously Cursed Loot.esp") as Armor
   else
     Debug.Trace("[CRDE] Cursed loot is not installed")
   endIf
@@ -965,14 +942,7 @@ function updateForms()
   endif
   
   lolaDSMainQuest             = Quest.GetQuest("vkjMQ") ;= Game.GetFormFromFile(0x05026EC9, "submissivelola.esp") as Quest
-  ;lolaDSGag
   
-  ;if modLoadedPrisonOverhaul         
-    ;xaxPlayerInPrison             = StorageUtil.GetIntValue(Game.GetPlayer(), "xpoPCinJail") as bool
-    ; we can get this any time, why waste it now
-  ;if !modLoadedPrisonOverhaul && xazMain == None
-  ;  Debug.Trace("[crde]Prison patch did not load correctly")
-  ;endif
   
   ; might pass on this until I know more
   isleOfMaraEnslaveQuest            = Quest.getQuest("melislehookquest") ; = Game.GetFormFromFile(0x0E3C7857, "Debauchery.esp") as Quest ; new:983EB489
@@ -1039,6 +1009,13 @@ function updateForms()
 
   dflowQuest = Quest.GetQuest("_DFlow")
   
+  dfwFramework = Quest.GetQuest("_dfwDeviousFramework")
+  
+  ; this is temporary to fix update 13.11 -> 13.12
+  ; reason: ItemScript::player was never used, and we were calling PlayerMon.player all the time
+  ; so I switched to local player, but it alocates on init, which never happens for updating players
+  PlayMonScript.ItemScript.player = Game.GetPlayer()
+  
   Debug.Trace("[CRDE] ******** ignore any errors between these two messages FINISH ********", 1)
   finishedCheckingMods = true
 endFunction
@@ -1061,11 +1038,6 @@ endFunction
 
 function equipPetCollar(actor actorRef)
   libs.EquipDevice(actorRef, petCollar, petCollar_script, libs.zad_DeviousCollar)
-endFunction
-
-; uh oh, player only for now
-function equipRubberDollCollar(actor actorRef)
-  SendModEvent("dcur-triggerrubberdoll") ; TODO get the mod 
 endFunction
 
 function removeDCURCollars(actor actorRef)
@@ -1130,7 +1102,7 @@ bool function isSlave(actor actorRef)
     return true
   endIf
   
-	if( modLoadedHydra == true )
+  if( modLoadedHydra == true )
     ;if (actorRef.isInFaction(hydraSlaveGirlFaction))
     ;  debugmsg("debug: " + actorRef.GetDisplayName() + " is in hydra slave girl faction", 0)
     ;endif
@@ -1139,12 +1111,12 @@ bool function isSlave(actor actorRef)
       return true
     endif
   endif
-	if modLoadedSlaverun == true && actorRef.isInFaction(slaverunSlaveFaction) 
+  if modLoadedSlaverun == true && actorRef.isInFaction(slaverunSlaveFaction) 
     debugmsg("debug: " + actorRef.GetDisplayName() + " is a Slaverun slave", 3)
-		return true
+    return true
   endif
   ; should this get reduced out to separate function? we might want it for follower interaction
-	if modLoadedParadiseHalls == true 
+  if modLoadedParadiseHalls == true 
     if actorRef.isInFaction(paradiseRespectfulFaction)
       debugmsg("debug: " + actorRef.GetDisplayName() + " is in the paradise hall faction and respectful", 3)
       return true
@@ -1153,11 +1125,11 @@ bool function isSlave(actor actorRef)
       return true
     endif
   endif
-	if  modLoadedMiasLair == true  ; too long
-		if actorRef.isInFaction(miasBeginnerFaction) == true || actorRef.isInFaction(miasChainedSlave) ; come on guys, just make one faction and a quest or something
-   		debugmsg("debug: " + actorRef.GetDisplayName() + " is mias lair slave", 3)
-			return true
-		endif
+  if  modLoadedMiasLair == true  ; too long
+    if actorRef.isInFaction(miasBeginnerFaction) == true || actorRef.isInFaction(miasChainedSlave) ; come on guys, just make one faction and a quest or something
+       debugmsg("debug: " + actorRef.GetDisplayName() + " is mias lair slave", 3)
+      return true
+    endif
   endif
   if modLoadedFromTheDeep && actorRef.isInFaction(ftdSlaveFaction) || actorRef.isInFaction(ftdDagonSlaveFaction) 
     debugmsg("debug: " + actorRef.GetDisplayName() + " is from the deeps slave", 3)
@@ -1188,11 +1160,11 @@ bool function isSlave(actor actorRef)
     return true
   endif
 
-	return false
+  return false
 endFunction
 
 ;isSlaver <- search tag
-bool function isSlaveTrader(actor actorRef)	
+bool function isSlaveTrader(actor actorRef)  
   ;if  actorRef.isInFaction(zazFactionSlaver) ||\
   ;    (modLoadedHydra     && actorRef.isInFaction(hydraSlaverFaction) ) ||\
   ;    (modLoadedSlaverun  && actorRef.isInFaction(slaverunSlaverFaction) ) ||\
@@ -1215,13 +1187,13 @@ bool function isSlaveTrader(actor actorRef)
     return true
   ;elseif actorRef == wolfclubGuy ; doesn't work anyway, wolfclub is disabled in the region where the guy stands
   ;  return true
-	; get ready for Captured Dreams slave traders
+  ; get ready for Captured Dreams slave traders
   ; PAH slave traders?
-	elseif(actorRef.GetDisplayName() == "Slaver" || actorRef.GetDisplayName() == "Slave Trader") ; moved to last, string compare takes longest
+  elseif(actorRef.GetDisplayName() == "Slaver" || actorRef.GetDisplayName() == "Slave Trader") ; moved to last, string compare takes longest
     debugmsg("attacker is slaver: Named:" + actorRef.GetDisplayName(), 3)
-		return true
-	endif
-	return false
+    return true
+  endif
+  return false
 endFunction
 
 
@@ -1629,7 +1601,7 @@ int function isPlayerEnslaved()
   
   if dflowQuest && dflowQuest.isRunning() && dflowQuest.GetStage() >= 2
     debugmsg("enslaved: Devious followers has locked the player", 3)
-    setEnslavedLevel(3)
+    setEnslavedLevel(2)
 
   endif
   

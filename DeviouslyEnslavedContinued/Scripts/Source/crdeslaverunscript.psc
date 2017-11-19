@@ -44,11 +44,11 @@ bool Property canRunQuest auto conditional
 
 ;old function, leave it here as legacy
 bool function SlaverunEnslaveEligible()
-	return canRun()
+  return canRun()
 endFunction
 
 ; for now,
-function enslave(actor actorRef = none, bool local = true)	; Slaverun
+function enslave(actor actorRef = none, bool local = true)  ; Slaverun
 
   if Mods.modLoadedSlaverun
     Quest slaverun_quest = game.getformfromfile(0x00011cbe, "slaverun.esp") as Quest
@@ -103,14 +103,14 @@ endFunction
 
 ; we need to handle all of the conditions we can't test for at dialog time here
 bool function canRun()
-	;todo convert this to boolean
-	; Game.GetPlayer().IsInLocation(WhiterunProperty) ; too many false positives (everywhere, this covers the whole hold)	
-	;if Mods.modLoadedSlaverun && MCM.bSlaverunEnslaveToggle && Game.GetPlayer().IsInLocation(WhiterunProperty)
-	if  MCM.bSlaverunEnslaveToggle && MCM.iEnslaveWeightSlaverun > 0
-	; if this works, it will match the exact conditions slaverun uses
-	; we wait until we're this far so as to avoid calling a function in a esp we don't have, or won't use
-		;if (Quest.getQuest("SlaverunPeriodicChecking") as SlaverunPeriodicCheck).PlayerIsInEnforcedLocation()
-		;if Mods.slaverunEnforcerQuest.PlayerIsInEnforcedLocation() ; Fine, I'll just copy it then, 
+  ;todo convert this to boolean
+  ; Game.GetPlayer().IsInLocation(WhiterunProperty) ; too many false positives (everywhere, this covers the whole hold)  
+  ;if Mods.modLoadedSlaverun && MCM.bSlaverunEnslaveToggle && Game.GetPlayer().IsInLocation(WhiterunProperty)
+  if  MCM.bSlaverunEnslaveToggle && MCM.iEnslaveWeightSlaverun > 0
+  ; if this works, it will match the exact conditions slaverun uses
+  ; we wait until we're this far so as to avoid calling a function in a esp we don't have, or won't use
+    ;if (Quest.getQuest("SlaverunPeriodicChecking") as SlaverunPeriodicCheck).PlayerIsInEnforcedLocation()
+    ;if Mods.slaverunEnforcerQuest.PlayerIsInEnforcedLocation() ; Fine, I'll just copy it then, 
     if Mods.modLoadedSlaverun && Game.GetPlayer().IsInFaction(Mods.slaverunSlaveFaction) == false  && PlayerIsInEnforcedLocation()
       ;&& (Mods.slaverunSlaveQuest.GetStage() < 20)
       canRunQuest = true
@@ -122,10 +122,10 @@ bool function canRun()
       return canRunQuest
     endif
 
-	endIf
-	canRunQuest = false
-	return canRunQuest
-	
+  endIf
+  canRunQuest = false
+  return canRunQuest
+  
 endFunction
 
 ; if skyrim doesn't want me to use this function as it was in slaverunenforcer, then I'll just copy it
@@ -144,79 +144,79 @@ Bool Function PlayerIsInEnforcedLocation()
 endFunction
   
 bool Function isPlayerInWhiterun()
-	Actor PlayerRef = Game.GetPlayer()
-	PlayerCurrentWorld 		= PlayerRef.GetWorldSpace()
-	PlayerCurrentLocation 	= PlayerRef.GetCurrentLocation()
-	if PlayerCurrentLocation == WhiterunBreezehomeLocation
-		return false
-	endif
-	if PlayerCurrentWorld == WhiterunWorld ;|| PlayerCurrentLocation == WhiterunAmrensHouseLocation
-		return true
-	endif
-	if PlayerCurrentLocation == WhiterunArcadiasCauldronLocation || PlayerCurrentLocation == WhiterunBanneredMareLocation
-		return true
-	endif
-	if PlayerCurrentLocation == WhiterunBelethorsGeneralGoodsLocation ;|| PlayerCurrentLocation == WhiterunCarlottaValentiasHouseLocation
-		return true
-	endif
-	if PlayerCurrentLocation == WhiterunDragonsreachBasementLocation
-		return true
-	endif
-	if PlayerCurrentLocation == WhiterunDragonsreachLocation
-		return true
-	endif
-	if PlayerCurrentLocation == WhiterunDrunkenHuntsmanLocation
-		return true
-	endif
-	if PlayerCurrentLocation == WhiterunGuardHouseLocation
-		return true
-	endif
-	If PlayerCurrentLocation == WhiterunHeimskrsHouseLocation 
-		return true
-	endif
-	If PlayerCurrentLocation == WhiterunHouseGrayManeLocation 
-		return true
-	endif
-	If PlayerCurrentLocation == WhiterunHouseofClanBattleBornLocation 
-		return true
-	endif
-	If PlayerCurrentLocation == WhiterunHouseoftheDeadLocation 
-		return true
-	endif
-	If PlayerCurrentLocation == WhiterunJailLocation 
-		return true
-	endif
-	If PlayerCurrentLocation == WhiterunJorrvaskrBasementLocation 
-		return true
-	endif
-	If PlayerCurrentLocation == WhiterunJorrvaskrLocation 
-		return true
-	endif
-	If PlayerCurrentLocation == WhiterunOlavatheFeeblesHouseLocation 
-		return true
-	endif
-	If PlayerCurrentLocation == WhiterunSeverioPelagiasHouseLocation 
-		return true
-	endif
-	If PlayerCurrentLocation == WhiterunTempleofKynarethLocation 
-		return true
-	endif
-	If PlayerCurrentLocation == WhiterunUlfberthsHouseLocation 
-		return true
-	endif
-	If PlayerCurrentLocation == WhiterunUnderforgeInteriorLocation 
-		return true
-	endif
-	If PlayerCurrentLocation == WhiterunUthgerdTheUnbrokensHouseLocation 
-		return true
-	endif
-	If PlayerCurrentLocation == WhiterunWarmaidensLocation 
-		return true
-	endif
-	If PlayerCurrentLocation == WhiterunYsoldasHouseLocation
-		return true
-	endif
-	return false
+  Actor PlayerRef = Game.GetPlayer()
+  PlayerCurrentWorld     = PlayerRef.GetWorldSpace()
+  PlayerCurrentLocation   = PlayerRef.GetCurrentLocation()
+  if PlayerCurrentLocation == WhiterunBreezehomeLocation
+    return false
+  endif
+  if PlayerCurrentWorld == WhiterunWorld ;|| PlayerCurrentLocation == WhiterunAmrensHouseLocation
+    return true
+  endif
+  if PlayerCurrentLocation == WhiterunArcadiasCauldronLocation || PlayerCurrentLocation == WhiterunBanneredMareLocation
+    return true
+  endif
+  if PlayerCurrentLocation == WhiterunBelethorsGeneralGoodsLocation ;|| PlayerCurrentLocation == WhiterunCarlottaValentiasHouseLocation
+    return true
+  endif
+  if PlayerCurrentLocation == WhiterunDragonsreachBasementLocation
+    return true
+  endif
+  if PlayerCurrentLocation == WhiterunDragonsreachLocation
+    return true
+  endif
+  if PlayerCurrentLocation == WhiterunDrunkenHuntsmanLocation
+    return true
+  endif
+  if PlayerCurrentLocation == WhiterunGuardHouseLocation
+    return true
+  endif
+  If PlayerCurrentLocation == WhiterunHeimskrsHouseLocation 
+    return true
+  endif
+  If PlayerCurrentLocation == WhiterunHouseGrayManeLocation 
+    return true
+  endif
+  If PlayerCurrentLocation == WhiterunHouseofClanBattleBornLocation 
+    return true
+  endif
+  If PlayerCurrentLocation == WhiterunHouseoftheDeadLocation 
+    return true
+  endif
+  If PlayerCurrentLocation == WhiterunJailLocation 
+    return true
+  endif
+  If PlayerCurrentLocation == WhiterunJorrvaskrBasementLocation 
+    return true
+  endif
+  If PlayerCurrentLocation == WhiterunJorrvaskrLocation 
+    return true
+  endif
+  If PlayerCurrentLocation == WhiterunOlavatheFeeblesHouseLocation 
+    return true
+  endif
+  If PlayerCurrentLocation == WhiterunSeverioPelagiasHouseLocation 
+    return true
+  endif
+  If PlayerCurrentLocation == WhiterunTempleofKynarethLocation 
+    return true
+  endif
+  If PlayerCurrentLocation == WhiterunUlfberthsHouseLocation 
+    return true
+  endif
+  If PlayerCurrentLocation == WhiterunUnderforgeInteriorLocation 
+    return true
+  endif
+  If PlayerCurrentLocation == WhiterunUthgerdTheUnbrokensHouseLocation 
+    return true
+  endif
+  If PlayerCurrentLocation == WhiterunWarmaidensLocation 
+    return true
+  endif
+  If PlayerCurrentLocation == WhiterunYsoldasHouseLocation
+    return true
+  endif
+  return false
 endFunction
 
 WorldSpace PlayerCurrentWorld = none
@@ -247,7 +247,7 @@ Location Property WhiterunUnderforgeInteriorLocation auto
 Location Property WhiterunUthgerdTheUnbrokensHouseLocation auto
 Location Property WhiterunWarmaidensLocation auto
 Location Property WhiterunYsoldasHouseLocation auto
-Location Property WhiterunProperty	Auto
+Location Property WhiterunProperty  Auto
 
 
 Worldspace Property WhiterunWorld auto

@@ -124,19 +124,19 @@ endFunction
 
 Actor[] function getNearbyActorsLinear(int distance = 1024)
   Cell c = player.GetParentCell()
-	Actor[] followers = new actor[15]
+  Actor[] followers = new actor[15]
   actor currentTest
-	int index = 0
-	Int NumRefs = c.GetNumRefs(43)
-	While NumRefs > 0  && index < 15
-		NumRefs -= 1
-		currentTest = c.GetNthRef(NumRefs, 43) as Actor
+  int index = 0
+  Int NumRefs = c.GetNumRefs(43)
+  While NumRefs > 0  && index < 15
+    NumRefs -= 1
+    currentTest = c.GetNthRef(NumRefs, 43) as Actor
     if distance >= currentTest.GetDistance(player)
       followers[index] = currentTest
       index += 1
     endif
-	EndWhile 
-	Return followers 
+  EndWhile 
+  Return followers 
 endFunction
 
 Actor[] function getNearbyFollowers(int specificDistance = 0)

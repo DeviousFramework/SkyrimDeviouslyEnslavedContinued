@@ -68,30 +68,30 @@ Keyword Property LocTypeHold Auto
 ; likesBeingSub
 ; likesBeingDom
 
-; int 	Property forceGreetSlave Auto Conditional
-; bool 	Property forceGreetIncomplete Auto Conditional
-; int 	Property forceGreetSex Auto Conditional
+; int   Property forceGreetSlave Auto Conditional
+; bool   Property forceGreetIncomplete Auto Conditional
+; int   Property forceGreetSex Auto Conditional
 ; int   Property forceGreetWanted Auto Conditional
 
 
 Event OnUpdate()
-	; right now we do nothing
+  ; right now we do nothing
    
 EndEvent
 
 Event OnInit()
-	
+  
   ;while Mods.finishedCheckingMods == false
   ;  Debug.Trace("[crde]in player:mods not finished yet", 1)
   ;  Utility.wait(2) ; in seconds
   ;endWhile
   
-	RegisterForSingleUpdate(1) ; in seconds
+  RegisterForSingleUpdate(1) ; in seconds
 EndEvent
 
 function Maintenance()
-	RegisterForSingleUpdate(3) ; is this right?
-	;settings.resetValues()
+  RegisterForSingleUpdate(3) ; is this right?
+  ;settings.resetValues()
 endFunction
 
 
@@ -132,7 +132,7 @@ endFunction
 ; we need to check if the followers watched the player have sex, helps the follower determine if they should talk to player about becoming slave
 ; potential conditions: Player is victim, Player is Wearing items, Player came, Player is sucking,anal?
 Function checkFollowersSawPlayerSex(int tif)
-    ;	StorageUtil.SetFloatValue(actorRef, "crdeLastEval", Utility.GetCurrentRealTime()) float lastEval = StorageUtil.GetFloatValue(actorRef, "crdeLastEval")
+    ;  StorageUtil.SetFloatValue(actorRef, "crdeLastEval", Utility.GetCurrentRealTime()) float lastEval = StorageUtil.GetFloatValue(actorRef, "crdeLastEval")
   actor player = PlayerMon.player ; might as well, since we check like 3 times
   if player.WornHasKeyword(Mods.zazKeywordWornCollar) || player.WornHasKeyword(Mods.zazKeywordWornGag) ; todo: offer alternative zbfWornStuff, all zbf or all DD
     actor ourFollower = getclosestfollower() ; TODO: expand this for all followers

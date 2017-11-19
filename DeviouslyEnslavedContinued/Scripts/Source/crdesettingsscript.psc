@@ -66,28 +66,28 @@ Int Property genderPreference = 0 Auto
 Int Property DebugMode = 0 Auto  
 
 function resetValues()
-	chanceOfForcedConversation = 8
-	chanceOfForcedEnslavement = 40
+  chanceOfForcedConversation = 8
+  chanceOfForcedEnslavement = 40
 
-	eventEnslaveWeight = 15
-	eventRapeWeight = 45
-	eventDeviceWeight = 10
-	eventKeysWeight = 33
-	nudeIsVulnerable = false
+  eventEnslaveWeight = 15
+  eventRapeWeight = 45
+  eventDeviceWeight = 10
+  eventKeysWeight = 33
+  nudeIsVulnerable = false
 
-	genderPreference = 1
-	; 0 = none
-	; 1 = male
-	; 2 = female
+  genderPreference = 1
+  ; 0 = none
+  ; 1 = male
+  ; 2 = female
 
-	enslaveTimeout = 0.007
-	sexTimeout = 0.007
-	talkTimeout = 0.007
-	DebugMode = 0
+  enslaveTimeout = 0.007
+  sexTimeout = 0.007
+  talkTimeout = 0.007
+  DebugMode = 0
 endFunction
 
 
 event onInit()
-	 resetValues()
+   resetValues()
 endEvent
 

@@ -1,4 +1,4 @@
-; verstort 7/2017
+; verstort 11/2017
 ; this is more notes at this point than just plans
 ; the top is really old, from early 2015, the bottom is the most up-to-date
 ; search for "more recent", above it is the newest todo list, below are some notes on follower dialogue and other stuff
@@ -34,7 +34,9 @@ Debug report form:
  legend (start of the line):
  ; <- fixed, leave for a version before removing
  * <- high priority 
- $ <- relook at later
+ + <- new feature
+ - <- needs to be optimized out
+ ? <- unsure if this is still a problem
  
 add gagged attack? (gagged slaves can still aproach you, new dialogue)
 add gag attack? (npc can gag player, context?)
@@ -127,12 +129,6 @@ plans:
     if we could magic force player into rope, followed by wiggle into armbinder, that might be cool
         needs testing
 
-  if actor is maria, higher chance to be enslaved by her specifically
-  sexlab solutions check for busy
-  make it so that slavers can enter dialogue if not being approached and not enslaved, and high enough level vulnerable
-    meaning, always dialogue
-  slavers never enslave locally? heavy sold/given?
-    MCM trigger for this maybe... who knows, maybe users don't think this is good enough, SD can work with slavers who move from place to places
   
   add for testing:
     slaverun quest forcing, to change the city
@@ -143,7 +139,6 @@ plans:
   add different player response dialogue if the player is super aroused or approached while masturbating
   
   plans to optimise isPlayerEnslaved()
-    split into two sections, one that uses item detection, one that doesn't
     move faction checks lower than quest stage checks
     mods that use faction detection, that might have a better option:
       FTD
@@ -151,7 +146,13 @@ plans:
       TIR
       ForswornStory
       you know... none of these are commonly used by the average user, so they won't see see a performance hit..
-  
+
+  Combat dialogue
+    Toggle on/off for certain situations (armbinder, gag, whatelse)
+    Make sure leg shackles are included? What if DDi no it's open source they can fix if they want
+    More options (slave training? running away, level detection)
+
+      
   change mod enabled to be a global toggle
     that way, users can still turn it off even if the MCM isn't showing up
     mods can shut it off too
@@ -180,11 +181,7 @@ plans:
   
   Add debug output for when the fragment fires off for the approach start
   Reduce time in the loop
-  Remove random stormcloak guy from the SD thing
-  
-    add random boots, balerina/slave
-  Better detection for slave gear, now that kimy has put every NPC in the world in slave gear
-   
+     
   Better interaction with adding items?
     Scene for Multiple devices?
     Fix Cursed collar start, too poorly made
@@ -199,7 +196,6 @@ plans:
       Meaning the dynamic quest NPCs, they buy stuff so they should have his stuff
       Is there an easy way to detect if NPC is in CDx's list of buyers? need to search
   
-    
   Add arousal animations # delayed, can't do without a lot more effort
 
   add slaverun reloaded for slaverun normal turn on
@@ -225,20 +221,16 @@ plans:
   +kimy keys for items too
   need to store items we remove, then add them again after, or add ANYthing after
 
-  Black out for leon enslave, animation too  
+  ? Black out for leon enslave, animation too  
   add dcur keys to list for detection      
 
-  % Remove follower protection if they are also are bound? (armbinder + gag) 
+  + Remove follower protection if they are also are bound? (armbinder + gag) 
   
   Add devious attributes support
     A few mod events should do it
   
-  Combat dialogue
-    Toggle on/off for certain situations (armbinder, gag, whatelse)
-    Make sure leg shackles are included? What if DDi no it's open source they can fix if they want
-    More options (slave training? running away, level detection)
     
-  % check how much of DEC pre-sex filter can dissapear to help with the speed
+  - check how much of DEC pre-sex filter can dissapear to help with the speed
   NPC with bed and cage in fort sunguard annor?
   
 
@@ -280,7 +272,6 @@ plans:
   
   Master hit counts for healing too
   
-more recent (not mothballed either):
   
   if player orgasms, nearby followers notice?
     If player is enjoying sex while wearing bondage too
@@ -294,15 +285,7 @@ more recent (not mothballed either):
   Maybe we can detect exact location, and then re-use that if the player has sex there it must be a decent spot
   If follower dom, can use drip spells on you for disobeying?
     Maybe if we give them the book?
-  
-  Need to test milkmod animation detecting with sexlab furniture ; milktest might be causing issues
-  
-  If leaving as slave, dismiss all followers to last player home? Can we set that in code? Should be able too...
-  extend want to sell -> "no way!" option
-  Follower wants to craft something, you are to be tied up while they work
-    If only we could let the player be "used" during that period by other people
-  If slave is open, follower is horny, and has been let use slave before, might use on their own without asking you.
-  
+    
   Either add a follower cooldown on sex or make female + female orgasm 
   Follower remembers if the items you are wearing were put on by them, if so no birthday dialogue
     complicated...
@@ -318,22 +301,17 @@ more recent (not mothballed either):
   
   Follower sex attack needs a bdsm angle
     More Follower Dom in general
-    Hey haven't seen you in awhile, needs to not happen with active followers
-  Need to retest multi-follower is working
-  Need to retest SlaveTats working (wasn't there a mod to fix?)
   PAH following faction for detecting the difference between a slave that is following and a slave tied up on the floor
   ;If Player is already <itemed>, and player cannot wear another, needs special outcomes
     problem: we need to be able to tell he player what the item is and if they want to interact with it or not.
            
-  % Follower should unlock player if they have a key for new plug
-  % PAHE if slave is angry, we can ignore respectful
+  + Follower should unlock player if they have a key for new plug
+  + PAHE if slave is angry, we can ignore respectful
  
-  % If player is attacked, and slave is attacked, maybe other NPC will rape your slave while you're busy?
-  % Can I detect when the player finds a thing in a thing? If I can, the follower can detect that and confront I think.
+  + If player is attacked, and slave is attacked, maybe other NPC will rape your slave while you're busy?
+  + Can I detect when the player finds a thing in a thing? If I can, the follower can detect that and confront I think.
     "Oh cool, a vibrator, I wonder how we could make this interesting... Oh look a harness too"
   
-  Detect the robot (SD+)
-  set max disposition for characters?
   
   Try out sold follower quest thing
     Make sure that there's a failure option too
@@ -367,21 +345,9 @@ more recent (not mothballed either):
   Maybe MCM to allow users to add extra SD+ masters..?
   BUG: if you add a follower manually, one that would be detected normally, they will get twice the item count
   
-  % if we find special items remove previous?
   Can we detect where a DD item was equipped from? I mean we can if we're the one's putting them on at least.
-  % Notice if player is bound and struggling
-  Can we fix SD so we can sleep in their house without issues?
-    ; seems like no
-  
-  13:
-  
-  Maybe extra dialogue, or different dialogue, if the same person appraoches you a second time, especially if you said no last time?
-  Higher local chance if you are not outside? not sure this is a good idea
-    then again local isn't really a good idea ...
-  Extra vulnerable if caught fondling or yearning in the last 15/20 seconds?
-  
-  Waiting for lsm to get back to my email about skse for theft/pickpocket detection using skse
-  ^- gah, he actually did insert assmebler into the esp, fucking hell I'm not messing with that
+  + Notice if player is bound and struggling
+    
 
   If anal with plug, can they cum with sound effect and notificaiton?
     Maybe vib effect too? Orgasm effect is dangerous because of animation override.
@@ -390,29 +356,32 @@ more recent (not mothballed either):
 
   ;We need to swap zbf keywords for zad keywords, or add them as additional: looks like kimy has finally scrapped ZAZ from cursed loot
   ;Sex through PAHE and PAHHSH counts as sex we should allow enslavment and items for
-  Follower with DCUR gag could talk to player, sigh
-    god damn it kimy...
-    
-  14:
+more recent (not mothballed either):
+
+  Remove random stormcloak guy from the SD thing
+
+  extend want to sell -> "no way!" option
+  + Follower wants to craft something, you are to be tied up while they work
+    If only we could let the player be "used" during that period by other people
+  + If slave is open, follower is horny, and has been let use slave before, might use on their own without asking you.
+
+  Waiting for lsm to get back to my email about skse for theft/pickpocket detection using skse
+    ^- gah, he actually did insert assmebler into the esp, fucking hell I'm not messing with that
+
   player is stuck performing oral on attacker if belted
     we should check to make sure there are oral animations available to the player?
     if cunnilingus is used, we need to flip the "victim" as the player is the one being sucked off which is backwards
     The whole pre-sex animation filter should be re-written with female vag suppression tag avoidance in mind, it's too hard to follow right now
-   
-  ;If we turn off the follower ai package after sex, instead of at the start of the dialogue, we can prevent from walking away
-  ;  Problem: they will keep talking to you, we almost need a second ai package that just follows you and doesn't talk to you
-  ;  time estimate: 2 hours
-   
-   forwarded:
-  Test all available spanking animations
+      
+  + Test all available spanking animations
     Specifically, grab them all in testing
   make it so that the follower can replace non-blocking collars, and check for it the present collar is removable through DCUR
     means writing a function or two
-  Wait several seconds and disable the struggle animation for enslavement, since it doesn't self cancel
+  ? Wait several seconds and disable the struggle animation for enslavement, since it doesn't self cancel
     How does DD handle this? can I just make an event that catches movement once and then forget? would that be safe?
-  Maybe use UIextensions to add interface for hand-picking clothes to count as magic/wizards clothes for intimidation
+  + Maybe use UIextensions to add interface for hand-picking clothes to count as magic/wizards clothes for intimidation
   DCL lucky charm, maybe we can prevent the player from getting new items through dialogue if they are wearing this?
-  If player is in brothel, more vulnerable?
+  If player is in brothel, less vulnerable (or ask for sex under assumption of whore only)?
     Extra dialogue for in brothel/freeuse zone?
 
   detect proximity to bed for sex approach percentage (1.5?)
@@ -424,68 +393,101 @@ more recent (not mothballed either):
   
   check for SD+ ending slave states to see what we need to set detection for
   check DCL quest end detection again
-
-  sexlab kidnapped and pitfall detection are broken and need to be fixed
-  make sure the items found are acceptable to user
-    god this one could be annoying, you would have to have a switch case for keywords
   
-  check if new DD items can be integrated
-  check what we have to do with this new keyword
-  add an NPC from morvunskar to SD distant, especially with the cages could be good place, lots of NPC, beds, cages, chairs, enchanting tables, walking distance
 
   add a dialogue for follower finding lucky charms from DCL if they exist
   add DF API calls instead of doing everything myself...? hope this is actually useful
   
   
-  followers that found keys did not actually get keys
-  add special finding key stuff, not just pocketing it
-    - removing and masterbating
-    - removing and running to player for sex
-    - bringing key to player for safe keeping
-  
-  UI busy removed, might be an issue at some points * became issue, would interupt dialogue
-  add random chance follower already had key (even if you have to add them yourself)
-  add random chance attacker already had a key (even if you have to add them yourself)
+  UI busy removed, might be an issue at some points > became issue, would interupt dialogue
   NPC analysis takes too long to work, we need to look deeper
   test maria eden again? 
   
-  ;fix typo in follower approach
-
-  ;fix TODO get name
-  ;fix TODO do sex?
-  ; cleaned up dialogue
-  ;add dialogue for second follower sex?
-    needs more though
-  ;fix the dual MCM slider
-  ;set that unfinished guard dialogue to unfinished
-  ;fix the negative frustration
-  look for permanent follower reset reason
-  ;finish the threesome script, and others
   check to make sure the follower replaces items with the right one
   check to make sure cursed loot items cannot be super imposed * not seeing anything here...
   
-  ;"now how are we going to have sex" for boots and gloves
-  ;Follower gagged, how does it feel, happy response?
   Can we test for PAHE slave being angry?
-  - maybe special dialogue though...
+    maybe special dialogue though...
   make sure our hasFollowers change didn't break everything, need to test with 2 slave followers
   
-  
-  ;sex ignores chastity belt blocking vagina on old save <- bad belts, CD
-  approaches at lvl 0...? why does wearings boots show lvl 0 but allow appraoches?
-  ;bandit, gagged and naked with zbf items wasn't considered slave and attacked me
-  ;  zbf items was turned off, but the slave and slaver factions weren't loaded into mods either, hope that fixes it.
-  weapon out doesn't help with enslave approach???
   
   
   Lets check the follower to see if they look like an owner/master, and if not can backfire
   ;attacker + follower 3 some if follower is horny?
-  lower arousal of attacking NPC if follower scares them off?
   
-  Dialogue option to beg for keys back and/or unlocking from previous items
-  - needs additional dialogue
   
-  always: new followers system needs to be tested more
+  add debug to display DD version if it doesn't already show
+  equipping black ebonite collar causes double equip, one on top of mutex?
+  - huh?
+    
+  ++~~++  
+    
+  add random chance follower already had key (even if you have to add them yourself)
+  add random chance attacker already had a key (even if you have to add them yourself)
+    
+  + User asked for hoods and other items added
+  User says the bdsm aversion can happen at positive values, two users, but no evidence?
+  Follower nag lock will lockout item approach too, should it?
+  +  Maybe extra dialogue, or different dialogue, if the same person appraoches you a second time, especially if you said no last time?
+  + addgag: what's wrong
+  + healer dialogue, follower aproaches for annoyance at no healing?
+  + check POX for furniture stuff we can do
+  follower gets attacked out of combat, why wouldn't they get angry?
+  lower arousal of attacking NPC if follower/aggression scares them off? > requires a lot of script fragments
+  + Dialogue option to beg for keys back and/or unlocking from previous items
+    needs additional dialogue
+  + "Tie me up" > ties you to a bondage furniture
+  Tell DD team about the loading blindfold bug
+
+  User thinks kidnapped is incompatible, maybe check and fix
+  ;look for permanent follower reset reason
+  ;User thinks animation after chastity belt conflicts with cursed loot?? huh?
+  ;bug: shame belt gets equipped if 0, maybe punishbelt forced?
+  ;bug: follower gets reset after every approach
+  ;change follower alias fleshing to be active rather than reactive
+  ;change reset mods button to reset followers from the first button toggle, but not from the sticky
+  ;user wants feedback when reset is done
+  ;fix rubber suit add, at least temporary
+  # approaches at lvl 0...? why does wearings boots show lvl 0 but allow approaches? cannot replicate
+  ;player approach start is currentfollowerfaction
+  ;combat state 1...?
+  ;Yes, master -> I love it when you call me that to female dom follower
+  ;Post to naked dungeons showing him how to start catching DHLP
+  ;Switch tie me up to multiple..?
+  ;switch version number to 13.12  
+  ;replaced all PlayerMon.player for player in itemscript
+  ;add an NPC from morvunskar to SD distant, especially with the cages could be good place, lots of other NPC, aesthetic
+  ;unfinished dialogue
+  ;add dialogue for if player is gagged and follower finds items where they put them on themselves or your slaves?
+  ;added another dialogue for follower tries to put on item and follower shakes their head
+  ;make sure it works on regular start
+  ;second gag based one.
+  ;mods reset is now default on
+  ;boots and gag sliders
+   > fornow just gags
+  ;followers that found keys did not actually get keys, none follower
+  nearby NPC check stops follower if all of them are slaves... bad?
+  why was unique collar rolled twice
+  ;rolled nipple, got no nipple piercings
+   < test nipple piercing
+  ;change default SD ignore to true
+  ;add mods detect timer to avoid rerolls # NVM, was caused by startquest starting it again, man what a headache
+  ; fixed double mods reset load bug
+  
+  DFW todo: not this update, I bet this is going to introduce tons of hidden bugs, lets save it for a later release
+   ; convert from tab characters to space
+   add master support
+   mcm: use Devious framework for vulnerability testing
+   _qFramework = IsPlayerBound(), SetMaster(None, "", _qFramework.MD_CLOSE, True) GetVulnerability()
+  
+  ; random chance of finding a key
+  add special finding key stuff, not just pocketing it
+    - removing and masterbating
+    - removing and running to player for sex
+    - bringing key to player for safe keeping
+
+
+
   
   ** TODO / NOTES (bottom is most recent, older in ascending order)  --^ **
   
@@ -495,8 +497,22 @@ more recent (not mothballed either):
       +###############+
       +###############+
   
-  Stuff to do when I get access to the esp again:
-          
+  4.0 update: change ponygear over to new 4.0 pony gear
+          change silver/gold items to ddi?
+          swap over to DDi animation search function
+
+  Mods to test compatibility with:
+    > naked dungeons > rape quest detection maybe?
+    sexy bandit captives
+    lich evilynn
+    > devious followers
+    kidnapped and pitfall
+  
+  always: new followers system needs to be tested more
+  = Speed testing:
+    Testing faster mods detection
+    Testing if cache testing
+  = need to test multiple followers for bugs
       
   Follower sold/rescue:
     Need to know if we need more than one quest per follower
@@ -510,7 +526,6 @@ more recent (not mothballed either):
      > stuff
     ends in sd enslave or just release?
     can we detect if they have a home that counts as a house? if not, last player house? if not, backup location?
-  
   
   ItemAdding needs: CD belt + plug?
     Full CD set?
@@ -621,13 +636,16 @@ Unanswered Modding questions:
   can we offload "is player busy" into conditional engine?
     or any other part of the heavy papyrus
   how do we get NPCs to cast spells during dialogue
+  Can we fix SD so we can sleep in their house without issues?
+    ; seems like no
+
     
 **************************************************************************************************************************
 
 ASM Discovery:
 
   DO NOT use "Mods.prop != None && Mods.prop == thing"
-    This compiler will get the prop from the class TWICE, probably because it thinks the state can change
+    This compiler will get the prop from the class TWICE, probably because it thinks the state can change between the expressions
 
     PROPGET [ID[temptressVixenRace], ID[QQZQQ010], ID[::temp35]]
 		CAST [ID[::temp41], NONE]
@@ -797,13 +815,6 @@ player is approached by friendly NPC, because NPC has noticed player likes it ((
   follower remarks about player while player is busy with sex tied up and/or rape orgasm    
 
 &&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
-
-need to test:
-  Slaverun Reworked, haven't played past riverwood, that was ages ago
-  Mia's lair again?
-    fix Mia's lair start state problems, the end of the onthetrail quest should also probably be protected, since the player is busy with slaves
-      fixed?? needs testing
-  Retest the DEC enslavement entrances, checking for which ones are the slowest, longest
   
 bleed out events:
 IdleForceDefaultState
@@ -817,43 +828,166 @@ BleedOutStop
   grep <thing> *.psc | while read -r line; do
     notepad &line
   done
-  
-(*)  (*)  (*)  (*)  (*)  working on the copy paste themer
-  
-  ;int ddChance           = MCM.iWeightSingleGlovesBoots * ((!PlayerMon.player.wornHasKeyword(libs.zad_DeviousGloves) && !PlayerMon.player.wornHasKeyword(libs.zad_DeviousBoots)) as int)
-  int ddEnabledZazChance  = MCM.iWeightSingleArmbinder * ((!PlayerMon.player.wornHasKeyword(libs.zad_DeviousArmbinder) && !PlayerMon.player.wornHasKeyword(libs.zad_DeviousYoke)) as int)
-  int zazChance           = MCM.iWeightSingleCollar * ((!PlayerMon.player.wornHasKeyword(libs.zad_DeviousCollar)) as int) ; could do harness too
-  
-  int redEboniteChance          = MCM.iWeightSingleGag * ((!PlayerMon.player.wornHasKeyword(libs.zad_DeviousGag)) as int)
-  int wtEboniteChance           = MCM.iWeightSingleHarness * ((!PlayerMon.player.wornHasKeyword(libs.zad_DeviousHarness) && !PlayerMon.player.wornHasKeyword(libs.zad_DeviousBelt)) as int) ; do I not need the keyword for corset
-  int blkEboniteChance          = MCM.iWeightSingleBelt * ((!PlayerMon.player.wornHasKeyword(libs.zad_DeviousBelt)) as int) 
-  int cuffsChance               = MCM.iWeightSingleCuffs * ((!PlayerMon.player.wornHasKeyword(libs.zad_DeviousLegCuffs) && !PlayerMon.player.wornHasKeyword(libs.zad_DeviousArmCuffs)) as int)
+    
 
-  int subtype_total = iWeightDDRegular + iWeightDDZazVel + iWeightZazReg
-  int total = iWeightEboniteRegular + iWeightEboniteRed + iWeightEboniteWhite 
-            + iWeightZazMetalBrown  + iWeightZazMetalBlack + iWeightZazLeather + iWeightZazRope
-            + iWeightCDGold + iWeightCDSilver + iWeightCDGold 
-  if total == 0 || subtype_total == 0
-    PlayerMon.debugmsg("single: total is zero, no more items left to put on?")
-    return
-  endif
-  int roll  = Utility.RandomInt(1,total)
-  PlayerMon.debugmsg("single roll: gloveboot/armbind/collar/gag/harn/belt/cuffs (" +\
-
-           glovesbootsChance + "/" +\
-           armbinderChance + "/" +\
-           collarChance + "/" +\
-           gagChance + "/" +\
-           harnessChance + "/" +\
-           beltChance + "/" +\
-           cuffsChance + "/" +\
-           ") roll:" + roll)
-
-  player.playidle <name not id>
-    is it possible this lingers after sex?
 
   [8][8][8][8][8][8][8][8][8][8][8][8][8][8][8][8]
     Extra stuff I want to save goes below:
   [8][8][8][8][8][8][8][8][8][8][8][8][8][8][8][8]
 
       if tmp_follower != None && ( NPCMonitorScript.isWearingSlaveDD(tmp_follower) || Mods.isSlave(tmp_follower))
+
+  Legume's christmas list
+X 1. Removed .pex files.
+
+X 2. Formatting: Removed some errant whitespace.
+
++ 3. Formatting: Removed Tabs from files.
+
+X 4. Removed declaration of a few unused variables that were no longer (or never were) used.
+
+5. crdedistanceenslave.psc: Added the Devious Framework Quest variable to the script.
+TODO: This variable is set on each update (and when used).  It needs to be set when the game is loaded isntead.
+
+6. crdedistanceenslave.psc: When enslaving the player if DFW is installed verify with that mod that slavery is allowed before attempting it.
+This change has was made in several places for each of the different enslave options.
+
+7. Fixed some compile issues with the crdeFollowerEnslaveScript script which I believe is obsolete.
+
+8. crdeitemmanipulatescript.psc: Added checks to verify the "player" variable is set before it is used.
+There was a comment suggesting that it was not set in one of the functions while other functions were assuming it is set.
+TODO: Make sure it is set on game load (or on initialization as it never changes).
+
+9. crdeitemmanipulatescript.psc: Consolidated the case of the zad_DeviousArmbinder being checked three times at once.
+
+10. crdeitemmanipulatescript.psc: Removed access to the PlayerMon.player variable to reduce context switching  Use the local variable instead.
+
+11. crdeitemmanipulatescript.psc: Commented out the Equip Random DD Debug.Notifications which were now in the "Get" function.
+TODO: Left them there commented out in case we decide to find where they are now being equipped and move the notifications there.
+
+12. crdeitemmanipulatescript.psc: Removed a couple of cases of getRandomUniqueCollar() checking for the player twice.
+
+13. crdeitemmanipulatescript.psc: Added a missing "return None" to the end of getRandomUniqueCollar().
+(It probably returned None by default so this doesn't change behaviour).
+
+14. crdeitemmanipulatescript.psc: Moved the check for the player/actor wearing a harness from the get function to the equip function (equipRandomHarnessAndStuff).
+
+15. crdeitemmanipulatescript.psc: Fixed the return for the equipRandomHarnessAndStuff() function.
+
+16. crdeitemmanipulatescript.psc: Moved the "Checking Belt" notification from the get function to the equip function where the check is actually done.
+
+17. crdelockingplugscript.psc: Reorganized if clauses in OnEquippedFilter() as I was having difficulty reading and understanding the code.
+
+18. crdemcmscript.psc: Added some code to GetVersion() to set the DFW main and MCM variables.
+TODO Investigate: This function is supposed to be called on each game load but that doesn't appear to be happening.
+
+19. crdemcmscript.psc: Removed the initial empty page.
+
+20. crdemcmscript.psc: Added a last page variable so the MCM menu opens to the last viewed page.
+
+21. crdemcmscript.psc: Added a UpdateScript() function for initializing/updating script variables.
+
+22. crdemcmscript.psc: Separated the large "If a_page... next page" into separate functions for each page for organization purposes.
+
+23. crdemcmscript.psc: Updated use of the fEventTimeoutHours variable (in several places).
+There is a possibility I just updated it because it was difficult for me to understand but I don't think that is the case.
+I don't remember why I made this change (some time ago) but something tells me there was an actual problem with the way it was so I didn't want to loose the changes.
+
+24. crdemcmscript.psc: Removed a second blank line between "Nighttime Options" and "Vulnerable items".  Was this intended/desired?
+
+25. crdemcmscript.psc: Added a "DFW Compatibility" page with:
+a. "Prefer DFW Behaviour" - Intended for users to be able to turn off DFW changes and keep the old functionality.  Primarily for stability in the event of unforseen problems.
+b. "Security Level" - Added an option for the users to be able to lock themselves out of the menus when vulnerable.  This still needs to be applied to lockout many of the existing MCM settings.
+c. "Percent Modify Vulnerability" - An option for fine tuning DFW vulnerability for this mod.
+d. "Minimum Vulnerability Sex" - The minimum DFW vulnerability the player must have before she will be considered vulnerable for sex.
+                                 Intended to replace most, if not all of the DEC vulnerability options but both will be used until any non-redundant vulnerabilities can be accounted for.
+e. "Minimum Vulnerability Enslave" - Same as "Minimum Vulnerability Sex" but for enslavement.
+f. "Percent Vulnerability Sex" - Increase the chances of sex when vulnerable.
+g. "Percent Vulnerability Enslave" - Same as "Percent Vulnerability Enslave" but for enslavement.
+h. "Sex Reduction When Enslaved" - Reduces (or increases) the chance of sex when enslaved by another mod.
+
+26. crdemcmscript.psc: Removed a couple of isntances of casting a float to a float.
+
+27. crdemodsmonitorscript.psc: If using DFW checking for the player being a slave is moved to attemptApproach()  Removed it from the isPlayerEnslaved() function.
+
+28. crdeplayermonitorscript.psc: Removed the sslThreadLibrary as it is not used anywhere.
+
+29. crdeplayermonitorscript.psc: Changed the use of the timeoutEnslaveGameTime variable (in several places).
+There is a possibility I just updated it because it was difficult for me to understand but I don't think that is the case.
+I don't remember why I made this change (some time ago) but something tells me there was an actual problem with the way it was so I didn't want to loose the changes.
+It has been renamed to fLastEnslaveAttempt which holds the exact time of the enslavement attempt (we used to store the time of the end of the timeout).
+One effect of this change is updating the MCM timeout after this time has been recorded can now take effect and can be used to shorten (or lengthen) the timeout.
+
+30. crdeplayermonitorscript.psc: Changed the Thread Busy flag from a boolean to an integer.
+The integer now counts down and times out automatically if the script does not clear it properly (on badly timed saves?).
+
+31. crdeplayermonitorscript.psc: Added script version checking to each update poll of the script (to update the script).
+TODO: This needs to be done on game load rather than on each version.
+
+32. crdeplayermonitorscript.psc: If using DFW, we don't even consider the approach if the player is not vulnerable enough (according to DFW).
+This is done early to reduce a lot of possible checks and load on the papyrus engine but isn't as dynamic as checking the player's vulnerability against a large number of variables, especially basing the player's vulnerability on the attacker which isn't even looked at.
+
+33. crdeplayermonitorscript.psc: If using DFW, we don't even consider the approach if DFW reports the player cannot be enslaved and cannot engage in sex.
+TODO: The approach can now be done to have the follower equip restraints on the player?  We probably want the approach to be allowed for this case if DFW reports restraints can be added to the player.
+
+34. crdeplayermonitorscript.psc: Added a debug message when attempting the approach.
+
+35. crdeplayermonitorscript.psc: During the enslavement attempt if the player is too far away, instead of aborting I changed it to teleport (MoveTo) the player to the agressor's location.
+
+36. crdeplayermonitorscript.psc: During the enslavement attempt I attempt to register the agressor as the player's master and fail the enslavement if this can't be done.
+I am using None as the agressor with no mod.  This means the master does not later need to be cleared but provides some basic enslavement registration.
+
+37. crdeplayermonitorscript.psc: When enslaving the player post sex, added a check with DFW to verify the player can be enslaved.
+
+38. crdeplayermonitorscript.psc: When adding restraints to the player post sex, added a check with DFW to verify the player can be restrained.
+
+39. crdeplayermonitorscript.psc: If the getClosestRefActor() fails to find an actor I added code to get the nearest dominant from DFW.
+I found a case during testing when DEC could not find an actor but there were some nearby and I couldn't figure out why they weren't detected.
+
+30. crdeplayermonitorscript.psc: Changed follower_thinks_player_sub to be cumulative of several values.
+I think this was a bug.  The variable was being set and then overwritten without being used in between.
+
+40. crdeplayermonitorscript.psc: Rewrote the sex/enslavement roll in attemptApproach() to include DFW.
+Added a redundant check to make sure the player is vulnerable enough and sex/enslavement is allowed.
+Accounts for MCM adjustments based on current DFW vulnerability and when the player is enslaved.
+Originally this would remove the need for chastity detection here if DFW is installed but with the new bChastityToggle chastity detection is now needed regardless.
+
+41. crdeplayermonitorscript.psc: Added some code to use the DFW vulnerability in attemptApproach() when DEC decides on enslavement but detects the player is not vulnerable enough.
+If we get to this point the player should already have passed the vulnerability detection and I encountered a problem where the player's vulnerability was being evaluated incorrectly.
+
+42. crdeplayermonitorscript.psc: Changed the enslavement vulnerability check to happen only if not using DFW.  If using DFW this is done elsewhere.
+
+43. crdeplayermonitorscript.psc: Changed the code so that if enslavement is selected but fails for any reason sex is attempted instead.
+
+44. crdesexlabactoralias.psc: Fixed a compile error.  I believe the script is obsolete.
+
+45. crdeslaverunscript.psc: Fixed a spelling mistake/compile error.
+
+46. crdestartquestscript.psc: Increased the version number to 13.7.2.
+
+47. crdetrainingeffect.psc: Fixed a compile error.  I believe the script is obsolete.
+
+48. Topic Info Fragments: Changed the use of the timeoutEnslaveGameTime variable (in several places).
+There is a possibility I just updated it because it was difficult for me to understand but I don't think that is the case.
+I don't remember why I made this change (some time ago) but something tells me there was an actual problem with the way it was so I didn't want to loose the changes.
+The following topic info fragments were updated accordingly:
+pf_crde_enslavelonelywithnoownersight.psc
+pf_crde_enslaveluckydayslavenomaster.psc
+pf_crde_enslaverunningerrandsorrun.psc
+pf_crde_enslaveslaverunningnomaster.psc
+pf_crde_enslaveyoulookalone.psc
+pf_crde_sexfreefuckservice.psc
+pf_crde_sexmycockrequires.psc
+pf_crde_sexmypussyrequires.psc
+pf_crde_sexslutserviceme.psc
+tif__080022f0.psc
+tif__080022f3.psc
+tif__080022f4.psc
+tif__08002311.psc
+tif__080038ad.psc
+tif__080038ae.psc
+tif__0800437b.psc
+tif__0800437c.psc
+tif__0800437d.psc
+
+49. pf_crde_followergaggedaddblindfold.psc: Fixed a compile error accessing an undeclared variable.      

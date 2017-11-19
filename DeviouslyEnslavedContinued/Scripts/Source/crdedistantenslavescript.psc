@@ -46,7 +46,6 @@ crdeItemManipulateScript  Property ItemScript Auto
 
 ReferenceAlias Property masterAlias Auto; in this case, I'm using it to load LEON because I can't just move his actor for some reason
 
-
 ; sd enslave master's to attempt
 Actor Property  SDPreviousMaster Auto ; should start as player, then change from NPC to NPC
 Actor Property  SDNextMaster Auto     ; if none, search, if player then we have exhausted possible options
@@ -84,7 +83,7 @@ Event OnInit()
   while Mods.finishedCheckingMods == false
     Debug.Trace("[CRDE] distant:mods not finished yet")
     Utility.Wait(1)
-	endwhile
+  endwhile
   RegisterForSingleUpdate(1)
 EndEvent
 
@@ -277,7 +276,7 @@ function enslaveWC(actor actorRef = none)
   SendModEvent("crdeStartWolflcubQuest") ;doesn't work yet
   ;Quest wolfclub = (Quest.getQuest("crdeModsMonitor") as crdeModsMonitorScript).wolfclubQuest
   ;(wolfclub as pchsWolfclubDAYMOYL).QuestStart(none, none, none)
-	;(Mods.wolfclubQuest as pchsWolfclubDAYMOYL).QuestStart(none, none, none)
+  ;(Mods.wolfclubQuest as pchsWolfclubDAYMOYL).QuestStart(none, none, none)
   ;WolfclubScript.enslave()
  ; SendModEvent("WolfClubEnslavePlayer") ; Does not work
 endFunction
@@ -316,10 +315,10 @@ function enslaveSD(actor masterRef = none) ; Sanguine's Debaunchery+
   Game.EnablePlayerControls()
   
   ;BlackFade.Remove()
- 	Debug.MessageBox("You wake up next to your new master")
+   Debug.MessageBox("You wake up next to your new master")
   ;(sdEnslavement as _SDQS_enslavement).SendStoryEvent( akLoc = masterRef.GetCurrentLocation(), akRef1 = masterRef, akRef2 = Game.GetPlayer(), aiValue1 = 0, aiValue2 = 0) ; reference
   Mods.sdEnslaveKeyword.SendStoryEvent( masterRef.GetCurrentLocation(),  masterRef,  player,  0, 0)
- 	;masterRef.SendModEvent("PCSubEnslave") ; broken, if the actor was in combat first gets stuck in re-enslavement loop
+   ;masterRef.SendModEvent("PCSubEnslave") ; broken, if the actor was in combat first gets stuck in re-enslavement loop
   
   ; MOST of the time, we can set this here right after the above call and player will teleport to the actor, not the other way around
   player.MoveTo(masterRef) 
@@ -496,10 +495,10 @@ function enslaveDCPirate()
   ; remove armor first?
   
   SendModEvent("dvcidhna_startpirates")
-	LightFade.ApplyCrossFade(3)
-	utility.wait(3)
-	LightFade.Remove()
-	;utility.wait(5) <- not really necessary?
+  LightFade.ApplyCrossFade(3)
+  utility.wait(3)
+  LightFade.Remove()
+  ;utility.wait(5) <- not really necessary?
 endFunction 
 
 function enslaveSLUTS()
@@ -714,15 +713,15 @@ bool function canRunWC()
   if Mods.modLoadedWolfClub == false || MCM.bWCDistanceToggle == false || (MCM.iDistanceWeightWC <= 0) || Mods.wolfclubQuest == None
     ;canRunWC = false 
     return false
-	endif
-	Quest wolfclub = (Quest.getQuest("crdeModsMonitor") as crdeModsMonitorScript).wolfclubQuest
-	
-	if wolfclub.getStage() > 0 || wolfclub.isRunning() == false
-		;canRunWC = false
-		return false
-	else
-		;canRunWC = true
-		return true
+  endif
+  Quest wolfclub = (Quest.getQuest("crdeModsMonitor") as crdeModsMonitorScript).wolfclubQuest
+  
+  if wolfclub.getStage() > 0 || wolfclub.isRunning() == false
+    ;canRunWC = false
+    return false
+  else
+    ;canRunWC = true
+    return true
   endif
 endFunction
 

@@ -58,5 +58,5 @@ Event OnStoryCrimeGold(ObjectReference akVictim, ObjectReference akCriminal, For
    
   ;PlayerMon.debugmsg( ("Player caught with faction: " + akFaction + " while doing:" + crime + "gold:" + aiGoldAmount) , 0)
   Stop()
-	Reset()
+  Reset()
 EndEvent

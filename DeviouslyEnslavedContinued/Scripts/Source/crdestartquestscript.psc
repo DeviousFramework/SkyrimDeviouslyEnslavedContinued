@@ -29,40 +29,34 @@ Scriptname crdeStartQuestScript extends Quest
 
 Quest Property Mods Auto  
 Quest Property Player Auto  
-Quest Property Settings Auto  
+;Quest Property Settings Auto  
 
 float lastVersion
 bool Property needsMaintenance Auto 
 
-; float version is Xxx.Yy.Zz = > Xxx.yYzZ
+; float version is Xxx.Yy.Zz = > Xxx.YyZz
 ; IE 3.2.1 would be 3.0201, 2.13.2 would be 2.1302
 float function getVersion()
-  return 13.1003
+  return 13.1201
   EndFunction
 
 string function getVersionString()
-  return "13.10.3"
+  return "13.12.1"
 EndFunction
 
 Function Maintenance()
-	;Debug.trace("[CRDE] Maintenance")
-	needsMaintenance = true
-	if(getVersion() > lastVersion)
-		string upOrStart = "Updating to "
-		if(lastVersion == 0)
-			upOrStart = "Starting "
-    	needsMaintenance = false
-		endif
-		Debug.Notification(upOrStart + "Deviously Enslaved Cont. v" + getVersionString())
+  ;Debug.trace("[CRDE] Maintenance")
+  needsMaintenance = true
+  lastVersion = getVersion()
+  if(getVersion() > lastVersion)
+    string upOrStart = "Updating to "
+    if(lastVersion == 0)
+      upOrStart = "Starting "
+      needsMaintenance = false
+    endif
+    Debug.Notification(upOrStart + "Deviously Enslaved Cont. v" + getVersionString())
     Debug.trace("[CRDE] " + upOrStart + "DEC v" + getVersionString())
-	endIf
-	lastVersion = getVersion()
-	if(Settings.isRunning() == false)
-		bool sOK = Settings.start()
-		Debug.Trace("[CRDE] Settings: " + sOK)
-	else
-		;(Settings as crdeSettingsScript).Maintenance()
-	endif
+  endIf
 
 	Utility.Wait(0.25)
 
@@ -83,18 +77,18 @@ EndFunction
 
 
 Event OnInit()
-	Debug.trace("[CRDE] StartQuest: Init")
-	Utility.Wait(3.0)
-	needsMaintenance = true
-	RegisterForSingleUpdate(3)
-	
+  Debug.trace("[CRDE] StartQuest: Init")
+  Utility.Wait(3.0)
+  needsMaintenance = true
+  RegisterForSingleUpdate(3)
+  
 EndEvent
 
 Event onUpdate()
-	;Debug.trace("[CRDE] onUpdate")
-	if(needsMaintenance == true && !Utility.IsInMenuMode())
-		Maintenance()
-	endif
-  (Mods as crdeModsMonitorScript).OnUpdate() ; always turn this on, now that we've turned off Mods's ability to keep itself alive
-	;RegisterForSingleUpdate(100) ; this is getting called forever, do we need it forever?
+  ;Debug.trace("[CRDE] onUpdate")
+  if(needsMaintenance == true && !Utility.IsInMenuMode())
+    Maintenance()
+  endif
+  ;(Mods as crdeModsMonitorScript).OnUpdate() ; always turn this on, now that we've turned off Mods's ability to keep itself alive
+  ;RegisterForSingleUpdate(100) ; this is getting called forever, do we need it forever?
 EndEvent

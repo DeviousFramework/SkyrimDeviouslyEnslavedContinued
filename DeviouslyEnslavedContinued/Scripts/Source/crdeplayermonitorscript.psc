@@ -184,14 +184,13 @@ location        timeExtraVulnerableLoc  = None
 
 ImageSpaceModifier property LightFade auto ; fade back to light, to counter the simpleslavery bug for now
 
-bool threadBusy = false
+bool threadBusy   = false
 bool isPlayerBusy = false ; checking for other mods
 
 Event OnUpdate()
-	if(MCM.gCRDEEnable.GetValueInt() == 0) ; mod is off
+  if(MCM.gCRDEEnable.GetValueInt() == 0) ; mod is off
   
-		clear_force_variables() 
-		;Vars.crdeisBusy.SetValue(0)
+    clear_force_variables() 
     RegisterForSingleUpdate(MCM.fEventInterval * 2)
   else
     if player.IsInCombat() 
@@ -216,7 +215,7 @@ Event OnUpdate()
       
     else ; not a combat situation
       float onupdatetimeteststart = Utility.GetCurrentRealTime()
-      CurrentGameTime 	          = Utility.GetCurrentGameTime() ; use gametime, since realtime gets reset per game session, cannot work through game saves
+      CurrentGameTime             = Utility.GetCurrentGameTime() ; use gametime, since realtime gets reset per game session, cannot work through game saves
       if forceGreetIncomplete
         ; moved to the attemptapproach function, there we have more details
         ;debugmsg("force greet is Incomplete, " + ((busyGameTime - CurrentGameTime)*1400) + " GMin remain", 1) ; game minute
@@ -250,7 +249,7 @@ Event OnUpdate()
       
       bool completedApproach = false
       if threadBusy == false
-        threadBusy 	= true
+        threadBusy   = true
         ;debugmsg("global search range: " + MCM.gSearchRange.GetValueInt()) 
         completedApproach = attemptApproach() ; roll and everything else moved into this one function, simplifies this onUpdate
         threadBusy = false
@@ -284,19 +283,19 @@ Event OnUpdate()
 EndEvent
 
 Event OnInit()
-	player = Game.GetPlayer()
+  player = Game.GetPlayer()
   PlayerScript = (playerScriptAlias as crdePlayerScript) ; hopefully, this will reduce papyrus load
   Utility.wait(6)
   while Mods.finishedCheckingMods == false
     Debug.Trace("[crde]in player:mods not finished yet", 1)
     Utility.wait(2) ; in seconds
   endWhile
-	Maintenance() 
+  Maintenance() 
   RegisterForSingleUpdate(3)
 EndEvent
 
 function Maintenance()
-	PlayerScript.equipmentChanged = true ; start out checking equipment regardless of what it could be
+  PlayerScript.equipmentChanged = true ; start out checking equipment regardless of what it could be
   ;cdGeneralFactionAlias = Mods.cdGeneralFaction as Alias
   RegisterForModEvent("HookAnimationStart", "crdeSexStartCatch")
   RegisterForModEvent("HookAnimationEnd", "crdeSexHook")
@@ -305,7 +304,7 @@ function Maintenance()
   RegisterForModEvent("DeviceEvent", "playerHornyFromDD")
   followerFoundDDItems = new form[32]
   followerFoundDDItemsContainers = new objectReference[32]
-	;settings.resetValues()
+  ;settings.resetValues()
 endFunction
 
 ; if we start sex, call clear force variables so we can stop an approach
@@ -374,12 +373,12 @@ Event playerHornyFromDD(String eventname, string character_name, float argNum, F
 endEvent
 
 Function clear_force_variables(bool resetAttacker = false)
-	;crdeFGreetStatus.SetValue(0)
+  ;crdeFGreetStatus.SetValue(0)
   if MCM.bDebugLoudApproachFail && (forceGreetSex || forceGreetSlave)
     debugmsg("cancel approach called, resetting",1)
   endif
-	forceGreetSex         = 0 ; just in case we get back in this update while the previous attack is still underway, 
-	forceGreetSlave       = 0 ; and player is NOW busy, try using these variables as a cancel
+  forceGreetSex         = 0 ; just in case we get back in this update while the previous attack is still underway, 
+  forceGreetSlave       = 0 ; and player is NOW busy, try using these variables as a cancel
   isIndecent            = false
   isLocallyWanted       = false
   sexFromDEC            = false
@@ -396,9 +395,10 @@ Function clear_force_variables(bool resetAttacker = false)
     if attackerRefAlias != None
       attackerRefAlias.Clear()
     endif
-    if followerRefAlias01 != None
-      followerRefAlias01.Clear()
-    endif
+    ; removed in 13.11.5, we don't want to reset followers they aren't for approaches anymore
+  ;  if followerRefAlias01 != None
+  ;    followerRefAlias01.Clear()
+  ;  endif
     ;if followerRefAlias02 != None ; we might want to leave these full actually
     ;  followerRefAlias02.Clear()
     ;endif
@@ -419,52 +419,52 @@ bool function isPlayerBusy()
   ; removed, reduced approach len
   ;if forceGreetSex || forceGreetSlave ; DEC is busy
   ;  ;debugmsg("dhlp suspend is active, a mod is busy", 1)
-	;	return true
+  ;  return true
   ;elseif Mods.dhlpSuspendStatus == true && forceGreetIncomplete == false; Deviously helpess suspend status is set
   ;  debugmsg("dhlp suspend is active, a mod is busy", 1)
-	;	return true
+  ;  return true
   
-	if( player.GetCurrentScene() != none )
-		debugmsg("Player is in scene, busy", 1)
-		return true
+  if( player.GetCurrentScene() != none )
+    debugmsg("Player is in scene, busy", 1)
+    return true
     ; disabled in 13.10 as experiment
-	elseif   UI.IsMenuOpen("Dialogue Menu")  ;UI.IsMenuOpen("InventoryMenu") |||| UI.IsMenuOpen("ContainerMenu")
- 		debugmsg("Player is in UI, busy", 1)
-		return true
+  elseif   UI.IsMenuOpen("Dialogue Menu")  ;UI.IsMenuOpen("InventoryMenu") |||| UI.IsMenuOpen("ContainerMenu")
+     debugmsg("Player is in UI, busy", 1)
+    return true
   elseif  SexLab.IsActorActive(player)  
     debugmsg("Player is busy with Sexlab", 1)
-		return true
+    return true
   elseif (!player.getplayercontrols()) ; placed last because I bet it's the slowest response
-		debugmsg("Player's controls are locked, busy", 1)
-		return true
+    debugmsg("Player's controls are locked, busy", 1)
+    return true
   endif
   bool boundInFurniture = NPCMonitorScript.checkActorBoundInFurniture(player)
   ;debugmsg("bound status:" + boundInFurniture + " sexlab furn status:" + PlayerScript.isZazSexlabFurniture)
   if !MCM.bVulnerableFurniture && boundInFurniture
     debugmsg("Player is bound in furniture, busy", 1)
-		return true
+    return true
   elseif boundInFurniture && PlayerScript.isZazSexlabFurniture
     debugmsg("Player is bound in sexlab furniture, busy", 1)
-		return true
+    return true
   elseif StorageUtil.GetIntValue(player, "DCUR_SceneRunning") == 1
     debugmsg("Cursed loot scene is running, busy", 1)
-		return true
+    return true
   elseif StorageUtil.GetIntValue(player, "crdeBusyLock") == 1
     debugmsg("CRDE Busy Lock is ON, busy", 1)
-		return true
-	elseif isBusyDefeat(player) 
-		debugmsg("Player is busy: defeat", 1)
-		return true
-	elseif isBusyMDevious(player)  
-		debugmsg("Player is busy: More devious quest", 1)
-		return true
+    return true
+  elseif isBusyDefeat(player) 
+    debugmsg("Player is busy: defeat", 1)
+    return true
+  elseif isBusyMDevious(player)  
+    debugmsg("Player is busy: More devious quest", 1)
+    return true
   elseif Mods.isPlayerInJail()
     debugmsg("Player is in jail, busy", 1)
     return true
   ;elseif Mods.dcurMisogynyDetect != None && Mods.dcurMisogynyDetect.GetValueInt() == 1 && Mods.dcurMisogynyCooldown.GetValueInt() == 1 ; ZZZ
   ;  debugmsg("Cursed loot Misogyny is active", 1)
   ;  return true
-	elseif Mods.modLoadedMariaEden
+  elseif Mods.modLoadedMariaEden
     if Mods.meWhoresJob == None 
       debugmsg("Maria has no whore job, huh?", 0)
     elseif Mods.meWhoresJob.isRunning()
@@ -480,8 +480,8 @@ bool function isPlayerBusy()
   elseif player.GetRace() == WerewolfBeastRace
     debugmsg("Player is Werewolf currently, busy", 1)
     return true
-	endif
-	return false ; for now
+  endif
+  return false ; for now
 endfunction
 
 ; check if the player has visible (nudity) Bukakke
@@ -597,16 +597,16 @@ function updateEquippedPlayerVulnerability(bool isSlaver = false)
     (wearingAnkleChains)
     
     clothingPlayerVulnerability = 2
-		return 
-	endif 
+    return 
+  endif 
 
-	if(MCM.bVulnerableCollar && wearingCollar == true && !(MCM.bNakedReqCollar && !isNude)) \
+  if(MCM.bVulnerableCollar && wearingCollar == true && !(MCM.bNakedReqCollar && !isNude)) \
    || (MCM.bIsVulNaked == true && isNude) 
-		clothingPlayerVulnerability = 1
-		return 
-	endif
+    clothingPlayerVulnerability = 1
+    return 
+  endif
    
-	clothingPlayerVulnerability = 0
+  clothingPlayerVulnerability = 0
   
 endFunction 
 
@@ -683,27 +683,27 @@ endFunction
 ; attemptLocalEnslavement / enslaveLocal <- better names, but changing might break fragments, too much work, fuck CK
 ; it doesn't actually look like we need to return bool here, since it always gets called by fragments it seems
 bool function attemptEnslavement(actor masterRef, bool skipMsg = false)
-	clear_force_variables(true)
+  clear_force_variables(true)
   Mods.dhlpResume() ; approach is over, for now we'll leave this up here
   ;debugmsg("Entered attemptLocalEnslavement", 1) ; <- shouldn't be needed
   
   if masterRef == None
     debugmsg("Err: attemptEnsl::masterRef is None" ,5) ; TODO: how can this happen? maybe the fragments are broken...
-  	return false
+    return false
   endif
   
   if PlayerScript.sittingInZaz ; if player is tied up in furniture, move the player to the attacker, avoids sex/scene clipping into furniture
     player.moveTo(masterRef)
   endif
 
-	if(attackerRefAlias.GetActorReference() != player && masterRef.isDead() == false && masterRef.isChild() == false && \
+  if(attackerRefAlias.GetActorReference() != player && masterRef.isDead() == false && masterRef.isChild() == false && \
     masterRef.isPlayerTeammate() == false && masterRef.isAIEnabled() == true); && masterRef.getRace().isPlayable() == true)
     ; shouldn't most of these checks be taken care of by the time we get here, since we should already have checked this stuff by now?
-		if(masterRef.getDistance(player) < 500)
-			;timeoutEnslaveGameTime = CurrentGameTime + MCM.fEventTimeout 
-			if(skipMsg == false)
-				debugmsg("Seeing you so helpless, " + masterRef.getDisplayName() + " decides to keep you as their slave.", 5)
-			endif
+    if(masterRef.getDistance(player) < 500)
+      ;timeoutEnslaveGameTime = CurrentGameTime + MCM.fEventTimeout 
+      if(skipMsg == false)
+        debugmsg("Seeing you so helpless, " + masterRef.getDisplayName() + " decides to keep you as their slave.", 5)
+      endif
       ;totalWeight = MCM.iEnslaveWeightSD + MCM.iEnslaveWeightMaria
       ;int roll = Utility.RandomInt(0,totalWeight)
       ; left these here in case we get a third option, but for now keeping it dymanic means fewer stack variables
@@ -714,92 +714,87 @@ bool function attemptEnslavement(actor masterRef, bool skipMsg = false)
       debugmsg("local roll SD , Maria / Total: " + newSD + " , " + newMaria + " / " + total, 2)
       if total == 0
         debugmsg("enslave local: total is zero, no SD + Maria?", 4)
-				ItemScript.equipRandomDD(player)
+        ItemScript.equipRandomDD(player)
         return false
       endif
-			if  roll <= MCM.iEnslaveWeightSD  
-				debugmsg("Starting SD", 1)
-				Mods.clearHelpless()
-				Mods.enslaveSD(masterRef)
-				return true
-			else ;maria       ;masterRef.GetActorValue("Aggression") <= 1)
-				ItemScript.removeDDs()
-				debugmsg("Starting ME", 1)
-				Mods.clearHelpless()
-				Mods.enslaveME(masterRef)
-				return true
-			;else
+      if  roll <= MCM.iEnslaveWeightSD  
+        debugmsg("Starting SD", 1)
+        Mods.clearHelpless()
+        Mods.enslaveSD(masterRef)
+        return true
+      else ;maria       ;masterRef.GetActorValue("Aggression") <= 1)
+        ItemScript.removeDDs()
+        debugmsg("Starting ME", 1)
+        Mods.clearHelpless()
+        Mods.enslaveME(masterRef)
+        return true
+      ;else
         ;debugmsg("enslave local: roll is out of range", 4) ; shouldn't get this far, might explain why I haven't seen this error yet
-				; No known enslavement mod, just going to add items (or not)
-				;ItemScript.equipRandomDD(player)
-			endif
-		else
+        ; No known enslavement mod, just going to add items (or not)
+        ;ItemScript.equipRandomDD(player)
+      endif
+    else
       debugmsg("attemptEnslavement err: master is too far away", 5)
     endif
-	else
+  else
     debugmsg("attemptEnslavement err: master is dead/child/teammate", 5)
   endif
-	return false
+  return false
 endFunction
 
 ; does this really only just take your stuff/add items? 
 ; bad function name, describes where it's used not what it does
 function tryNonEnslaveSexEnding(actor actorRef)
-	int rollKeys = Utility.RandomInt(1,100)
-	int rollDevices = Utility.RandomInt(1,100)
+  int rollKeys = Utility.RandomInt(1,100)
+  int rollDevices = Utility.RandomInt(1,100)
 
-	;string msgRoll = "keys: " + rollKeys + " / devices: " + rollDevices
-	;debugmsg("keys: " + rollKeys + " / devices: " + rollDevices, 2)
+  ;string msgRoll = "keys: " + rollKeys + " / devices: " + rollDevices
+  ;debugmsg("keys: " + rollKeys + " / devices: " + rollDevices, 2)
   debugmsg(("post sex: stealkeys/devices: (" + rollKeys + "/" + rollDevices \
            +") needed (under): (" + MCM.iSexEventKey+ "/" + MCM.iSexEventDevice +" )"), 2)
 
-	;timeoutEnslaveGameTime = Utility.GetCurrentGameTime() + MCM.fEventTimeout
-	
-	if(rollKeys < MCM.iSexEventKey)
-		Debug.Notification(actorRef.getDisplayName() + " searches you for any keys and removes them.")
-		ItemScript.stealKeys(actorRef)
-	endif
-	if rollDevices < MCM.iSexEventDevice ; && enslavedLevel == 0) was I asleep when I decided you need to be un-enslaved to get items?
-		;ItemScript.equipRandomDD(actorRef) ; hang on, actorRef is the attacker, not the player
+  ;timeoutEnslaveGameTime = Utility.GetCurrentGameTime() + MCM.fEventTimeout
+  
+  if(rollKeys < MCM.iSexEventKey)
+    Debug.Notification(actorRef.getDisplayName() + " searches you for any keys and removes them.")
+    ItemScript.stealKeys(actorRef)
+  endif
+  if rollDevices < MCM.iSexEventDevice ; && enslavedLevel == 0) was I asleep when I decided you need to be un-enslaved to get items?
+    ;ItemScript.equipRandomDD(actorRef) ; hang on, actorRef is the attacker, not the player
     ItemScript.equipRandomDD(player)
-	endif
-  ; if roll enslave
-    ; set enslveaftersex var
-    ; moveactor to player, again, since we have the actor
-  ; similarly, if pimp start  
-    ; ...
+  endif
 endFunction
 
 bool function tryEnslavableSexEnd(actor actorRef)
-	float rollEnslave = Utility.RandomInt(1,100) * ((Mods.canRunLocal() || DistanceEnslave.canRunSold() || DistanceEnslave.canRunGiven()) as int) * (( enslavedLevel == 0 ) as int)
-	float rollDevice  = Utility.RandomInt(1,100)
+  float rollEnslave = Utility.RandomInt(1,100) * ((Mods.canRunLocal() || DistanceEnslave.canRunSold() || DistanceEnslave.canRunGiven()) as int) * (( enslavedLevel == 0 ) as int)
+  float rollDevice  = Utility.RandomInt(1,100)
 
-	if(Mods.isSlaveTrader(actorRef)) 
-		rollEnslave = rollEnslave / MCM.fModifierSlaverChances 
+  if(Mods.isSlaveTrader(actorRef)) 
+    rollEnslave = rollEnslave / MCM.fModifierSlaverChances 
     rollDevice  = rollDevice  / MCM.fModifierSlaverChances
-	endif
+  endif
 
- 	debugmsg(("post rape: enslave/devices: (" + rollEnslave + "/" + rollDevice \
+   debugmsg(("post rape: enslave/devices: (" + rollEnslave + "/" + rollDevice \
            +") needed (under): (" + MCM.iRapeEventEnslave+ "/" + MCM.iRapeEventDevice +" )"), 2)
   
   ;bool attempt = false
-	if(rollEnslave != 0 && rollEnslave < MCM.iRapeEventEnslave )
-		debugmsg("post rape: enslave roll won, attempting enslavement", 2)
+  if(rollEnslave != 0 && rollEnslave < MCM.iRapeEventEnslave )
+    debugmsg("post rape: enslave roll won, attempting enslavement", 2)
     ; decide what kind of enslavement we want
     if DistanceEnslave.enslavePlayer(actorRef) ; attempt was successful
-    	timeoutEnslaveGameTime = Utility.GetCurrentGameTime() + MCM.fEventTimeout
+      timeoutEnslaveGameTime = Utility.GetCurrentGameTime() + MCM.fEventTimeout
       return true
     endif
     ; otherwise keep going, maybe items?
   endif
   
-	if(rollDevice < MCM.iRapeEventDevice && enslavedLevel == 0)
-		debugmsg("post rape: device roll was high enough, adding items to player", 2)
+  if(rollDevice < MCM.iRapeEventDevice && enslavedLevel == 0)
+    debugmsg("post rape: device roll was high enough, adding items to player", 2)
     ItemScript.equipRandomDD(player) ; this used to be actorRef
-		return true
-	endif
-	;debugmsg("post rape: roll out of range, no rape", 2) ; not an error, this just means no enslave today
-	return false
+    return true
+  endif
+  ;debugmsg("post rape: roll out of range, no rape", 2) ; not an error, this just means no enslave today
+  return false
 endFunction
 
 ; I know this function is huge, but since papyrus doesn't likely inline functions...
@@ -847,13 +842,13 @@ bool function attemptApproach()
   endif 
   
   ; ROLL for enslave/sex, maybe later I'll re-use the roll for follower? It's still a random number if I don't modify
-  float rollEnslave	= Utility.RandomInt(1,100) / rollModifier
-  ;float rollTalk		= Utility.RandomInt(1,100) 
-  float rollSex		  = Utility.RandomInt(1,100) / rollModifier
+  float rollEnslave  = Utility.RandomInt(1,100) / rollModifier
+  ;float rollTalk    = Utility.RandomInt(1,100) 
+  float rollSex      = Utility.RandomInt(1,100) / rollModifier
   
   ; pre-check if the roll with slaver modifier still has 0 percent chance, 
   ;  worth checking early because it would save us lots of CPU time for the cost of very minor math and a few compares
-  if  ( (rollEnslave	/ MCM.fModifierSlaverChances) > MCM.iChanceEnslavementConvo || playerVulnerability < MCM.iMinEnslaveVulnerable )  \
+  if  ( (rollEnslave  / MCM.fModifierSlaverChances) > MCM.iChanceEnslavementConvo || playerVulnerability < MCM.iMinEnslaveVulnerable )  \
      && (rollSex     / MCM.fModifierSlaverChances) > MCM.iChanceSexConvo 
     debugmsg("Rolled too low (pre-check with modifier), stopping",3)
   endif
@@ -893,16 +888,14 @@ bool function attemptApproach()
   if  MCM.bFollowerDialogueToggle.GetValueInt() == 1 \
     && followers[0] != None && timeoutFollowerNag < CurrentGameTime \
     && (nearest.length <= 1 || player_loc && player_loc.haskeyword(LocTypePlayerHouse)) 
-    ;&& ( nearest.length == 1 || (player_loc && player_loc.haskeyword(LocTypePlayerHouse))) ; why does nearest need to have 1?
-    ; special case, alone with followers[0] in the woods or some shit, lets do something
 
     ; are we alone with followers in a dungeon?
-    ; for now screw the dungeon, lets just make it random and let the roll decide
+      ; for now screw the dungeon, lets just make it random and let the roll decide
     
     actor[] valid_followers   = new actor[15]
     actor[] current_followers = new actor[15]
     actor follower
-    int valid_count         = 0
+    int follower_count      = 0
     timeoutFollowerNag      = 0
     actor slave             = None
     actor tmp_follower      = None
@@ -941,9 +934,9 @@ bool function attemptApproach()
         debugmsg("follower " + tmp_follower.GetDisplayName() + " is tied up in CDx")
       elseif tmp_follower != None && !tmp_follower.WornHasKeyword(libs.zad_DeviousGag) && !tmp_follower.WornHasKeyword(libs.zad_DeviousArmbinder)
         
-        if SexLab.HadPlayerSex(tmp_follower) || StorageUtil.GetFloatValue(follower, "crdeThinksPCEnjoysSub") > 0 || valid_count == 0  ; TODO fix this shit, storageutil here??
-          valid_followers[valid_count] = tmp_follower
-          valid_count += 1
+        if SexLab.HadPlayerSex(tmp_follower) || StorageUtil.GetFloatValue(tmp_follower, "crdeThinksPCEnjoysSub") > 0 || follower_count == 0 
+          valid_followers[follower_count] = tmp_follower
+          follower_count += 1
           if tmp_follower.IsInFaction(CurrentFollowerFaction) || tmp_follower.IsInFaction(Mods.paradiseFollowingFaction)
             current_followers[current_count] = tmp_follower
             current_count += 1
@@ -958,9 +951,9 @@ bool function attemptApproach()
     
     ; and then we pick ONE at random (for sex)
     ; TODO: consider searching for one that is horny enough
-    if valid_count > 0
-      follower = valid_followers[Utility.RandomInt(0, valid_count - 1)]
-      debugmsg("Follower chosen randomly is " + follower.GetDisplayName() + " out of " + valid_count , 1)
+    if follower_count > 0
+      follower = valid_followers[Utility.RandomInt(0, follower_count - 1)]
+      debugmsg("Follower chosen randomly is " + follower.GetDisplayName() + " out of " + follower_count , 1)
     endif
     
     if follower == None 
@@ -976,6 +969,7 @@ bool function attemptApproach()
       Mods.PreviousFollowers.AddForm(slave)
     endif
     
+    ; attempt follower sex approach
     follower_thinks_player_sub    = StorageUtil.GetFloatValue(follower, "crdeThinksPCEnjoysSub")
     if SexLab.HadPlayerSex(follower) || follower_thinks_player_sub >= 5
       keyword blocking_keyword      = libs.zad_BlockGeneric
@@ -1002,10 +996,10 @@ bool function attemptApproach()
     endif
     
     if current_count == 0
-      debugmsg("not high enough for sex appraoch, and the current friendlies aren't followers so no item possible",3)
+      debugmsg("not high enough for sex approach, and the current friendlies aren't followers so no item possible",3)
     endif;if follower ; REALLY just randomly reroll regardless?
     
-    ; lets make sure we have a follower with items to find before continuing
+    ; check if follower has found items
     int  follower_item_count  = StorageUtil.GetIntValue(follower, "crdeFollContainersSearched") 
     int  randomStart          = Utility.RandomInt(0, current_count - 1)
     int  followerRemaining    = current_count 
@@ -1036,22 +1030,21 @@ bool function attemptApproach()
     
     ; check the containers we found for DD itmems and keys still there
     bool alreadyFoundOneKey = false
+    actor randomFoll
     while i < 32
       ; we need to count how many items we have, and calculate additional chance of item being found for this one cycle
       absoluteIndex = (followerFoundDDItemsIndex + 32 - i) % 32
       testForm = followerFoundDDItems[absoluteIndex] 
       ;followerFoundDDItems[absoluteIndex] = NONE ; clear as we go
         ; maybe we should clear per approach after all?
-      if testForm == NONE
-        i = 100 ; end loop
-      else
+      if testForm != NONE
         Key keyTest = testForm as Key
         testContainer = followerFoundDDItemsContainers[absoluteIndex]
         if alreadyFoundOneKey == false && keytest != None
           ; for now, randomly give to a follower if the last follower, assuming they weren't too submissive
           ; TODO add a way for the follower to bring you the key if they aren't dom
           ;followers[0]
-          actor randomFoll = followers[Utility.RandomInt(0, (followers.length - 1))]
+          randomFoll = followers[Utility.RandomInt(0, (follower_count - 1))]
           debugmsg("Follower " + randomFoll.GetDisplayName() + " found a key:" + testForm.GetName(), 3)
           randomFoll.additem(keyTest)
           alreadyFoundOneKey = true
@@ -1063,6 +1056,20 @@ bool function attemptApproach()
           validItemsFound += 1
         endif
         i += 1
+      else ; testForm == NONE
+        ; if they didn't find a key, give them a 10% chance of finding one but not telling the player
+        if alreadyFoundOneKey == false && Utility.RandomInt(0,100) > 90      
+          randomFoll = followers[Utility.RandomInt(0, (follower_count - 1))]
+          if randomFoll == None
+            debugmsg("ERR randomFoll was NONE")
+          endif
+          Key k = deviousKeys[Utility.RandomInt(0,2)]
+          if k == None
+            debugmsg("ERR key was NONE")
+          endif
+          randomFoll.additem(k)
+        endif
+        i = 100 ; end loop
       endif
     endWhile
     followerItemsArraySemaphore = false
@@ -1121,7 +1128,8 @@ bool function attemptApproach()
       
       return true
     endif
-  elseif followers[0] != None ; no followers nearby
+    ; changed in 13.12
+  elseif followers[0] == None ; no followers nearby
     if forceGreetFollower
       clear_force_variables()
       ;forceGreetFollower = 0 ; forceclear instead
@@ -1156,9 +1164,9 @@ bool function attemptApproach()
   ; we're modifying the roll result, making it smaller so it's more likely to fit inside of the line,
   ;  rather than confuse the user with a moving goal post that won't match their input
   if isSlaver
-    rollEnslave   = (rollEnslave	    / MCM.fModifierSlaverChances)
-    ;rollTalk 	    = (rollTalk		      / MCM.fModifierSlaverChances)
-    rollSex 	    = (rollSex		      / MCM.fModifierSlaverChances)
+    rollEnslave   = (rollEnslave      / MCM.fModifierSlaverChances)
+    ;rollTalk       = (rollTalk          / MCM.fModifierSlaverChances)
+    rollSex       = (rollSex          / MCM.fModifierSlaverChances)
   endif
   
   updatePlayerVulnerability(isSlaver)
@@ -1178,14 +1186,14 @@ bool function attemptApproach()
       || (nearest[0].getItemCount(libs.restraintsKey) > 0 && !libs.GetWornDeviceFuzzyMatch(player, libs.zad_DeviousGag).HasKeyword(libs.zad_BlockGeneric))
         rollSex     = rollSex     /  MCM.fChastityCompleteModifier
       else 
-        rollSex 	  = 101         ; impossible, put the needed number out of reach
+        rollSex     = 101         ; impossible, put the needed number out of reach
       endif
-      ;rollTalk 	    = rollTalk    /  MCM.fChastityCompleteModifier
+      ;rollTalk       = rollTalk    /  MCM.fChastityCompleteModifier
       rollEnslave   = rollEnslave /  MCM.fChastityCompleteModifier
     elseif wearingBlockingAnal || wearingBlockingVaginal || wearingBlockingBra; || wearingBlockingGag
       ; partial chastity, but not complete
         rollSex       = rollSex     /  MCM.fChastityPartialModifier
-        ;rollTalk 	    = rollTalk    /  MCM.fChastityPartialModifier
+        ;rollTalk       = rollTalk    /  MCM.fChastityPartialModifier
         rollEnslave   = rollEnslave /  MCM.fChastityPartialModifier
     endif
     ; do nothing, not wearing chastity
@@ -1271,7 +1279,7 @@ bool function attemptApproach()
         attemptEnslavementConvo(nearest[0])
         return true ; TODO change attemptEnslave to a true/false return, so we can return that
       endif
-    endif	
+    endif  
 
     ; sex attempt
     ;if(playerVulnerability > 0   && CurrentGameTime >= timeoutEnslaveGameTime) && \
@@ -1293,22 +1301,22 @@ bool function attemptApproach()
 
   endif 
 
-	return false ; if we made it this far, than neither sex nor enslave worked
+  return false ; if we made it this far, than neither sex nor enslave worked
 endFunction
 
 ; don't forget you have updateSDMaster as well
 ; We should probably reorder this at some point
 function updateMaster()
-	master = none
-	masterIsSlaver = false
-	;if Mods.modLoadedSD == true && Mods.enslavedSD == true
-	if Mods.enslavedSD 
-		setMaster(StorageUtil.GetFormValue(player, "_SD_CurrentOwner") as actor)
-	;elseif Mods.modLoadedMariaEden == true && Mods.enslavedME == true
-	elseif Mods.enslavedME 
-		;meTools = Mods.meSlaveQuest
-		ReferenceAlias masterRA = (Quest.getQuest("crdeMariaEden") as crdeMariaEdenScript).getMaster(); TODO: Move this to the mods for faster use
-		;master = masterRA.GetActorRef()
+  master = none
+  masterIsSlaver = false
+  ;if Mods.modLoadedSD == true && Mods.enslavedSD == true
+  if Mods.enslavedSD 
+    setMaster(StorageUtil.GetFormValue(player, "_SD_CurrentOwner") as actor)
+  ;elseif Mods.modLoadedMariaEden == true && Mods.enslavedME == true
+  elseif Mods.enslavedME 
+    ;meTools = Mods.meSlaveQuest
+    ReferenceAlias masterRA = (Quest.getQuest("crdeMariaEden") as crdeMariaEdenScript).getMaster(); TODO: Move this to the mods for faster use
+    ;master = masterRA.GetActorRef()
     setMaster(masterRA.GetActorRef())
   elseif Mods.enslavedSlaverun ; does this work for both versions?
     setMaster(Mods.slaverunZaidActor)
@@ -1319,8 +1327,8 @@ function updateMaster()
   ;elseif Mods.enslavedSlaverun
   ;  master = Mods.slaverunZaidActor
   ;elseif  player is at least a littl sub, Follower put something on then, didn't complain
-	endif ; any other mods where there is a master?
-	; add  slaverunR, CDx and 
+  endif ; any other mods where there is a master?
+  ; add  slaverunR, CDx and 
 
 endFunction
 
@@ -1403,18 +1411,18 @@ endFunction
 
 function updateWornDD(bool collarOnly = false)
 
-	if(wearingArmbinder == true && collarOnly == false)
-		knownArmbinder = libs.GetWornDevice(player, libs.zad_DeviousArmbinder)
-	endif
-	if(wearingBlindfold == true && collarOnly == false)
-		knownBlindfold = libs.GetWornDevice(player, libs.zad_DeviousBlindfold)
-	endif
-	if(wearingCollar == true)	
-		knownCollar = libs.GetWornDevice(player, libs.zad_DeviousCollar)
-	endif
-	if(wearingGag == true && collarOnly == false)
-		knownGag = libs.GetWornDevice(player, libs.zad_DeviousGag)
-	endif
+  if(wearingArmbinder == true && collarOnly == false)
+    knownArmbinder = libs.GetWornDevice(player, libs.zad_DeviousArmbinder)
+  endif
+  if(wearingBlindfold == true && collarOnly == false)
+    knownBlindfold = libs.GetWornDevice(player, libs.zad_DeviousBlindfold)
+  endif
+  if(wearingCollar == true)  
+    knownCollar = libs.GetWornDevice(player, libs.zad_DeviousCollar)
+  endif
+  if(wearingGag == true && collarOnly == false)
+    knownGag = libs.GetWornDevice(player, libs.zad_DeviousGag)
+  endif
 endFunction
 
 ; 0 is nothing, 1 is local, 2 is given, 3 is sold, 4 is slaverun (old version, and new when I can get detection working)
@@ -1463,13 +1471,13 @@ function attemptEnslavementConvo(actor actorRef)
   forceGreetIncomplete = true
   setCRDEBusyVariable(true)
   previousAttacker = actorRef
-	;crdeFGreetStatus.SetValue(2)
+  ;crdeFGreetStatus.SetValue(2)
   
  ;getClosestFollower()
   rollEnslaveDialogue() ; setting the enslavement dialogue type before we actually start the dialogue options
   debugmsg("doing enslave convo with " + actorRef.getDisplayName(), 1)
 
-	attackerRefAlias.ForceRefTo(actorRef)
+  attackerRefAlias.ForceRefTo(actorRef)
 endFunction
 
 function trySexConvo(actor actorRef)
@@ -1482,11 +1490,11 @@ function trySexConvo(actor actorRef)
   forceGreetIncomplete = true
   setCRDEBusyVariable(true)
   previousAttacker = actorRef
-	;crdeFGreetStatus.Setvalue(1)
+  ;crdeFGreetStatus.Setvalue(1)
 
-	debugmsg("doing sex convo with " + actorRef.getDisplayName(), 1)
-	
-	attackerRefAlias.ForceRefTo(actorRef)
+  debugmsg("doing sex convo with " + actorRef.getDisplayName(), 1)
+  
+  attackerRefAlias.ForceRefTo(actorRef)
 endFunction
 
 ; just gonna borrow this from Cursed Loot
@@ -1615,10 +1623,10 @@ endFunction
 
 ; soft specifies if the sex can allow for softer sexual animations, like cuddling
 function doPlayerSexFull(actor actorRef, actor actorRef2, bool rape = false, bool soft = false, bool oral_only = false)
-	;timeoutEnslaveGameTime = Utility.GetCurrentGameTime() + MCM.fEventTimeout
+  ;timeoutEnslaveGameTime = Utility.GetCurrentGameTime() + MCM.fEventTimeout
   ;debugmsg("Resetting approach at start of doSex",1)
   Debug.SendAnimationEvent(actorRef, "IdleNervous") ; should work well enough; no longer works...what
-	clear_force_variables() ; handles forceGreetIncomplete = false
+  clear_force_variables() ; handles forceGreetIncomplete = false
   Mods.dhlpResume()
   
   ; start some animations while we wait
@@ -1690,7 +1698,7 @@ function doPlayerSexFull(actor actorRef, actor actorRef2, bool rape = false, boo
     ; TODO: remove this and check what animations are being dumped because 1/5 stages has one of these
   endif
   
-	; we can optimize this out with a variable, since we have to check this earlier when we start the dialogue anyway
+  ; we can optimize this out with a variable, since we have to check this earlier when we start the dialogue anyway
   if player.wornHasKeyword(libs.zad_DeviousBelt) 
     ; actor has a key, will use ;zzz key
     
@@ -1763,18 +1771,18 @@ function doPlayerSexFull(actor actorRef, actor actorRef2, bool rape = false, boo
   debugmsg("Animation chosen is: " + single_animation[0].name, 3)
   
   ; if player is male, and female attacker, don't use aggressive because we want cowgirl animations
-	if rape == true && !(playerGender == 0 && actorGender == 1 ) 
+  if rape == true && !(playerGender == 0 && actorGender == 1 ) 
     sexFromDEC = true
     ;SexLab.StartSex(sexActors, animations, player);, None, false);
     SexLab.StartSex(sexActors, single_animation, player);, None, false);
-	else
+  else
     if soft
       sexFromDECWithoutAfterAttacks = true
     endif
     sexFromDEC = true
     ;SexLab.StartSex(sexActors, animations);
     SexLab.StartSex(sexActors, single_animation);
-	endif
+  endif
 endFunction
 
 ; this is the hook called after sexlab is finished
@@ -1784,7 +1792,7 @@ Event crdeSexHook(int tid, bool HasPlayer);(string eventName, string argString, 
   debugmsg("crdeSexHook reached, running post-sex", 1)
   sslThreadController Thread = SexLab.GetController(tid)
   
-  ; mod must be active, controller must have player, 2 partners (otherwise, noone to add items and enslave
+  ; mod must be active, controller must have player
   if (MCM.gCRDEEnable.GetValueInt() == 1 && Thread.HasPlayer() )
     Actor[] actorList = SexLab.HookActors(tid as string)
     actor victim = Thread.getVictim()
@@ -1824,9 +1832,6 @@ Event crdeSexHook(int tid, bool HasPlayer);(string eventName, string argString, 
     if ( sexFromDEC && sexFromDECWithoutAfterAttacks  )
       debugmsg("sexlabhook: sex was specified no attack", 3)
     elseif ( sexFromDEC && !MCM.bHookAnySexlabEvent)
-      ; what is this MCM variable again???
-      ;debugmsg("sexlabhook: sexlab wasn't started by DEC or ALL not set", 3)
-      ;return ; don't return yet, we want to alter perception first
       ; do nothing
     else ; no error, keep going
 
@@ -1838,9 +1843,6 @@ Event crdeSexHook(int tid, bool HasPlayer);(string eventName, string argString, 
         otherPerson = actorList[1]
       endif
 
-      ;debugmsg("player is " + plyr.getDisplayName(), 0)
-      StorageUtil.SetFloatValue(otherPerson, "crdeLastSexEval", Utility.GetCurrentGameTime())
-      otherPerson.removeFromFaction(Vars.WantsSex)
       ;debugmsg("victim is " + victim.getDisplayName(), 0)
       CheckBukkake()
       ;updatePlayerVulnerability() 
@@ -1957,33 +1959,33 @@ endFunction
 
 ; allows us to catch the calm caused by defeat, so we don't step on defeat
 bool function isBusyDefeat(actor actorRef)
-	;if(Mods.modLoadedDefeat && (actorRef.HasMagicEffect(Mods.defeatCalmEffect) || \
-	;							actorRef.HasMagicEffect(Mods.defeatCalmAltEffect) ||\
-	;							actorRef.IsInFaction(Mods.defeatFaction) ) ) ; not sure why we need all three, but there it is
-	;	return true
-	;endif 
-	;return false
+  ;if(Mods.modLoadedDefeat && (actorRef.HasMagicEffect(Mods.defeatCalmEffect) || \
+  ;              actorRef.HasMagicEffect(Mods.defeatCalmAltEffect) ||\
+  ;              actorRef.IsInFaction(Mods.defeatFaction) ) ) ; not sure why we need all three, but there it is
+  ;  return true
+  ;endif 
+  ;return false
   if Mods.modLoadedDefeat
     return (actorRef.HasMagicEffect(Mods.defeatCalmEffect) || \
-						actorRef.HasMagicEffect(Mods.defeatCalmAltEffect) ||\
-					  actorRef.IsInFaction(Mods.defeatFaction) ) 
+            actorRef.HasMagicEffect(Mods.defeatCalmAltEffect) ||\
+            actorRef.IsInFaction(Mods.defeatFaction) ) 
   endif 
   return false
 endFunction
 
 ; need specifics first
 bool function isBusyMaria(actor actorRef)
-	; several quest stages should go here
-	;return ( player.&& &&)
-	return false ; for now
+  ; several quest stages should go here
+  ;return ( player.&& &&)
+  return false ; for now
 endfunction
 
 bool function isBusyMDevious(actor actorRef)
-	return Mods.modLoadedMoreDevious && actorRef.IsInFaction(Mods.mdeviousBusyFaction)
+  return Mods.modLoadedMoreDevious && actorRef.IsInFaction(Mods.mdeviousBusyFaction)
 endFunction
 
 ; for testing if the player is locked in chasity items
-;	might apply to the attacker too later, 
+;  might apply to the attacker too later, 
 ; xaz detection incomplete
 ; we don't check for visibility of items here, we do that up above in the vulnerability detection
 ; remember, blocking needs to be true if MCM is off, since we test here
@@ -2082,9 +2084,9 @@ bool function isNude(actor actorRef)
   endif
   
   isNude = true
-	return true
+  return true
 endFunction
-	
+  
 ; need to wait until vulnerability is done before we test weapon because of playerVulnerability setting
 bool function isWeaponProtected()
   ; so long as we are not hands out while armed, and we do not have
@@ -2187,45 +2189,11 @@ function checkPersuationIntimidateRequirements()
   ; for now, I'll leave this blank since I'm not sure what conditions we should use
 endFunction
 
- 
-; this is never called?, zombie function?
-; made by chase ignored by verstort
-function evalActor(actor actorRef)
-	clearActorFactions(actorRef)
-	if(Mods.isSlave(actorRef))
-		actorRef.setFactionRank(Vars.Slave, 0)
-	elseif(Mods.isSlaveTrader(actorRef))
-		actorRef.setFactionRank(Vars.Slaver, 0)		
-	endif
-	
-	float lastEval = StorageUtil.GetFloatValue(actorRef, "crdeLastEval")
-	float lastSexEval = StorageUtil.GetFloatValue(actorRef, "crdeLastSexEval")
-	if(lastEval > 0)
-		;set up sympathetic/acknowledge slaves
-	endif
-
-	if(lastSexEval + MCM.fEventTimeout >= Utility.GetCurrentRealTime())
-		;wantsSex calc
-	endif
-
-	StorageUtil.SetFloatValue(actorRef, "crdeLastEval", Utility.GetCurrentRealTime()) 
-endFunction
-
 function setCRDEBusyVariable(bool status = true)
   StorageUtil.SetFloatValue(player, "crdeBusyStatus", status as int)
 endFunction
  
  ; --- debug and testing functions
-
-; made by chase, ignored by verstort
-function clearActorFactions(actor actorRef)
-	actorRef.removeFromFaction(Vars.Slaver)
-	actorRef.removeFromFaction(Vars.Slave)
-	;actorRef.removeFromFaction(Vars.WantsSex)
-	;actorRef.removeFromFaction(Vars.Sympathetic)
-	;actorRef.removeFromFaction(Vars.AcknowledgesSlaves)
-	;actorRef.removeFromFaction(Vars.RemembersPlayerWasSlave)
-endFunction
 
 ; Plays a random DD bound animation, 
 ; BUG one of these won't reset on the player on certain enslavement events, IE CDx -> player keeps struggling during opening
@@ -2254,7 +2222,7 @@ function printPermitStatus()
   string animationTags = "aggressive"
   string supressTags   = "solo"
   
-	; we can optimize this out with a variable, since we have to check this earlier when we start the dialogue anyway
+  ; we can optimize this out with a variable, since we have to check this earlier when we start the dialogue anyway
   if player.wornHasKeyword(libs.zad_DeviousBelt) 
   
     if !player.wornhaskeyword(libs.zad_PermitVaginal)
@@ -2381,35 +2349,35 @@ endFunction
  
 ; deprecated, was used for ME but this function no longer exists in ME 2.0 anyway
 ;function testAbduction()
-;	; get nearby actor (maybe)
-;	debugmsg("looking for actor")
-;	Actor valid = NPCMonitorScript.getClosestActor(player)
-;	; start quest with new actor
-;	if valid != None
-;		debugmsg("Actor found, trying")
-;		(Quest.getQuest("crdeMariaEden") as crdeMariaEdenScript).defeat2(valid)
-;		MCM.bAbductionTest = false
-;	endif
-;		
+;  ; get nearby actor (maybe)
+;  debugmsg("looking for actor")
+;  Actor valid = NPCMonitorScript.getClosestActor(player)
+;  ; start quest with new actor
+;  if valid != None
+;    debugmsg("Actor found, trying")
+;    (Quest.getQuest("crdeMariaEden") as crdeMariaEdenScript).defeat2(valid)
+;    MCM.bAbductionTest = false
+;  endif
+;    
 ;endFunction
 
 ; previously maria's eden init
 ; currently SD Sanguine's teleport test
 function testInit()
   ;debugmsg("looking for actor")
-	;Actor valid = getClosestActor(player)
-	; start quest with new actor
-	;if valid != None
-	;	debugmsg("Actor found, trying")
-	;	(Quest.getQuest("crdeMariaEden") as crdeMariaEdenScript).defeat2(valid)
-	;	MCM.bAbductionTest = false
-	;endif
+  ;Actor valid = getClosestActor(player)
+  ; start quest with new actor
+  ;if valid != None
+  ;  debugmsg("Actor found, trying")
+  ;  (Quest.getQuest("crdeMariaEden") as crdeMariaEdenScript).defeat2(valid)
+  ;  MCM.bAbductionTest = false
+  ;endif
   ;Actor valid = NPCMonitorScript.getClosestActor(player)
   ;if valid != None
-	;	debugmsg("Actor found, trying")
+  ;  debugmsg("Actor found, trying")
   ;  (Quest.getQuest("crdeMariaEden") as crdeMariaEdenScript).defeat(valid)
   ;  MCM.bInitTest = false;
-	;endif
+  ;endif
 
   if Mods.sdDreamQuest != None
     ;Mods.sdDreamQuest.StartQuest() ; ever thing about an event, or something else?
@@ -2418,17 +2386,17 @@ function testInit()
     ;SendModEvent("SDDreamworldStart")
   endif
   
-	MCM.bInitTest = false	
+  MCM.bInitTest = false  
 endFunction
 
 ; slaverun test
 ; deprecated, not longer used
 ;function testSlaverun()
 ;  if ( Mods.modLoadedSlaverunR ) ; might be redundant
-;		MCM.bTestButton4 = false
+;    MCM.bTestButton4 = false
 ;    ;(Quest.getQuest("crdeSlaverun") as crdeSlaverunScript).enslave()
 ;    ; put the next test here
-;	endif
+;  endif
 ;endFunction
 
 ; test how far chase got with his pony function
@@ -2447,7 +2415,7 @@ function testCD()
            + " slavestate:" + player.GetFactionRank(Mods.zazFactionSlaveState)
   
   debugmsg(s,5)
-	
+  
 endFunction
 
 ; generic test button
@@ -2632,12 +2600,12 @@ endFunction
 
 ; old:test PO arrest
 ; generic test button function 7
-function testTestButton7()	
-	;	(Quest.getQuest("crdeMariaEden") as crdeMariaEdenScript).defeat(valid)
+function testTestButton7()  
+  ;  (Quest.getQuest("crdeMariaEden") as crdeMariaEdenScript).defeat(valid)
   ;akSpeaker.
   ;SendModEvent("xpoArrestPC", "", 700)
-	
-	;endif
+  
+  ;endif
   ;(Quest.getQuest("crdeMariaEden") as crdeMariaEdenScript).defeat(valid)
   ;DistanceEnslave.enslaveDCURBondageAdv()
   ; Chest piece first, nothing else matters
@@ -2675,26 +2643,7 @@ function testTestButton7()
   ;  endif
   ;endif
   
-  
-  ;int i = 0
-  ;while i < a.length
-  ;  
-  ;  int num = 0
-  ;  num =  ItemScript.checkItemAddingAvailability(a[i], libs.zad_DeviousCollar)
-  ;  debugmsg("itemaddingavailability for actor: " + a[i] + " for keyword  collar is " + num)
-  ;  
-  ;  num =  ItemScript.checkItemAddingAvailability(a[i], libs.zad_DeviousBelt)
-  ;  debugmsg("itemaddingavailability for actor: " + a[i] + " for keyword  belt is " + num)
-  ;  
-  ;  num =  ItemScript.checkItemAddingAvailability(a[i], libs.zad_DeviousGag)
-  ;  debugmsg("itemaddingavailability for actor: " + a[i] + " for keyword  gag is " + num)
-  ;  
-  ;  num =  ItemScript.checkItemAddingAvailability(a[i], libs.zad_DeviousPiercingsNipple)
-  ;  debugmsg("itemaddingavailability for actor: " + a[i] + " for keyword  nipple is " + num)
-  ;  
-  ;  i += 1
-  ;endWhile
-  
+    
   ;actor[] a = NPCSearchScript.getNearbyFollowers() ;getNearbyActors
   ;int min_relationship = MCM.iFollowerRelationshipLimit.GetValueInt() ; explicit because compiler will check it every loop iteration otherwise
   ;int i = 0
@@ -2763,18 +2712,18 @@ function testTestButton7()
   ; endWhile
   
   ;Cell c = player.GetParentCell()
-	; ObjectReference [] containers = new ObjectReference [15]
+  ; ObjectReference [] containers = new ObjectReference [15]
   ; ObjectReference  test_form
-	; int index = 0
+  ; int index = 0
   ; int booknum = 0
-	; Int NumRefs = c.GetNumRefs(28)
+  ; Int NumRefs = c.GetNumRefs(28)
   ; String output = ""
   ; Keyword bookshelf = Game.GetFormFromFile(0x000d5abe, "Skyrim.esm" ) as Keyword
   ; Book deviousbook = Game.GetFormFromFile(0x09029ADC, "Devious Devices - Integration.esm" ) as Book
   ; debugmsg("stuff: " + bookshelf.GetName() + " " + deviousbook.GetName() )
-	; While NumRefs > 0  && index < 15
-		; NumRefs -= 1
-		; test_form = c.GetNthRef(NumRefs, 28) as ObjectReference 
+  ; While NumRefs > 0  && index < 15
+    ; NumRefs -= 1
+    ; test_form = c.GetNthRef(NumRefs, 28) as ObjectReference 
     ; output = output + test_form.GetDisplayName() + " +"
     ;; test_form.AddItem(deviousbook) ; works fine
     ;; Container testc = (test_form as Form) as Container
@@ -2785,51 +2734,75 @@ function testTestButton7()
   ; debugmsg("Containers: " + output)
   ; debugmsg("Books: " + booknum)
   
+  ; search for nearby npc check if they are in scene
   ;actor[] nearby = NPCMonitorScript.getClosestActor(player)
   
-  int searchIndex   = 0
-  int npcIndex      = 0
-	actor npcActor    = none
-  Actor[] nearby = new Actor[40]
-  Cell c = player.GetParentCell()
-  int foundActorCount = c.GetNumRefs(43) 
+  ; int searchIndex   = 0
+  ; int npcIndex      = 0
+  ; actor npcActor    = none
+  ; Actor[] nearby = new Actor[40]
+  ; Cell c = player.GetParentCell()
+  ; int foundActorCount = c.GetNumRefs(43) 
   
-	while searchIndex < foundActorCount 
-		;Debug.Trace("checking " + npcActor.GetDisplayName())
-		;npcActor = Game.FindRandomActorFromRef(actorRef, MCM.iSearchRange) ;200.0)	; old method, full of holes (lots of actor=player and actor=follower most of the time)
-    npcActor = c.GetNthRef(searchIndex, 43) as actor
-		nearby[npcIndex] = npcActor ; elegible, return now, we don't need anything more from this function
-    npcIndex += 1
-    searchIndex += 1
-	endWhile
+  ; while searchIndex < foundActorCount 
+    ; npcActor = c.GetNthRef(searchIndex, 43) as actor
+    ; nearby[npcIndex] = npcActor ; elegible, return now, we don't need anything more from this function
+    ; npcIndex += 1
+    ; searchIndex += 1
+  ; endWhile
 
-  int i = 0
-  while i < searchIndex ;&& nearby[i] != None
-    if nearby[i] == None
-      debugmsg("NPC is none: " + i)
-    else
-      package p = nearby[i].GetCurrentPackage()
-      if p
-        String  pn = ""
-        quest q = p.GetOwningQuest()
-        String  qn = ""
-        if q
-          qn = q.GetName()
-        endif
+  ; int i = 0
+  ; while i < searchIndex ;&& nearby[i] != None
+    ; if nearby[i] == None
+      ; debugmsg("NPC is none: " + i)
+    ; else
+      ; package p = nearby[i].GetCurrentPackage()
+      ; if p
+        ; String  pn = ""
+        ; quest q = p.GetOwningQuest()
+        ; String  qn = ""
+        ; if q
+          ; qn = q.GetName()
+        ; endif
 
-        String st = " <no scene>"
-        scene s = nearby[i].GetCurrentScene()
-        if s 
-          st = " and is in scene: " + s
-        endif
-        debugmsg("NPC " + nearby[i].GetDisplayName() +\
-                 " has AI package:" + p +\
-                 " from quest:"  + q + " " + qn +\
-                 st )
-        endif
+        ; String st = " <no scene>"
+        ; scene s = nearby[i].GetCurrentScene()
+        ; if s 
+          ; st = " and is in scene: " + s
+        ; endif
+        ; debugmsg("NPC " + nearby[i].GetDisplayName() +\
+                 ; " has AI package:" + p +\
+                 ; " from quest:"  + q + " " + qn +\
+                 ; st )
+        ; endif
+    ; endif
+    ; i += 1
+  ; endWhile
+  
+  ; look for nearby pillory and try to lock player to it
+  Cell c = player.GetParentCell()
+  Int NumRefs = c.GetNumRefs(28)
+  ObjectReference test_form
+  ObjectReference[] available_furn = new ObjectReference[15]
+  Int       furn_position = 0
+  Keyword furn = Game.GetFormFromFile(0x0000762b, "ZaZAnimationPack.esm") as Keyword
+  ;Keyword pill2 = 
+  While NumRefs > 0 && furn_position < 15
+    test_form = c.GetNthRef(NumRefs, 40) as ObjectReference 
+    if test_form && test_form.HasKeyword(furn)
+      debugmsg("Found zaz furniture: " + test_form)
+      available_furn[furn_position] = test_form
+      furn_position += 1
     endif
-    i += 1
-  endWhile
+     NumRefs -= 1
+  EndWhile 
+  if furn_position == 0 
+    debugmsg("no nearby furniture found")
+  else
+    ObjectReference randomly_chosen = available_furn[Utility.RandomInt(0, furn_position - 1)] 
+    debugmsg("setting as vehicle: " + randomly_chosen)
+    player.SetVehicle(randomly_chosen)
+  endif
 
   Debug.Notification("Test has completed.")
 endFunction
@@ -2938,10 +2911,10 @@ function tryDebug()
   if MCM.bAbductionTest
     ;testAbduction()
     testPonyOutfit()
-  endif	
+  endif  
   if MCM.bInitTest
     testInit()
-  endif	
+  endif  
   if MCM.bTestTattoos
     testTattoos()
   endif
@@ -2959,10 +2932,10 @@ function tryDebug()
     ;testSlaverun()
     ;testPonyOutfit()
     
-  endif	
+  endif  
   if MCM.bCDTest
     testCD()
-  endif	
+  endif  
   if MCM.bTestButton5
     testTestButton5()
   endif
@@ -3018,18 +2991,18 @@ function timeTest()
     ;return
   endif
   
-  float rollEnslave	= Utility.RandomInt(1,100)
-  ;float rollTalk		= Utility.RandomInt(1,100)
-  float rollSex		  = Utility.RandomInt(1,100) 
+  float rollEnslave  = Utility.RandomInt(1,100)
+  ;float rollTalk    = Utility.RandomInt(1,100)
+  float rollSex      = Utility.RandomInt(1,100) 
     
   bool isSlaveTrader = Mods.isSlaveTrader(nearest[0]) 
   if(isSlaveTrader)
     ;rollEnslave  = 1
-    ;rollTalk 	  = 1
-    ;rollSex 	    = 1
-    rollEnslave   = (rollEnslave	    / MCM.fModifierSlaverChances)
-    ;rollTalk 	    = (rollTalk		      / MCM.fModifierSlaverChances)
-    rollSex 	    = (rollSex		      / MCM.fModifierSlaverChances)
+    ;rollTalk     = 1
+    ;rollSex       = 1
+    rollEnslave   = (rollEnslave      / MCM.fModifierSlaverChances)
+    ;rollTalk       = (rollTalk          / MCM.fModifierSlaverChances)
+    rollSex       = (rollSex          / MCM.fModifierSlaverChances)
   endif
   
   ; if wearingPartialChasity
@@ -3045,14 +3018,14 @@ function timeTest()
       if (nearest[0].GetItemCount(libs.restraintsKey) > 0) || (nearest[0].GetItemCount(libs.chastityKey) > 0)
         rollSex     = rollSex     /  MCM.fChastityCompleteModifier
       else 
-        rollSex 	  = 101         ; impossible
+        rollSex     = 101         ; impossible
       endif
-      ;rollTalk 	    = rollTalk    /  MCM.fChastityCompleteModifier
+      ;rollTalk       = rollTalk    /  MCM.fChastityCompleteModifier
       rollEnslave   = rollEnslave /  MCM.fChastityCompleteModifier
     elseif wearingBlockingAnal || wearingBlockingVaginal || wearingBlockingBra || wearingBlockingGag
     ; partial chastity, but not complete
       rollSex       = rollSex     /  MCM.fChastityPartialModifier
-      ;rollTalk 	    = rollTalk    /  MCM.fChastityPartialModifier
+      ;rollTalk       = rollTalk    /  MCM.fChastityPartialModifier
       rollEnslave   = rollEnslave /  MCM.fChastityPartialModifier
     
     endif
@@ -3193,8 +3166,8 @@ function StartCombat(actor Attacker)
   
   ; testing 
   ; taken from mod: Fighting words
-	;BrawlKeyword.SendStoryEvent(None, pTarget, pTargetFriend)
-	BrawlKeyword.SendStoryEvent(None, Attacker, None)
+  ;BrawlKeyword.SendStoryEvent(None, pTarget, pTargetFriend)
+  BrawlKeyword.SendStoryEvent(None, Attacker, None)
   
   
 endFunction
@@ -3306,8 +3279,6 @@ Outfit Property BlackPonyMixedOutfit Auto
 Key[] Property deviousKeys  Auto  
 
 Keyword[] Property clothingKeywords  Auto  
-
-crdeVars Property Vars Auto ; still not sure what this thing was for
 
 Armor[] Property randomDDs  Auto  
 

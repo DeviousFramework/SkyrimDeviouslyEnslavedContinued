@@ -78,6 +78,7 @@ bool Property wearingSlutTattooFace   Auto
 
 ;init, might not need this one here
 Event OnInit()
+  ;if SlaveTats && SlaveTats.VERSION() as bool ; WARNING, this is error if no slavetats, error is ok?
   if SlaveTats.VERSION() as bool ; WARNING, this is error if no slavetats, error is ok?
     Utility.Wait(10) 
   

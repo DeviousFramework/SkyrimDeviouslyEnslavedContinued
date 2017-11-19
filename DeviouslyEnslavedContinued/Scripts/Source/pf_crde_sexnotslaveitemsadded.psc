@@ -7,7 +7,7 @@ Function Fragment_1(ObjectReference akSpeakerRef)
 Actor akSpeaker = akSpeakerRef as Actor
 ;BEGIN CODE
 ;crdePlayerMonitorScript monitorScript = GetOwningQuest() as crdeItemManipulateScript
-(GetOwningQuest() as crdeItemManipulateScript).equipRandomDD(Game.GetPlayer())
+bool result = (GetOwningQuest() as crdeItemManipulateScript).equipRandomDD(Game.GetPlayer())
 ;END CODE
 EndFunction
 ;END FRAGMENT
