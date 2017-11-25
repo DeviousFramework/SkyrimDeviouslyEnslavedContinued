@@ -216,25 +216,7 @@ Event OnUpdate()
     else ; not a combat situation
       float onupdatetimeteststart = Utility.GetCurrentRealTime()
       CurrentGameTime             = Utility.GetCurrentGameTime() ; use gametime, since realtime gets reset per game session, cannot work through game saves
-      if forceGreetIncomplete
-        ; moved to the attemptapproach function, there we have more details
-        ;debugmsg("force greet is Incomplete, " + ((busyGameTime - CurrentGameTime)*1400) + " GMin remain", 1) ; game minute
-        
-        ; removed in 13.10
-        ;if attackerRefAlias == None
-        ;  debugmsg("attackerRefAlias empty!", 5)
-        ;;else
-        ;;  debugmsg("attackerRefAlias currently: " + attackerRefAlias.GetActorReference().GetDisplayName(),1)
-        ;endif
-        
-        ; commented out in 13.10 I think this was redundant, I can't find evidence that it fires here it might work elsewhere
-        ;if MCM.bResetDHLP ; debug option to release the lock, might remove since this wasn't really a good idea anymore
-        ;  Mods.dhlpResume()
-        ;  ;attackerRefAlias.ForceRefTo(previousAttacker)
-        ;  debugmsg("reset DHLP on, resetting", 1)
-        ;  clear_force_variables(true)
-        ;  MCM.bResetDHLP = false
-        ;endif
+      if forceGreetIncomplete    
 
         if busyGameTime < CurrentGameTime ; took too long, reset
           Mods.dhlpResume()
@@ -2319,9 +2301,15 @@ function addPermanentFollower()
   int result = UIExtensions.GetmenuResultInt("UIListMenu")
   
   if result >= 0 && result < a.length
-    permanentFollowers.addForm(a[result])
-    Mods.PreviousFollowers.addForm(a[result])
-    Debug.Trace(a[result] + " -> " + a[result].GetDisplayName() +" has been added to the DEC manually marked list of followers.")
+    actor tmp = a[result]
+    if tmp == none
+      Debug.Trace("ERR: Manual add failed because actor is NONE.")
+      return 
+    endif
+    permanentFollowers.addForm(tmp)
+    Mods.PreviousFollowers.addForm(tmp)
+    reshuffleFollowerAliases(tmp)
+    Debug.Trace(a[result] + " -> " + tmp.GetDisplayName() +" has been added to the DEC manually marked list of followers.")
   elseif result == a.length
     ; do nothing, was the cancel button
     debugmsg("cancel button pushed")

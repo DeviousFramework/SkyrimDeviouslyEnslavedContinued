@@ -440,53 +440,17 @@ more recent (not mothballed either):
   Tell DD team about the loading blindfold bug
 
   User thinks kidnapped is incompatible, maybe check and fix
-  ;look for permanent follower reset reason
-  ;User thinks animation after chastity belt conflicts with cursed loot?? huh?
-  ;bug: shame belt gets equipped if 0, maybe punishbelt forced?
-  ;bug: follower gets reset after every approach
-  ;change follower alias fleshing to be active rather than reactive
-  ;change reset mods button to reset followers from the first button toggle, but not from the sticky
-  ;user wants feedback when reset is done
-  ;fix rubber suit add, at least temporary
-  # approaches at lvl 0...? why does wearings boots show lvl 0 but allow approaches? cannot replicate
-  ;player approach start is currentfollowerfaction
-  ;combat state 1...?
-  ;Yes, master -> I love it when you call me that to female dom follower
-  ;Post to naked dungeons showing him how to start catching DHLP
-  ;Switch tie me up to multiple..?
-  ;switch version number to 13.12  
-  ;replaced all PlayerMon.player for player in itemscript
-  ;add an NPC from morvunskar to SD distant, especially with the cages could be good place, lots of other NPC, aesthetic
-  ;unfinished dialogue
-  ;add dialogue for if player is gagged and follower finds items where they put them on themselves or your slaves?
-  ;added another dialogue for follower tries to put on item and follower shakes their head
-  ;make sure it works on regular start
-  ;second gag based one.
-  ;mods reset is now default on
-  ;boots and gag sliders
-   > fornow just gags
-  ;followers that found keys did not actually get keys, none follower
   nearby NPC check stops follower if all of them are slaves... bad?
   why was unique collar rolled twice
-  ;rolled nipple, got no nipple piercings
-   < test nipple piercing
-  ;change default SD ignore to true
-  ;add mods detect timer to avoid rerolls # NVM, was caused by startquest starting it again, man what a headache
-  ; fixed double mods reset load bug
-  
-  DFW todo: not this update, I bet this is going to introduce tons of hidden bugs, lets save it for a later release
-   ; convert from tab characters to space
-   add master support
-   mcm: use Devious framework for vulnerability testing
-   _qFramework = IsPlayerBound(), SetMaster(None, "", _qFramework.MD_CLOSE, True) GetVulnerability()
-  
+  boots slider
+  double reset is still in effect, damn it.
+  container check cell is NULL when we're out in the overworld... crap
+   
   ; random chance of finding a key
   add special finding key stuff, not just pocketing it
     - removing and masterbating
     - removing and running to player for sex
     - bringing key to player for safe keeping
-
-
 
   
   ** TODO / NOTES (bottom is most recent, older in ascending order)  --^ **
@@ -500,7 +464,13 @@ more recent (not mothballed either):
   4.0 update: change ponygear over to new 4.0 pony gear
           change silver/gold items to ddi?
           swap over to DDi animation search function
-
+          
+  DFW todo: not this update, I bet this is going to introduce tons of hidden bugs, lets save it for a later release
+   ; convert from tab characters to space
+   add master support
+   mcm: use Devious framework for vulnerability testing
+   _qFramework = IsPlayerBound(), SetMaster(None, "", _qFramework.MD_CLOSE, True) GetVulnerability()
+          
   Mods to test compatibility with:
     > naked dungeons > rape quest detection maybe?
     sexy bandit captives

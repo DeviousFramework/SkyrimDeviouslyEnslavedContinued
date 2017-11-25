@@ -1053,12 +1053,7 @@ event OnOptionSelect(int a_option)
   elseif a_option == tFollowerteleportToPlayerOID
     currentFollower.MoveTo(Mods.player)
   elseif a_option == bAddFollowerManuallyOID  
-    ;bAddFollowerManually = ! bAddFollowerManually
-    ;if bAddFollowerManually 
-    ;  Debug.MessageBox("Exit the menu and wait next to the NPC you swant to add to your followers list.")
-    ;endif
     Mods.PlayMonScript.addPermanentFollower()
-    ;SetToggleOptionValue(a_option, bAddFollowerManually)
     
   elseif (a_option == bAlternateNPCSearchOID); long distance stuff too
     bAlternateNPCSearch = ! bAlternateNPCSearch

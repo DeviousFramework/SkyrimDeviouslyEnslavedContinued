@@ -116,53 +116,67 @@ EndFunction
 ; works fine, healing counts as a hit though
 Event OnHit(ObjectReference akAggressor, Form akSource, Projectile akProjectile, bool abPowerAttack, bool abSneakAttack, bool abBashAttack, bool abHitBlocked)
   if akAggressor == PlayerMon.player && MCM.bFollowerRemembersHit
+    Spell spellRef = akSource as Spell
+
     if akSource as Shout
       PlayerMon.debugmsg("follower was shouted on:" + akSource.GetName() ,2)
       hitByPlayer += 1
       PlayerMon.follower_attack_type = 10
       return
-    elseif akSource.HasKeyword(VendorItemArrow)
-      ; TODO This doesn't count arrows summoned with conjuration
-      PlayerMon.debugmsg("follower was shot with arrow:" + akSource.GetName() ,2)
-      hitByPlayer += 1
-      PlayerMon.follower_attack_type = 30
-      return
-    endif
-    
-    Spell spellRef = akSource as Spell
-    if spellRef && spellRef.IsHostile() ; not healing spell
+    elseif spellRef == None 
+      if akSource.HasKeyword(WeapTypeBow)
+        PlayerMon.debugmsg("follower was shot with arrow:" + akSource.GetName() ,2)
+        hitByPlayer += 1
+        PlayerMon.follower_attack_type = 30
+        return
+      else;if akSource.IsHostile() ishostile doesn't work for us here, just assume enemy attack 
+        PlayerMon.debugmsg("follower hit with non-spell hostile attack:" + akSource.GetName() ,2)
+        hitByPlayer += 1
+        return
+      endif
+      
+    elseif spellRef && spellRef.IsHostile() ; not healing spell
       if !hasEnteredCombat && WasCalmSpell(spellRef); checking for calm after combat ends
         ; drop approach, drop some frustration
         PlayerMon.debugmsg("follower has been hit with calm spell, resetting",2)
         PlayerMon.clear_force_variables(false) ; we don't want to reset follower aliases here, just the appraoch numbers
+        return
       else ; in combat, keep a tally
         ; if healed or calmed we should do other stuff too
         PlayerMon.debugmsg("follower has been hit with damage spell",2)
         hitByPlayer += 1
         PlayerMon.follower_attack_type = 20
+        return
       endif
     elseif spellRef ; healing spell? what else could count as non-hostile?
       PlayerMon.debugmsg("follower has been hit with \"non-hostile\" spell, assuming healing:" + spellRef.GetName() ,2)
       PlayerMon.modFollowerFrustration( GetActorReference() , -1)
-      hitByPlayer -= 1      
+      hitByPlayer -= 1 
+      return      
+    else
+      PlayerMon.debugmsg("follower has been hit with unknown attack by player:" + akSource.GetName() ,2)
     endif
+    
+    
   endif
   
 EndEvent
 
 Event OnCombatStateChanged(Actor akTarget, Int aeCombatState)
-  if aeCombatState != 0 && !hasEnteredCombat
+  if aeCombatState != 0 && hasEnteredCombat == 0
     hasEnteredCombat = 1
     PlayerMon.debugmsg(" follower as entered combat ... ", 3)  
-  elseif  aeCombatState == 0 && hasEnteredCombat
+  elseif  aeCombatState == 0 ;&& hasEnteredCombat
     if hitByPlayer > 1
-      PlayerMon.debugmsg(" follower was hit by player: " + hitByPlayer + " times", 3)
+      PlayerMon.debugmsg(" exiting combat, follower was hit by player: " + hitByPlayer + " times", 3)
+      ; needs to be updated before dialogue
       PlayerMon.follower_thinks_player_dom = StorageUtil.GetFloatValue(akTarget, "crdeThinksPCEnjoysDom")
       PlayerMon.forceGreetFollower = 10
+      hitByPlayer = 0
+
     endif
-    hitByPlayer = 0
     hasEnteredCombat = 0
-  else
+  ;else
     ; we get here from combat state 1 but at an odd time, but I'm not sure I care. probably just entered combat with multiple enemies
     ;PlayerMon.debugmsg(" follower has changed combat states, under unknown state: " + aeCombatState, 3)
   endif
@@ -218,4 +232,5 @@ endFunction
 MagicEffect Property InfluenceAggDownFFAimed Auto
 MagicEffect Property InfluenceAggDownFFAimedArea Auto
 
-Keyword Property VendorItemArrow Auto
+Keyword Property WeapTypeBow Auto
+;Keyword Property WeapTypeBow Auto

@@ -81,34 +81,35 @@ endFunction
 
 ; if master is hit by player, punishment
 ; works fine, healing counts as a hit though
-Event OnHit(ObjectReference akAggressor, Form akSource, Projectile akProjectile, bool abPowerAttack, bool abSneakAttack, bool abBashAttack, bool abHitBlocked)
-  if akAggressor == PlayerMonitorScript.player 
-    Spell healTest = akSource as Spell
-    if healTest && healTest.IsHostile()
-      hitByPlayer += 1
-    endif
-    ;PlayerMonitorScript.debugmsg("player attacked master detected",5)
-    ; send modevent to catch
-  endif
+;Event OnHit(ObjectReference akAggressor, Form akSource, Projectile akProjectile, bool abPowerAttack, bool abSneakAttack, bool abBashAttack, bool abHitBlocked)
+;  if akAggressor == PlayerMonitorScript.player 
+;    Spell healTest = akSource as Spell
+;    if healTest && healTest.IsHostile()
+;      hitByPlayer += 1
+;    endif
+;    ;PlayerMonitorScript.debugmsg("player attacked master detected",5)
+;    ; send modevent to catch
+ ; endif
   
-EndEvent
+;EndEvent
 
+; for now this doesn't get used, turn it off
 
-Event OnCombatStateChanged(Actor akTarget, Int aeCombatState)
-  if aeCombatState != 0 && !hasEnteredCombat
-    hasEnteredCombat = 1
-    PlayerMonitorScript.debugmsg(" master as entered combat ... ", 3)
-  elseif hasEnteredCombat
-    PlayerMonitorScript.debugmsg(" master was hit by player: " + hitByPlayer + " times", 3)
-    hitByPlayer = 0
-    if hitByPlayer > 1
-      PlayerMonitorScript.forceGreetFollower = 10
-    endif
-    hasEnteredCombat = 0
-  else
-    PlayerMonitorScript.debugmsg(" master has changed combat states, under unknown condition", 3)
-  endif
-EndEvent
+;Event OnCombatStateChanged(Actor akTarget, Int aeCombatState)
+;  if aeCombatState != 0 && !hasEnteredCombat
+;    hasEnteredCombat = 1
+;    PlayerMonitorScript.debugmsg(" master as entered combat ... ", 3)
+;  elseif hasEnteredCombat
+;    PlayerMonitorScript.debugmsg(" master was hit by player: " + hitByPlayer + " times", 3)
+;    hitByPlayer = 0
+;    if hitByPlayer > 1
+;      PlayerMonitorScript.forceGreetFollower = 10
+;    endif
+;    hasEnteredCombat = 0
+;  else
+;    PlayerMonitorScript.debugmsg(" master has changed combat states, under unknown condition", 3)
+;  endif
+;EndEvent
 
 
 
