@@ -871,245 +871,8 @@ bool function attemptApproach()
     && followers[0] != None && timeoutFollowerNag < CurrentGameTime \
     && (nearest.length <= 1 || player_loc && player_loc.haskeyword(LocTypePlayerHouse)) 
 
-    ; are we alone with followers in a dungeon?
-      ; for now screw the dungeon, lets just make it random and let the roll decide
+    return attemptFollowerApproach(followers)
     
-    actor[] valid_followers   = new actor[15]
-    actor[] current_followers = new actor[15]
-    actor follower
-    int follower_count      = 0
-    timeoutFollowerNag      = 0
-    actor slave             = None
-    actor tmp_follower      = None
-    
-    ; look for slave followers
-    int i = 0
-    while i < followers.length
-      tmp_follower = followers[i]
-      if tmp_follower != None && ( NPCMonitorScript.isWearingSlaveDD(tmp_follower) || Mods.isSlave(tmp_follower))
-        slave = tmp_follower
-        slaveRefAlias.ForceRefTo(tmp_follower)
-        i += 100 ; done, stop looking
-      endif
-      i += 1
-    endWhile
-    if i == followers.length ; slave wasn't count, player is the slave (maybe)
-      slaveRefAlias.ForceRefTo(player)
-    endif
-    
-    if slave
-      debugmsg("slave follower found: " + slave.GetDisplayName())
-    endif 
-    
-    ; TODO flesh this out so that follower can have partner preference with slaves
-    i = 0
-    ; what this does is gives us the nearest generic follower, and
-    ;  all the followers we've previously had sex with, ignoring jimmy
-    int current_count       = 0
-    while i < followers.length
-      tmp_follower = followers[i]
-      ; if follower is tied up at CDx
-      if tmp_follower == None ; TODO if we can't remove the main follower showing up twice, remove them here
-        ; do nothing, we can avoid
-        
-      elseif Mods.modLoadedCD && Mods.cdFollowerTiedUp.GetValueInt() == 1 && Mods.isTiedUpCDFollower(tmp_follower)
-        debugmsg("follower " + tmp_follower.GetDisplayName() + " is tied up in CDx")
-      elseif tmp_follower != None && !tmp_follower.WornHasKeyword(libs.zad_DeviousGag) && !tmp_follower.WornHasKeyword(libs.zad_DeviousArmbinder)
-        
-        if SexLab.HadPlayerSex(tmp_follower) || StorageUtil.GetFloatValue(tmp_follower, "crdeThinksPCEnjoysSub") > 0 || follower_count == 0 
-          valid_followers[follower_count] = tmp_follower
-          follower_count += 1
-          if tmp_follower.IsInFaction(CurrentFollowerFaction) || tmp_follower.IsInFaction(Mods.paradiseFollowingFaction)
-            current_followers[current_count] = tmp_follower
-            current_count += 1
-            ; while we're here lets update our current followers container counts
-            StorageUtil.AdjustIntValue(tmp_follower, "crdeFollContainersSearched", playerContainerOpenCount)
-          endif
-        endif
-      endif
-      i += 1
-    endWhile
-    playerContainerOpenCount = 0 ; reset
-    
-    ; and then we pick ONE at random (for sex)
-    ; TODO: consider searching for one that is horny enough
-    if follower_count > 0
-      follower = valid_followers[Utility.RandomInt(0, follower_count - 1)]
-      debugmsg("Follower chosen randomly is " + follower.GetDisplayName() + " out of " + follower_count , 1)
-    endif
-    
-    if follower == None 
-      ;debugmsg("No nearby enemies, Follower exists, but busy or slave", 1) ; old but looks wrong
-      debugmsg("No nearby followers", 1)
-      return false
-    endif
-
-    hasSlaveFollowers = (slave != None) && (slave != follower)
-    
-    Mods.PreviousFollowers.AddForm(follower) ; maybe you can just add a NONE and let their own logic handle it
-    if hasSlaveFollowers
-      Mods.PreviousFollowers.AddForm(slave)
-    endif
-    
-    ; attempt follower sex approach
-    follower_thinks_player_sub    = StorageUtil.GetFloatValue(follower, "crdeThinksPCEnjoysSub")
-    if SexLab.HadPlayerSex(follower) || follower_thinks_player_sub >= 5
-      keyword blocking_keyword      = libs.zad_BlockGeneric
-      armor belt                    = libs.GetWornDeviceFuzzyMatch(player, blocking_keyword)
-      int aroused_level             = follower.GetFactionRank(Mods.sexlabArousedFaction)
-      goal                          = (Math.Pow(aroused_level, MCM.fFollowerSexApproachExp) * MCM.sexApproachParabolicModifier) + 10 * ((follower_thinks_player_sub >= 3) as int)
-      int max = MCM.fFollowerSexApproachChanceMaxPercentage ; bad papyrus
-      if goal > max
-        goal = max
-      endif
-      float roll                    = Utility.RandomFloat(100)
-      debugmsg("follower aroused roll:" + roll + " need below " + goal, 3)
-      ; moved this out so that we can detect it in the conversations even if not sex roll
-      follower_can_remove_belt      = belt != None && !belt.HasKeyword(blocking_keyword) && follower.getItemCount(libs.GetDeviceKey(belt)) > 0
-      if aroused_level >= MCM.gFollowerArousalMin.GetValueInt() && roll < goal && !Mods.isSlave(follower)
-        if !(MCM.gForceGreetItemFind.GetValueInt() as bool)
-          Debug.Notification( follower.GetDisplayName() + " looks aroused.")
-        endif
-        forceGreetSex = 10
-        forceGreetIncomplete = true
-        busyGameTime = CurrentGameTime + ( MCM.iApproachDuration * (1.0/1400.0)) ; 24 * 60 minutes in a day
-        reshuffleFollowerAliases(follower);
-      endif
-    endif
-    
-    if current_count == 0
-      debugmsg("not high enough for sex approach, and the current friendlies aren't followers so no item possible",3)
-    endif;if follower ; REALLY just randomly reroll regardless?
-    
-    ; check if follower has found items
-    int  follower_item_count  = StorageUtil.GetIntValue(follower, "crdeFollContainersSearched") 
-    int  randomStart          = Utility.RandomInt(0, current_count - 1)
-    int  followerRemaining    = current_count 
-    while follower_item_count <= 0 && followerRemaining >= 0
-      follower = current_followers[(current_count + randomStart - followerRemaining) % current_count]
-      follower_item_count  = StorageUtil.GetIntValue(follower, "crdeFollContainersSearched")
-      followerRemaining -= 1
-    endWhile
-    if followerRemaining == -1
-      debugmsg("No present followers have seen the player open any containers, exiting early")
-      return false
-    endif
-    debugmsg("Follower re-chosen randomly is " + follower.GetDisplayName() + \
-             " out of " + current_count  + \
-             " after " + (current_count - followerRemaining) + " rechecks", 1)
-    
-
-    int validItemsFound = 0
-    i = 1 ; start at present index -1, the last location written.
-    int absoluteIndex
-    armor[]           armorArray      = new armor[32]
-    objectReference[] containerArray  = new objectReference[32]
-    ;debugmsg("past items: " + followerFoundDDItems )
-    ;debugmsg("and their contianers: " + followerFoundDDItemsContainers )
-    followerItemsArraySemaphore = true
-    form testForm
-    objectReference testContainer
-    
-    ; check the containers we found for DD itmems and keys still there
-    bool alreadyFoundOneKey = false
-    actor randomFoll
-    while i < 32
-      ; we need to count how many items we have, and calculate additional chance of item being found for this one cycle
-      absoluteIndex = (followerFoundDDItemsIndex + 32 - i) % 32
-      testForm = followerFoundDDItems[absoluteIndex] 
-      ;followerFoundDDItems[absoluteIndex] = NONE ; clear as we go
-        ; maybe we should clear per approach after all?
-      if testForm != NONE
-        Key keyTest = testForm as Key
-        testContainer = followerFoundDDItemsContainers[absoluteIndex]
-        if alreadyFoundOneKey == false && keytest != None
-          ; for now, randomly give to a follower if the last follower, assuming they weren't too submissive
-          ; TODO add a way for the follower to bring you the key if they aren't dom
-          ;followers[0]
-          randomFoll = followers[Utility.RandomInt(0, (follower_count - 1))]
-          debugmsg("Follower " + randomFoll.GetDisplayName() + " found a key:" + testForm.GetName(), 3)
-          randomFoll.additem(keyTest)
-          alreadyFoundOneKey = true
-        elseif ItemScript.itemStillInContainer(testForm, testContainer)
-        
-          ;debugmsg("Adding to armor short list " + testForm.GetName(), 3)
-          armorArray[validItemsFound] = testForm as armor
-          containerArray[validItemsFound] = testContainer
-          validItemsFound += 1
-        endif
-        i += 1
-      else ; testForm == NONE
-        ; if they didn't find a key, give them a 10% chance of finding one but not telling the player
-        if alreadyFoundOneKey == false && Utility.RandomInt(0,100) > 90      
-          randomFoll = followers[Utility.RandomInt(0, (follower_count - 1))]
-          if randomFoll == None
-            debugmsg("ERR randomFoll was NONE")
-          endif
-          Key k = deviousKeys[Utility.RandomInt(0,2)]
-          if k == None
-            debugmsg("ERR key was NONE")
-          endif
-          randomFoll.additem(k)
-        endif
-        i = 100 ; end loop
-      endif
-    endWhile
-    followerItemsArraySemaphore = false
-
-    debugmsg("Items found by follower :" + validItemsFound, 3)
-    
-    float item_approach_roll      = Utility.RandomFloat(0,100) - validItemsFound * 5 ; for now, 5% per item, need something better TODO
-    float goal                    = MCM.fFollowerFindChanceMaxPercentage
-    ;int   follower_item_count     = StorageUtil.GetIntValue(follower, "crdeFollContainersSearched") ;playerContainerOpenCount)
-    if follower_item_count < MCM.iFollowerFindChanceMaxContainers
-      goal = ( Math.pow(follower_item_count, MCM.fFollowerItemApproachExp) * MCM.itemParabolicModifier) 
-    endif
-    debugmsg("Follower item adding roll:" + item_approach_roll + " need under " + goal + ", containers: " + follower_item_count, 3)
-
-    if item_approach_roll < goal; 5 or something low at some point
-      
-      ; we need to grab the dispositions from the followers[0] here, too, so that we can properly detect which kind of outcomes are possible
-      ; OR, we move this to a different function, and call it after we get that far into the dialogue, risky?
-      
-      follower_enjoys_dom           = StorageUtil.GetFloatValue(follower, "crdeFollEnjoysDom")
-      follower_enjoys_sub           = StorageUtil.GetFloatValue(follower, "crdeFollEnjoysSub") 
-      follower_thinks_player_sub    = StorageUtil.GetFloatValue(follower, "crdeThinksPCEnjoysSub")
-      follower_thinks_player_dom    = StorageUtil.GetFloatValue(follower, "crdeThinksPCEnjoysDom") 
-      follower_frustration          = StorageUtil.GetFloatValue(follower, "crdeFollowerFrustration")
-      ; add 10 points if player has a slave/follower with collar
-      follower_thinks_player_sub   += ((Mods.metReqFrameworkMakeVuln() as int) * 10)
-      
-      debugmsg("thinks sub: " + follower_thinks_player_sub \
-        + ", thinks dom: " + follower_thinks_player_dom \
-        + ", enjoys sub: " + follower_enjoys_sub \
-        + ", enjoys dom: " + follower_enjoys_dom \
-        + ", frust: " + follower_frustration \
-        + ", availablility: " + followerItemsWhichOneFree)
-      ; also test for relationship and arousal and stuff
-
-      ;debugmsg("pre-shuffle: " + armorArray)
-      ;armor[] shuffledArmor = ItemScript.shuffleArmor( armorArray, containerArray, validItemsFound)
-      if armorArray[0] != None
-        ItemScript.shuffleArmor( armorArray, containerArray, validItemsFound)
-        debugmsg("Shuffled: " + armorArray)
-      endif
-      if armorArray[0] == None || ItemScript.checkFollowerFoundItems(follower, armorArray, containerArray) == false
-        debugmsg("Follower found items invalid, rolling random items")
-        ItemScript.rollFollowerFoundItems(follower)
-      endif
-      
-      if !(MCM.gForceGreetItemFind.GetValueInt() as bool)
-        Debug.Notification( follower.GetDisplayName() + " wants to talk to you.")
-      else ; force greet is on, setup cancel timeout
-        forceGreetIncomplete = true
-        busyGameTime = CurrentGameTime + ( MCM.iApproachDuration * (1.0/1400.0)) ; 24 * 60 minutes in a day
-      endif
-
-      forceGreetFollower = 1
-      reshuffleFollowerAliases(follower)
-      
-      return true
-    endif
     ; changed in 13.12
   elseif followers[0] == None ; no followers nearby
     if forceGreetFollower
@@ -1285,6 +1048,251 @@ bool function attemptApproach()
 
   return false ; if we made it this far, than neither sex nor enslave worked
 endFunction
+
+; moved in 13.15, because it was getting huge, separate for organization and stack size
+bool function attemptFollowerApproach(actor[] followers)
+    
+  actor[] valid_followers   = new actor[15]
+  actor[] current_followers = new actor[15]
+  actor follower
+  int follower_count      = 0
+  timeoutFollowerNag      = 0
+  actor slave             = None
+  actor tmp_follower      = None
+  
+  ; look for slave followers
+  int i = 0
+  while i < followers.length
+    tmp_follower = followers[i]
+    if tmp_follower != None && ( NPCMonitorScript.isWearingSlaveDD(tmp_follower) || Mods.isSlave(tmp_follower))
+      slave = tmp_follower
+      slaveRefAlias.ForceRefTo(tmp_follower)
+      i += 100 ; done, stop looking
+    endif
+    i += 1
+  endWhile
+  if i == followers.length ; slave wasn't count, player is the slave (maybe)
+    slaveRefAlias.ForceRefTo(player)
+  endif
+  
+  if slave
+    debugmsg("slave follower found: " + slave.GetDisplayName())
+  endif 
+  
+  ; TODO flesh this out so that follower can have partner preference with slaves
+  i = 0
+  ; what this does is gives us the nearest generic follower, and
+  ;  all the followers we've previously had sex with, ignoring jimmy
+  int current_count       = 0
+  while i < followers.length
+    tmp_follower = followers[i]
+    ; if follower is tied up at CDx
+    if tmp_follower == None ; TODO if we can't remove the main follower showing up twice, remove them here
+      ; do nothing, we can avoid
+      
+    elseif Mods.modLoadedCD && Mods.cdFollowerTiedUp.GetValueInt() == 1 && Mods.isTiedUpCDFollower(tmp_follower)
+      debugmsg("follower " + tmp_follower.GetDisplayName() + " is tied up in CDx")
+    elseif tmp_follower != None && !tmp_follower.WornHasKeyword(libs.zad_DeviousGag) && !tmp_follower.WornHasKeyword(libs.zad_DeviousArmbinder)
+      
+      if SexLab.HadPlayerSex(tmp_follower) || StorageUtil.GetFloatValue(tmp_follower, "crdeThinksPCEnjoysSub") > 0 || follower_count == 0 
+        valid_followers[follower_count] = tmp_follower
+        follower_count += 1
+        if tmp_follower.IsInFaction(CurrentFollowerFaction) || tmp_follower.IsInFaction(Mods.paradiseFollowingFaction)
+          current_followers[current_count] = tmp_follower
+          current_count += 1
+          ; while we're here lets update our current followers container counts
+          StorageUtil.AdjustIntValue(tmp_follower, "crdeFollContainersSearched", playerContainerOpenCount)
+        endif
+      endif
+    endif
+    i += 1
+  endWhile
+  playerContainerOpenCount = 0 ; reset
+  
+  ; and then we pick ONE at random (for sex)
+  ; TODO: consider searching for one that is horny enough
+  if follower_count > 0
+    follower = valid_followers[Utility.RandomInt(0, follower_count - 1)]
+    debugmsg("Follower chosen randomly is " + follower.GetDisplayName() + " out of " + follower_count , 1)
+  endif
+  
+  if follower == None 
+    ;debugmsg("No nearby enemies, Follower exists, but busy or slave", 1) ; old but looks wrong
+    debugmsg("No nearby followers", 1)
+    return false
+  endif
+
+  hasSlaveFollowers = (slave != None) && (slave != follower)
+  
+  Mods.PreviousFollowers.AddForm(follower) ; maybe you can just add a NONE and let their own logic handle it
+  if hasSlaveFollowers
+    Mods.PreviousFollowers.AddForm(slave)
+  endif
+  
+  ; attempt follower sex approach
+  follower_thinks_player_sub    = StorageUtil.GetFloatValue(follower, "crdeThinksPCEnjoysSub")
+  if SexLab.HadPlayerSex(follower) || follower_thinks_player_sub >= 5
+    keyword blocking_keyword      = libs.zad_BlockGeneric
+    armor belt                    = libs.GetWornDeviceFuzzyMatch(player, blocking_keyword)
+    int aroused_level             = follower.GetFactionRank(Mods.sexlabArousedFaction)
+    goal                          = (Math.Pow(aroused_level, MCM.fFollowerSexApproachExp) * MCM.sexApproachParabolicModifier) + 10 * ((follower_thinks_player_sub >= 3) as int)
+    int max = MCM.fFollowerSexApproachChanceMaxPercentage ; bad papyrus
+    if goal > max
+      goal = max
+    endif
+    float roll                    = Utility.RandomFloat(100)
+    debugmsg("follower aroused roll:" + roll + " need below " + goal, 3)
+    ; moved this out so that we can detect it in the conversations even if not sex roll
+    follower_can_remove_belt      = belt != None && !belt.HasKeyword(blocking_keyword) && follower.getItemCount(libs.GetDeviceKey(belt)) > 0
+    if aroused_level >= MCM.gFollowerArousalMin.GetValueInt() && roll < goal && !Mods.isSlave(follower)
+      if !(MCM.gForceGreetItemFind.GetValueInt() as bool)
+        Debug.Notification( follower.GetDisplayName() + " looks aroused.")
+      endif
+      forceGreetSex = 10
+      forceGreetIncomplete = true
+      busyGameTime = CurrentGameTime + ( MCM.iApproachDuration * (1.0/1400.0)) ; 24 * 60 minutes in a day
+      reshuffleFollowerAliases(follower);
+      return true
+    endif
+  endif
+  
+  if current_count == 0
+    debugmsg("not high enough for sex approach, and the current friendlies aren't followers so no item possible",3)
+  endif;if follower ; REALLY just randomly reroll regardless?
+  
+  ; check if follower has found items
+  int  follower_item_count  = StorageUtil.GetIntValue(follower, "crdeFollContainersSearched") 
+  int  randomStart          = Utility.RandomInt(0, current_count - 1)
+  int  followerRemaining    = current_count 
+  while follower_item_count <= 0 && followerRemaining >= 0
+    follower = current_followers[(current_count + randomStart - followerRemaining) % current_count]
+    follower_item_count  = StorageUtil.GetIntValue(follower, "crdeFollContainersSearched")
+    followerRemaining -= 1
+  endWhile
+  if followerRemaining == -1
+    debugmsg("No present followers have seen the player open any containers, exiting early")
+    return false
+  endif
+  debugmsg("Follower re-chosen randomly is " + follower.GetDisplayName() + \
+           " out of " + current_count  + \
+           " after " + (current_count - followerRemaining) + " rechecks", 1)
+  
+
+  int validItemsFound = 0
+  i = 1 ; start at present index -1, the last location written.
+  int absoluteIndex
+  armor[]           armorArray      = new armor[32]
+  objectReference[] containerArray  = new objectReference[32]
+  ;debugmsg("past items: " + followerFoundDDItems )
+  ;debugmsg("and their contianers: " + followerFoundDDItemsContainers )
+  followerItemsArraySemaphore = true
+  form testForm
+  objectReference testContainer
+  
+  ; check the containers we found for DD itmems and keys still there
+  bool alreadyFoundOneKey = false
+  actor randomFoll
+  while i < 32
+    ; we need to count how many items we have, and calculate additional chance of item being found for this one cycle
+    absoluteIndex = (followerFoundDDItemsIndex + 32 - i) % 32
+    testForm = followerFoundDDItems[absoluteIndex] 
+    ;followerFoundDDItems[absoluteIndex] = NONE ; clear as we go
+      ; maybe we should clear per approach after all?
+    if testForm != NONE
+      Key keyTest = testForm as Key
+      testContainer = followerFoundDDItemsContainers[absoluteIndex]
+      if alreadyFoundOneKey == false && keytest != None
+        ; for now, randomly give to a follower if the last follower, assuming they weren't too submissive
+        ; TODO add a way for the follower to bring you the key if they aren't dom
+        ;followers[0]
+        randomFoll = followers[Utility.RandomInt(0, (follower_count - 1))]
+        debugmsg("Follower " + randomFoll.GetDisplayName() + " found a key:" + testForm.GetName(), 3)
+        randomFoll.additem(keyTest)
+        alreadyFoundOneKey = true
+      elseif ItemScript.itemStillInContainer(testForm, testContainer)
+      
+        ;debugmsg("Adding to armor short list " + testForm.GetName(), 3)
+        armorArray[validItemsFound] = testForm as armor
+        containerArray[validItemsFound] = testContainer
+        validItemsFound += 1
+      endif
+      i += 1
+    else ; testForm == NONE
+      ; if they didn't find a key, give them a 10% chance of finding one but not telling the player
+      if alreadyFoundOneKey == false && Utility.RandomInt(0,100) > 90      
+        randomFoll = followers[Utility.RandomInt(0, (follower_count - 1))]
+        if randomFoll == None
+          debugmsg("ERR randomFoll was NONE")
+        endif
+        Key k = deviousKeys[Utility.RandomInt(0,2)]
+        if k == None
+          debugmsg("ERR key was NONE")
+        endif
+        randomFoll.additem(k)
+      endif
+      i = 100 ; end loop
+    endif
+  endWhile
+  followerItemsArraySemaphore = false
+
+  debugmsg("Items found by follower :" + validItemsFound, 3)
+  
+  float item_approach_roll      = Utility.RandomFloat(0,100) - validItemsFound * 5 ; for now, 5% per item, need something better TODO
+  float goal                    = MCM.fFollowerFindChanceMaxPercentage
+  if follower_item_count < MCM.iFollowerFindChanceMaxContainers
+    goal = ( Math.pow(follower_item_count, MCM.fFollowerItemApproachExp) * MCM.itemParabolicModifier) 
+  endif
+  debugmsg("Follower item adding roll:" + item_approach_roll + " need under " + goal + ", containers: " + follower_item_count, 3)
+
+  ; if we roll low enough, lets do an item approach
+  if item_approach_roll < goal
+    
+    ; we need to grab the dispositions from the followers[0] here, too, 
+    ; so that we can properly detect which kind of outcomes are possible
+    ; OR, we move this to a different function, and call it after dialogue starts, 
+    ; but before we get that far into the dialogue, risky?
+    
+    follower_enjoys_dom           = StorageUtil.GetFloatValue(follower, "crdeFollEnjoysDom")
+    follower_enjoys_sub           = StorageUtil.GetFloatValue(follower, "crdeFollEnjoysSub") 
+    follower_thinks_player_sub    = StorageUtil.GetFloatValue(follower, "crdeThinksPCEnjoysSub")
+    follower_thinks_player_dom    = StorageUtil.GetFloatValue(follower, "crdeThinksPCEnjoysDom") 
+    follower_frustration          = StorageUtil.GetFloatValue(follower, "crdeFollowerFrustration")
+    ; add 10 points if player has a slave/follower with collar
+    follower_thinks_player_sub   += ((Mods.metReqFrameworkMakeVuln() as int) * 10)
+    
+    debugmsg("thinks sub: " + follower_thinks_player_sub \
+      + ", thinks dom: " + follower_thinks_player_dom \
+      + ", enjoys sub: " + follower_enjoys_sub \
+      + ", enjoys dom: " + follower_enjoys_dom \
+      + ", frust: " + follower_frustration \
+      + ", availablility: " + followerItemsWhichOneFree)
+    ; also test for relationship and arousal and stuff
+
+    ;debugmsg("pre-shuffle: " + armorArray)
+    ;armor[] shuffledArmor = ItemScript.shuffleArmor( armorArray, containerArray, validItemsFound)
+    if armorArray[0] != None
+      ItemScript.shuffleArmor( armorArray, containerArray, validItemsFound)
+      debugmsg("Shuffled: " + armorArray)
+    endif
+    if armorArray[0] == None || ItemScript.checkFollowerFoundItems(follower, armorArray, containerArray) == false
+      debugmsg("Follower found items invalid, rolling random items")
+      ItemScript.rollFollowerFoundItems(follower)
+    endif
+    
+    if !(MCM.gForceGreetItemFind.GetValueInt() as bool)
+      Debug.Notification( follower.GetDisplayName() + " wants to talk to you.")
+    else ; force greet is on, setup cancel timeout
+      forceGreetIncomplete = true
+      busyGameTime = CurrentGameTime + ( MCM.iApproachDuration * (1.0/1400.0)) ; 24 * 60 minutes in a day
+    endif
+
+    forceGreetFollower = 1
+    reshuffleFollowerAliases(follower)
+    
+    return true
+  endif
+endFunction
+
 
 ; don't forget you have updateSDMaster as well
 ; We should probably reorder this at some point
@@ -2768,31 +2776,33 @@ function testTestButton7()
   ; endWhile
   
   ; look for nearby pillory and try to lock player to it
-  Cell c = player.GetParentCell()
-  Int NumRefs = c.GetNumRefs(28)
-  ObjectReference test_form
-  ObjectReference[] available_furn = new ObjectReference[15]
-  Int       furn_position = 0
-  Keyword furn = Game.GetFormFromFile(0x0000762b, "ZaZAnimationPack.esm") as Keyword
-  ;Keyword pill2 = 
-  While NumRefs > 0 && furn_position < 15
-    test_form = c.GetNthRef(NumRefs, 40) as ObjectReference 
-    if test_form && test_form.HasKeyword(furn)
-      debugmsg("Found zaz furniture: " + test_form)
-      available_furn[furn_position] = test_form
-      furn_position += 1
-    endif
-     NumRefs -= 1
-  EndWhile 
-  if furn_position == 0 
-    debugmsg("no nearby furniture found")
-  else
-    ObjectReference randomly_chosen = available_furn[Utility.RandomInt(0, furn_position - 1)] 
-    debugmsg("setting as vehicle: " + randomly_chosen)
-    player.SetVehicle(randomly_chosen)
-  endif
+  ; Cell c = player.GetParentCell()
+  ; Int NumRefs = c.GetNumRefs(28)
+  ; ObjectReference test_form
+  ; ObjectReference[] available_furn = new ObjectReference[15]
+  ; Int       furn_position = 0
+  ; Keyword furn = Game.GetFormFromFile(0x0000762b, "ZaZAnimationPack.esm") as Keyword
+  ; While NumRefs > 0 && furn_position < 15
+    ; test_form = c.GetNthRef(NumRefs, 40) as ObjectReference 
+    ; if test_form && test_form.HasKeyword(furn)
+      ; debugmsg("Found zaz furniture: " + test_form)
+      ; available_furn[furn_position] = test_form
+      ; furn_position += 1
+    ; endif
+     ; NumRefs -= 1
+  ; EndWhile 
+  ; if furn_position == 0 
+    ; debugmsg("no nearby furniture found")
+  ; else
+    ; ObjectReference randomly_chosen = available_furn[Utility.RandomInt(0, furn_position - 1)] 
+    ; debugmsg("setting as vehicle: " + randomly_chosen)
+    ; player.SetVehicle(randomly_chosen)
+  ; endif
 
+  ItemScript.equipArousingPlugAndBelt(player)
+  
   Debug.Notification("Test has completed.")
+  MCM.bTestButton7 = false
 endFunction
 
 ; debug for checking if DEC can detect present tattoes on the player's body

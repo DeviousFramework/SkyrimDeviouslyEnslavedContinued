@@ -799,6 +799,12 @@ BleedOutStop
     notepad &line
   done
     
+    ; force error so we get a stack trace, useful when you get oddball throws                  
+    actor test 
+    Debug.Trace("keyword test: " + test.WornHasKeyword(libs.zad_DeviousPlug)) ; force err
+    ; there's probably one that we can throw that wouldn't cause a second error?
+    actor a 
+    string s = "keyword test: " + test.WornHasKeyword(libs.zad_DeviousPlug)
 
 
   [8][8][8][8][8][8][8][8][8][8][8][8][8][8][8][8]

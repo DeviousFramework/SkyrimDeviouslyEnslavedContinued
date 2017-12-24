@@ -777,9 +777,11 @@ armor[] function getRandomStuff(actor actorRef, Armor belt, bool punishment = fa
               ;+ MCM.iWeightPlugDasha \           + MCM.iWeightPlugCDEffect \         + MCM.iWeightPlugCDSpecial \
 
     int vRoll = Utility.RandomInt(1,total)
-    PlayerMon.debugmsg("soul/inflate/charging/shock/training/cdeff(" + newSoulGem + "/" + newInflate + "/" + newCharging + "/" + newShock + "/"\
-                                    + newTraining + "/" + newCDEffect +")roll/total:(" + vRoll + "/" + total + ")", 2)
-
+    PlayerMon.debugmsg("soul/inflate/charging/shock/training/cdeff(" \
+                      + newSoulGem + "/" + newInflate + "/" + newCharging + "/" + newShock + "/"\
+                      + newTraining + "/" + newCDEffect +")roll/total:(" + vRoll + "/" + total + ")", 2)
+                      
+                      
     actorRef.UnequipItemSlot(32) ; take off the body, we need to apply the harness
     
     Armor vplug = None
@@ -956,11 +958,11 @@ function equipSpellPunishmentBelt(actor actorRef)
 endfunction
 
 
-
+; used by pf_crde_followeragrgagandplug1
 bool function equipArousingPlugAndBelt(actor actorRef, actor masterRef = None)
   if actorRef.wornhaskeyword(libs.zad_DeviousPlug) ; if wearing a plug already
     removeDDbyKWD(actorRef, libs.zad_DeviousPlug)
-    if actorRef.wornhaskeyword(libs.zad_DeviousPlug) ; if wearing two
+    if actorRef.wornhaskeyword(libs.zad_DeviousPlug) ; wearing two
       removeDDbyKWD(actorRef, libs.zad_DeviousPlug)
     endif
   endif
@@ -974,23 +976,37 @@ bool function equipArousingPlugAndBelt(actor actorRef, actor masterRef = None)
   actorRef.UnequipItemSlot(32) ; take off the body, we need to apply the harness
 
   armor[] items = getArousingPlugAndBelt(actorRef)
+  debug.trace( "items: " + items )
   while i < items.length && items[i] != None
     equipRegularDDItem(actorRef, items[i], None)
+    ;Utility.Wait(1.5) ; if we try to equip several unique individual items at once the script can lag and belt gets put on before some 
     i += 1
   endWhile
   return i > 0
 endFunction
 
-
 armor[] function getArousingPlugAndBelt(actor actorRef)
-  armor[] items = new armor[3]
-  items[0] = Mods.crdeTrainingPlug
-  bool cdloaded = Mods.modLoadedCD
-  if cdloaded
-    items[1] = Mods.cdTeaserPlug
+  ;armor[] items = new armor[3]
+  armor[] items = getRandomStuff(actorRef, libs.beltPadded, true, true) ; size 4, 2 plugs + 1 pierce + 1 belt
+  ;items[0] = Mods.crdeTrainingPlug
+  ;bool cdloaded = Mods.modLoadedCD
+  ;if cdloaded
+  ;  items[1] = Mods.cdTeaserPlug
+  ;endif
+  
+  ;items[1 + (cdloaded as int)] = libs.beltPadded
+  int i = 3
+  while i >= 0
+    if items[i] != NONE
+      items[i+1] = libs.beltPadded
+      i -= 16
+    endif
+    i -= 1
+  endWhile
+  if i > -16
+    debug.trace("[crde] ERR: no space for belt found")
   endif
   
-  items[1 + (cdloaded as int)] = libs.beltPadded
   return items
 endfunction
 
