@@ -108,27 +108,31 @@ endEvent
 bool function checkActorBoundInFurniture(actor actorRef)
   ;if(actorRef.WornHasKeyword(Keyword.GetKeyword("zbfEffectRefreshAnim")))
   ;if Mods.modLoadedZazAnimations ; should always be true
-  if Mods.zazKeywordEffectRefresh != None && actorRef.WornHasKeyword(Mods.zazKeywordEffectRefresh)
+  if Mods.zazKeywordEffectRefresh == None
+    debugmsg("zazKeywordEffectRefresh is not loaded, are you sure you installed zaz?", 5)
+  elseif Mods.zazKeywordFurniture == None
+    debugmsg("zazKeywordFurniture is not loaded, are you sure you installed zaz?", 5)
+
+  elseif actorRef.WornHasKeyword(Mods.zazKeywordEffectRefresh)
     debugmsg("debug: " + actorRef.GetDisplayName() + " has zbf refresh keyword", 3)
     return true
   ;elseif (actorRef.WornHasKeyword(Keyword.GetKeyword("zbfFurniture")) ) ; sitting in furniture and tied up
-  elseif Mods.zazKeywordFurniture != None && actorRef == player && PlayerScript.sittingInZaz
+  elseif Mods.zazKeywordFurniture != None && actorRef == player && PlayerScript.sittingInZaz ; player only
     int sitting = player.GetSitState()
     
-    if sitting >= 1 && sitting <= 3 && !PlayerScript.releasedFromZaz; still sitting
+    if (sitting >= 1 || sitting <= 3) && !PlayerScript.releasedFromZaz; still sitting
       debugmsg("debug: player is sitting in furniture with zazFurniture keyword, sitting lvl:" + sitting, 3)
       return true
     else
       debugmsg("debug: furniture no longer valid, canceling", 3)
       PlayerScript.sittingInZaz = false
     endif
-  ;elseif Mods.zazKeywordFurniture != None && actorRef.WornHasKeyword(Mods.zazKeywordFurniture) ; sitting in furniture and tied up
-  ;  debugmsg("debug: " + actorRef.GetDisplayName() + " has zbf furniture keyword", 0)
-  ;  return true
-  elseif Mods.zazKeywordEffectRefresh == None
-    debugmsg("zazKeywordEffectRefresh is not loaded, are you sure you installed zaz?", 5)
-  elseif Mods.zazKeywordFurniture == None
-    debugmsg("zazKeywordFurniture is not loaded, are you sure you installed zaz?", 5)
+  elseif Mods.zazKeywordFurniture != None && actorRef.HasKeyword(Mods.zazKeywordFurniture) ; sitting in furniture and tied up
+    debugmsg("debug: " + actorRef.GetDisplayName() + " has zbf furniture keyword", 0)
+    return true
+  elseif Mods.zazKeywordFurniture != None && actorRef.WornHasKeyword(Mods.zazKeywordFurniture) ; sitting in furniture and tied up
+    debugmsg("debug: " + actorRef.GetDisplayName() + " has zbf furniture keyword", 0)
+    return true
   endif
   return false
   ; other keywords http://www.loverslab.com/topic/17062-zaz-animation-pack-2015-02-10/?p=1123366

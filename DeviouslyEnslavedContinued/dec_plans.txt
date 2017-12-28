@@ -446,12 +446,16 @@ more recent (not mothballed either):
   double reset is still in effect, damn it.
   container check cell is NULL when we're out in the overworld... crap
    
+  follower in furniture should not approach player for stuff
+ 
+   
   ; random chance of finding a key
   add special finding key stuff, not just pocketing it
     - removing and masterbating
     - removing and running to player for sex
     - bringing key to player for safe keeping
 
+    
   
   ** TODO / NOTES (bottom is most recent, older in ascending order)  --^ **
   
@@ -967,3 +971,5 @@ tif__0800437c.psc
 tif__0800437d.psc
 
 49. pf_crde_followergaggedaddblindfold.psc: Fixed a compile error accessing an undeclared variable.      
+
+

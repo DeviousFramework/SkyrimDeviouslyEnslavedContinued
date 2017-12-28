@@ -1049,7 +1049,7 @@ bool function attemptApproach()
   return false ; if we made it this far, than neither sex nor enslave worked
 endFunction
 
-; moved in 13.15, because it was getting huge, separate for organization and stack size
+; moved in 13.13, because it was getting huge, separate for organization and stack size
 bool function attemptFollowerApproach(actor[] followers)
     
   actor[] valid_followers   = new actor[15]
@@ -1079,11 +1079,11 @@ bool function attemptFollowerApproach(actor[] followers)
     debugmsg("slave follower found: " + slave.GetDisplayName())
   endif 
   
+
+  ; narrow the followers that we want to be able to interact with
   ; TODO flesh this out so that follower can have partner preference with slaves
   i = 0
-  ; what this does is gives us the nearest generic follower, and
-  ;  all the followers we've previously had sex with, ignoring jimmy
-  int current_count       = 0
+  int current_count = 0
   while i < followers.length
     tmp_follower = followers[i]
     ; if follower is tied up at CDx
@@ -1092,17 +1092,22 @@ bool function attemptFollowerApproach(actor[] followers)
       
     elseif Mods.modLoadedCD && Mods.cdFollowerTiedUp.GetValueInt() == 1 && Mods.isTiedUpCDFollower(tmp_follower)
       debugmsg("follower " + tmp_follower.GetDisplayName() + " is tied up in CDx")
-    elseif tmp_follower != None && !tmp_follower.WornHasKeyword(libs.zad_DeviousGag) && !tmp_follower.WornHasKeyword(libs.zad_DeviousArmbinder)
-      
-      if SexLab.HadPlayerSex(tmp_follower) || StorageUtil.GetFloatValue(tmp_follower, "crdeThinksPCEnjoysSub") > 0 || follower_count == 0 
-        valid_followers[follower_count] = tmp_follower
-        follower_count += 1
-        if tmp_follower.IsInFaction(CurrentFollowerFaction) || tmp_follower.IsInFaction(Mods.paradiseFollowingFaction)
-          current_followers[current_count] = tmp_follower
-          current_count += 1
-          ; while we're here lets update our current followers container counts
-          StorageUtil.AdjustIntValue(tmp_follower, "crdeFollContainersSearched", playerContainerOpenCount)
-        endif
+    elseif tmp_follower.WornHasKeyword(libs.zad_DeviousGag)
+      debugmsg("follower " + tmp_follower.GetDisplayName() + " is gagged and will not approach")
+    elseif tmp_follower.WornHasKeyword(libs.zad_DeviousHeavyBondage)
+      debugmsg("follower " + tmp_follower.GetDisplayName() + " is bound in heavy bondage and cannot approach")
+    elseif NPCMonitorScript.checkActorBoundInFurniture(tmp_follower)
+      debugmsg("follower " + tmp_follower.GetDisplayName() + " is bound in zaz furniture and cannot appraoch")
+    elseif SexLab.HadPlayerSex(tmp_follower) || StorageUtil.GetFloatValue(tmp_follower, "crdeThinksPCEnjoysSub") > 0 || follower_count == 0 
+      valid_followers[follower_count] = tmp_follower
+      follower_count += 1
+      if tmp_follower.IsInFaction(CurrentFollowerFaction) || tmp_follower.IsInFaction(Mods.paradiseFollowingFaction)
+        current_followers[current_count] = tmp_follower
+        current_count += 1
+        ; while we're here lets update our current followers container counts, 
+        ;  instead of making a completely separate loop
+        StorageUtil.AdjustIntValue(tmp_follower, "crdeFollContainersSearched", playerContainerOpenCount)
+        debugmsg("follower chosen: " + tmp_follower.GetDisplayName() + " and:" + NPCMonitorScript.checkActorBoundInFurniture(tmp_follower))
       endif
     endif
     i += 1
@@ -1335,7 +1340,7 @@ function modFollowerLikesDom(actor actorRef , float value, float max = 30.0)
   float current_value = StorageUtil.GetFloatValue(actorRef, "crdeFollEnjoysDom")
   if current_value > max && value > 0 
     ; we're already too high for us to be affected by this adjustment
-  elseif value + current_value > max
+  elseif value + current_value > max && value > 0 
     StorageUtil.SetFloatValue(actorRef, "crdeFollEnjoysDom", max)
   else
     StorageUtil.AdjustFloatValue(actorRef, "crdeFollEnjoysDom", value)
@@ -1346,7 +1351,7 @@ function modFollowerLikesSub(actor actorRef, float value, float max = 30.0)
   float current_value = StorageUtil.GetFloatValue(actorRef, "crdeFollEnjoysSub")
   if current_value > max && value > 0 
     ; we're already too high for us to be affected by this adjustment
-  elseif value + current_value > max
+  elseif value + current_value > max && value > 0 
     StorageUtil.SetFloatValue(actorRef, "crdeFollEnjoysSub", max)
   else
     StorageUtil.AdjustFloatValue(actorRef, "crdeFollEnjoysSub", value)
@@ -1357,7 +1362,7 @@ function modThinksPlayerDom(actor actorRef , float value, float max = 30.0)
   float current_value = StorageUtil.GetFloatValue(actorRef, "crdeThinksPCEnjoysDom")
   if current_value > max && value > 0 
     ; we're already too high for us to be affected by this adjustment
-  elseif value + current_value > max
+  elseif value + current_value > max && value > 0 
     StorageUtil.SetFloatValue(actorRef, "crdeThinksPCEnjoysDom", max)
   else
     StorageUtil.AdjustFloatValue(actorRef, "crdeThinksPCEnjoysDom", value)
@@ -1368,7 +1373,7 @@ function modThinksPlayerSub(actor actorRef , float value, float max = 30.0)
   float current_value = StorageUtil.GetFloatValue(actorRef, "crdeThinksPCEnjoysSub")
   if current_value > max && value > 0 
     ; we're already too high for us to be affected by this adjustment
-  elseif value + current_value > max
+  elseif value + current_value > max && value > 0 
     StorageUtil.SetFloatValue(actorRef, "crdeThinksPCEnjoysSub", max)
   else
     StorageUtil.AdjustFloatValue(actorRef, "crdeThinksPCEnjoysSub", value)
@@ -1379,10 +1384,10 @@ function modFollowerFrustration(actor actorRef, float value, float max = 40.0)
   float current_value = StorageUtil.GetFloatValue(actorRef, "crdeFollowerFrustration")
   if current_value > max && value > 0 
     ; we're already too high for us to be affected by this adjustment
-  elseif value + current_value < 0
+  elseif value + current_value < 0 
     ; shouldn't go negative, lets set at zero
     StorageUtil.SetFloatValue(actorRef, "crdeFollowerFrustration", 0)
-  elseif value + current_value > max
+  elseif value + current_value > max && value > 0 
     StorageUtil.SetFloatValue(actorRef, "crdeFollowerFrustration", max)
   else
     StorageUtil.AdjustFloatValue(actorRef, "crdeFollowerFrustration", value)
@@ -1622,9 +1627,11 @@ function doPlayerSexFull(actor actorRef, actor actorRef2, bool rape = false, boo
   ; start some animations while we wait
   
   ;if MCM.bAggresiveAnimations
+  String threesomeTag = ""
   actor[] sexActors
   if actorRef2 != None
    sexActors = new actor[3]
+   threesomeTag = "FMM,"
   else
    sexActors = new actor[2] 
   endif
@@ -1723,27 +1730,29 @@ function doPlayerSexFull(actor actorRef, actor actorRef2, bool rape = false, boo
   endif
   
   ;if player is wearing gag
-  
-  ; get array of animations based on which items the player has
-  ;int actorCount = 2; number of actors in sex
-  ; add limit for aggressive here
-  ;sslBaseAnimation[] animations = SexLabUtil.GetAnimationsByTags(2, animationTags, supressTags)
-  sslBaseAnimation[] animations = SexLab.GetAnimationsByTag(2, animationTags, TagSuppress = supressTags)
+  String newAnimationTags = threesomeTag + animationTags
+  sslBaseAnimation[] animations = SexLab.GetAnimationsByTag(2 + ((actorRef2 != None) as int), newAnimationTags, TagSuppress = supressTags)
   
   debugmsg(("anim:'" + animationTags +"',supp:'" + supressTags+ "',animsize:" + animations.length), 3)
   
   ; if I'm only getting 8 animations with these tags, most users probably get near enough to zero to be a problem
   ; TODO: break suppress tags into two parts so we can keep the above more intact without dropping all of it
   if animations.length == 0 
-    debugmsg("No animations available with given tags, reducing ...", 4)
-    supressTags = "Solo,Breastfeeding,Acrobat"
+    if actorRef2 != None
+      debugmsg("No animations for FMM, reducing ... ", 4)
+      animations = SexLab.GetAnimationsByTag(3, animationTags, TagSuppress = supressTags)
+    else
+      debugmsg("No animations available with given tags, reducing ...", 4)
+      supressTags = "Solo,Breastfeeding,Acrobat"
+      animations = SexLab.GetAnimationsByTag(2, animationTags, TagSuppress = supressTags)
+    endif
   endif
   
   int anim = 0
   sslBaseAnimation tmp 
   while anim < animations.length
     tmp = animations[anim]
-    debugmsg(("animation: " + tmp.name + " tags:" + tmp.GetRawTags()), 3)
+    debugmsg(("a: " + tmp.name + " tags:" + tmp.GetRawTags()), 3)
     anim += 1
   endwhile
   
@@ -2799,7 +2808,9 @@ function testTestButton7()
     ; player.SetVehicle(randomly_chosen)
   ; endif
 
-  ItemScript.equipArousingPlugAndBelt(player)
+  ;ItemScript.equipArousingPlugAndBelt(player)
+  doPlayerSexFull(followerRefAlias02.GetActorRef(), followerRefAlias01.GetActorRef())
+
   
   Debug.Notification("Test has completed.")
   MCM.bTestButton7 = false
