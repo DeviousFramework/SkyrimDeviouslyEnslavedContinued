@@ -193,7 +193,7 @@ event OnPageReset(string a_page)
     SetCursorPosition(1) ; switched sides
     
     AddHeaderOption("Sex Events")
-    bHookAnySexlabEventOID      = AddToggleOption("Trigger after all sex", bHookAnySexlabEvent)
+    bHookAnySexlabEventOID      = AddToggleOption("Trigger after all sex", bHookAnySexlabEvent, 1)
     bHookReqVictimStatusOID     = AddToggleOption("Require Victim Requirement", bHookReqVictimStatus)
     bFxFAlwaysAggressiveOID     = AddToggleOption("FxF always aggressive", bFxFAlwaysAggressive)
     iSexEventKeyOID             = AddSliderOption("Chance of Key Removal", iSexEventKey, "{0}%")
@@ -327,14 +327,14 @@ event OnPageReset(string a_page)
     iMinApproachArousalOID            = AddSliderOption("Minimum NPC Arousal", gMinApproachArousal.GetValueInt(), "{0}%")
     iMaxEnslaveMoralityOID            = AddSliderOption("Maximum Morality (enslave)", iMaxEnslaveMorality, "Level {0}")
     iMaxSolicitMoralityOID            = AddSliderOption("Maximum Morality (sex)", iMaxSolicitMorality, "Level {0}")
-    bIsVulNakedOID                    = AddToggleOption("Nudity Vulnerability", bIsVulNaked)
+    iVulnerableNakedOID               = AddSliderOption("Nudity Vulnerability", iVulnerableNaked, "Level {0}")
     bIsNonChestArmorIgnoredNakedOID   = AddToggleOption("Alt Armor Slot Protection", bIsNonChestArmorIgnoredNaked)
     ;bChastityToggleOID              = AddToggleOption("Chastity Protection", bChastityToggle); deprecated: duplicate
-    bVulnerableLOSOID                 = AddToggleOption("Line of sight", bVulnerableLOS)
+    iVulnerableLOSOID                 = AddToggleOption("Line of sight", iVulnerableLOS)
     iWeaponHoldingProtectionLevelOID  = AddSliderOption("Holding weapon Protection", iWeaponHoldingProtectionLevel, "Level {0}")
     iWeaponWavingProtectionLevelOID   = AddSliderOption("Waving weapon Protection", iWeaponWavingProtectionLevel, "Level {0}")
     iRelationshipProtectionLevelOID   = AddSliderOption("Relationship Protection Level", iRelationshipProtectionLevel, "Level {0}")
-    bVulnerableFurnitureOID           = AddToggleOption("Xaz Furniture", bVulnerableFurniture)
+    iVulnerableFurnitureOID           = AddToggleOption("Xaz Furniture", iVulnerableFurniture)
     bAttackersGuardsOID               = AddToggleOption("Guards Toggle",  bAttackersGuards)
     bAltBodySlotSearchWorkaroundOID   = AddToggleOption("Alternate body slot search", bAltBodySlotSearchWorkaround)
     bEnslaveFollowerLockToggleOID     = AddToggleOption("Follower locks enslave attempt", bEnslaveFollowerLockToggle)
@@ -342,27 +342,29 @@ event OnPageReset(string a_page)
     
     AddEmptyOption() ; spacer
     AddHeaderOption("Nighttime Options")
-    fNightReqArousalModifierOID      = AddSliderOption("Night Arousal Modifier", fNightReqArousalModifier, "{1}", 0);(!Mods.fNightReqArousalModifier) as int)
-    fNightDistanceModifierOID        = AddSliderOption("Night Distance Modifier", fNightDistanceModifier, "{1}", 1);(!Mods.fNightDistanceModifier) as int)
-    fNightChanceModifierOID          = AddSliderOption("Night Approach Chance Modifier", fNightChanceModifier, "{1}", 0);(!Mods.fNightChanceModifier) as int
-    iNightReqConfidenceReductionOID  = AddSliderOption("iNightReqConfidenceReduction", iNightReqConfidenceReduction, "{0}", 0);(!Mods.iNightReqConfidenceReduction) as int)
-    bNightAddsToVulnerableOID        = AddToggleOption("Night Makes More Vulnerable", bNightAddsToVulnerable, 0);(!Mods.bNightAddsToVulnerable) as int)
+    fNightReqArousalModifierOID      = AddSliderOption("Night Arousal Modifier", fNightReqArousalModifier, "{1}", 0)
+    fNightDistanceModifierOID        = AddSliderOption("Night Distance Modifier", fNightDistanceModifier, "{1}", 1)
+    fNightChanceModifierOID          = AddSliderOption("Night Approach Chance Modifier", fNightChanceModifier, "{1}", 0)
+    iNightReqConfidenceReductionOID  = AddSliderOption("iNightReqConfidenceReduction", iNightReqConfidenceReduction, "{0}", 0)
+    bNightAddsToVulnerableOID        = AddToggleOption("Night Makes More Vulnerable", bNightAddsToVulnerable, 0)
     
     ;AddEmptyOption() ; spacer ; there may be extra spacers here to equalize vulnerable items and the oposite side cosmetically
 
     
     AddEmptyOption() ; spacer
     AddHeaderOption("Vulnerable items")
-    bVulnerableGagOID         = AddToggleOption("Gag", bVulnerableGag)
-    bVulnerableCollarOID      = AddToggleOption("Collar", bVulnerableCollar)
-    bVulnerableArmbinderOID   = AddToggleOption("Armbinder+Yoke", bVulnerableArmbinder)
-    bVulnerableBlindfoldOID   = AddToggleOption("BlindFold", bVulnerableBlindfold)
-    bVulnerableBukkakeOID     = AddToggleOption("Semen", bVulnerableBukkake)
-    bVulnerableSlaveBootsOID  = AddToggleOption("SlaveBoots",  bVulnerableSlaveBoots)
-    bVulnerableHarnessOID     = AddToggleOption("Harness", bVulnerableHarness)
-    bVulnerablePiercedOID     = AddToggleOption("Piercings", bVulnerablePierced)
-    bVulnerableSlaveTattooOID = AddToggleOption("Slave Tattoos", bVulnerableSlaveTattoo)
-    bVulnerableSlutTattooOID  = AddToggleOption("Slut Tattoos", bVulnerableSlutTattoo)
+    iVulnerableCollarOID      = AddSliderOption("Collar", iVulnerableCollar, "Level {0}")
+    iVulnerableGagOID         = AddSliderOption("Gag", iVulnerableGag, "Level {0}")
+    iVulnerableArmbinderOID   = AddSliderOption("Armbinder+Yoke", iVulnerableArmbinder, "Level {0}")
+    iVulnerableBlindfoldOID   = AddSliderOption("BlindFold", iVulnerableBlindfold, "Level {0}")
+    iVulnerableBukkakeOID     = AddSliderOption("Semen", iVulnerableBukkake, "Level {0}")
+    iVulnerableSlaveBootsOID  = AddSliderOption("SlaveBoots",  iVulnerableSlaveBoots, "Level {0}")
+    iVulnerableHarnessOID     = AddSliderOption("Harness", iVulnerableHarness, "Level {0}")
+    iVulnerablePiercedOID     = AddSliderOption("Piercings", iVulnerablePierced, "Level {0}")
+    iVulnerableSlaveTattooOID = AddSliderOption("Slave Tattoos", iVulnerableSlaveTattoo, "Level {0}")
+    iVulnerableSlutTattooOID  = AddSliderOption("Slut Tattoos", iVulnerableSlutTattoo, "Level {0}")
+    iVulnerableAnkleChainsOID = AddSliderOption("Ankle Chains", iVulnerableAnkleChains, "Level {0}")
+
     
     SetCursorPosition(1) ; switch sides
     
@@ -398,16 +400,18 @@ event OnPageReset(string a_page)
     AddEmptyOption() ; spacer
     AddEmptyOption() ; spacer
     AddHeaderOption("Vulnerable only while naked")
-    bNakedReqGagOID         = AddToggleOption("Gag", bNakedReqGag, (!bIsVulNaked) as int)
-    bNakedReqCollarOID      = AddToggleOption("Collar", bNakedReqCollar, (!bIsVulNaked) as int)
-    AddEmptyOption() ; spacer bNakedReqArmbinderOID   = AddToggleOption("Armbinder+Yoke", bNakedReqArmbinder, 1)
-    AddEmptyOption() ; spacer bNakedReqBlindfoldOID   = AddToggleOption("BlindFold", bNakedReqBlindfold, 1)
-    bNakedReqBukkakeOID     = AddToggleOption("Semen", bNakedReqBukkake, (!bIsVulNaked) as int)
-    AddEmptyOption() ; spacer bNakedReqSlaveBootsOID  = AddToggleOption("SlaveBoots",  bNakedReqSlaveBoots, 1)
-    bNakedReqHarnessOID     = AddToggleOption("Harness", bNakedReqHarness, (!bIsVulNaked) as int)
-    bNakedReqPiercedOID     = AddToggleOption("Piercings", bNakedReqPierced, (!bIsVulNaked) as int)
-    bNakedReqSlaveTattooOID = AddToggleOption("Slave Tattoos", bNakedReqSlaveTattoo)
-    bNakedReqSlutTattooOID  = AddToggleOption("Slut Tattoos", bNakedReqSlutTattoo)
+    iNakedReqGagOID           = AddSliderOption("Gag", iNakedReqGag, "Level {0}");(!Mods.iNakedReqGag) as int)
+    iNakedReqCollarOID        = AddSliderOption("Collar", iNakedReqCollar, "Level {0}");(!Mods.iNakedReqCollar) as int)
+    AddEmptyOption() ;iNakedReqArmbinderOID  = AddSliderOption("iNakedReqArmbinder", iNakedReqArmbinder, "Level {0}");(!Mods.iNakedReqArmbinder) as int)
+    AddEmptyOption() ;iNakedReqBlindfoldOID  = AddSliderOption("iNakedReqBlindfold", iNakedReqBlindfold, "Level {0}");(!Mods.iNakedReqBlindfold) as int)
+    iNakedReqBukkakeOID       = AddSliderOption("Semen", iNakedReqBukkake, "Level {0}");(!Mods.iNakedReqBukkake) as int)
+    AddEmptyOption()      ;iNakedReqSlaveBootsOID  = AddSliderOption("iNakedReqSlaveBoots", iNakedReqSlaveBoots, "Level {0}");(!Mods.iNakedReqSlaveBoots) as int)
+    iNakedReqHarnessOID       = AddSliderOption("Harness", iNakedReqHarness, "Level {0}");(!Mods.iNakedReqHarness) as int)
+    iNakedReqPiercedOID       = AddSliderOption("Piercings", iNakedReqPierced, "Level {0}");(!Mods.iNakedReqPierced) as int)
+    iNakedReqSlaveTattooOID   = AddSliderOption("Slave Tattoos", iNakedReqSlaveTattoo, "Level {0}")
+    iNakedReqSlutTattooOID    = AddSliderOption("Slut Tattoos", iNakedReqSlutTattoo, "Level {0}");(!Mods.iNakedReqSlutTattoo) as int)
+    iNakedReqAnkleChainsOID   = AddSliderOption("Ankle Chains", iNakedReqAnkleChains, "Level {0}")
+
     
   elseif a_page == Pages[4] ; Enslavement
     
@@ -689,7 +693,7 @@ endFunction
 
 ; @implements SKI_ConfigBase
 event OnOptionSelect(int a_option)
-  {Called when the user selects a non-dialog option}
+  
   
   if (a_option == gCRDEEnableOID)
     bool new_value = gCRDEEnable.GetValueInt() == 0
@@ -698,9 +702,6 @@ event OnOptionSelect(int a_option)
     ;  testTattoos()
     ;endif
     SetToggleOptionValue(a_option, new_value)
-  elseIf (a_option == bIsVulNakedOID)
-    bIsVulNaked = !bIsVulNaked
-    SetToggleOptionValue(a_option, bIsVulNaked)
   elseIf (a_option == bIsNonChestArmorIgnoredNakedOID) ;bIsNonChestArmorIgnoredNaked
     bIsNonChestArmorIgnoredNaked = !bIsNonChestArmorIgnoredNaked
     SetToggleOptionValue(a_option, bIsNonChestArmorIgnoredNaked)
@@ -737,20 +738,8 @@ event OnOptionSelect(int a_option)
     bChastityZazGag = ! bChastityZazGag
     SetToggleOptionValue(a_option, bChastityZazGag)
     
-  elseif (a_option == bVulnerableGagOID)
-    bVulnerableGag = ! bVulnerableGag
-    SetToggleOptionValue(a_option, bVulnerableGag)
-  elseif (a_option == bVulnerableCollarOID)
-    bVulnerableCollar = ! bVulnerableCollar
-    SetToggleOptionValue(a_option, bVulnerableCollar)
-  elseif (a_option == bVulnerableArmbinderOID)
-    bVulnerableArmbinder = ! bVulnerableArmbinder
-    SetToggleOptionValue(a_option, bVulnerableArmbinder)
-  elseif (a_option == bVulnerableBlindfoldOID)
-    bVulnerableBlindfold  = ! bVulnerableBlindfold
-    SetToggleOptionValue(a_option, bVulnerableBlindfold)
-  elseif (a_option == bVulnerableLOSOID)
-    bVulnerableLOS = ! bVulnerableLOS
+  elseif (a_option == iVulnerableLOSOID)
+    iVulnerableLOS = ! iVulnerableLOS
     SetToggleOptionValue(a_option, bConfidenceToggleOID) 
   elseif (a_option == bConfidenceToggleOID)
     bConfidenceToggle = ! bConfidenceToggle
@@ -767,60 +756,7 @@ event OnOptionSelect(int a_option)
       player.removePerk(containerPerk)
     endif
 
-    SetToggleOptionValue(a_option, new_value)
-  elseif (a_option == bVulnerableFurnitureOID)
-    bVulnerableFurniture = ! bVulnerableFurniture
-    SetToggleOptionValue(a_option, bVulnerableFurniture) ; 
-  elseif (a_option == bVulnerableBukkakeOID)
-    bVulnerableBukkake = ! bVulnerableBukkake
-    SetToggleOptionValue(a_option, bVulnerableBukkake)
-  elseif (a_option == bVulnerableSlaveBootsOID)
-    bVulnerableSlaveBoots = ! bVulnerableSlaveBoots
-    SetToggleOptionValue(a_option, bVulnerableSlaveBoots)
-  elseif (a_option == bVulnerableHarnessOID)
-    bVulnerableHarness = ! bVulnerableHarness
-    SetToggleOptionValue(a_option, bVulnerableHarness)
-  elseif (a_option == bVulnerablePiercedOID)
-    bVulnerablePierced = ! bVulnerablePierced
-    SetToggleOptionValue(a_option, bVulnerablePierced)
-  elseif (a_option == bVulnerableSlaveTattooOID)
-    bVulnerableSlaveTattoo = ! bVulnerableSlaveTattoo
-    SetToggleOptionValue(a_option, bVulnerableSlaveTattoo)  
-  elseif (a_option == bVulnerableSlutTattooOID)
-    bVulnerableSlutTattoo = ! bVulnerableSlutTattoo
-    SetToggleOptionValue(a_option, bVulnerableSlutTattoo)
 
-  elseif (a_option == bNakedReqGagOID)
-    bNakedReqGag = ! bNakedReqGag
-    SetToggleOptionValue(a_option, bNakedReqGag)
-  elseif (a_option == bNakedReqCollarOID)
-    bNakedReqCollar = ! bNakedReqCollar
-    SetToggleOptionValue(a_option, bNakedReqCollar)
-  elseif (a_option == bNakedReqArmbinderOID)
-    bNakedReqArmbinder = ! bNakedReqArmbinder
-    SetToggleOptionValue(a_option, bNakedReqArmbinder)
-  elseif (a_option == bNakedReqBlindfoldOID)
-    bNakedReqBlindfold  = ! bNakedReqBlindfold
-    SetToggleOptionValue(a_option, bNakedReqBlindfold)
-
-  elseif (a_option == bNakedReqBukkakeOID)
-    bNakedReqBukkake = ! bNakedReqBukkake
-    SetToggleOptionValue(a_option, bNakedReqBukkake)
-  elseif (a_option == bNakedReqSlaveBootsOID)
-    bNakedReqSlaveBoots = ! bNakedReqSlaveBoots
-    SetToggleOptionValue(a_option, bNakedReqSlaveBoots)
-  elseif (a_option == bNakedReqHarnessOID)
-    bNakedReqHarness = ! bNakedReqHarness
-    SetToggleOptionValue(a_option, bNakedReqHarness)
-  elseif (a_option == bNakedReqPiercedOID)
-    bNakedReqPierced = ! bNakedReqPierced
-    SetToggleOptionValue(a_option, bNakedReqPierced)
-  elseif (a_option == bNakedReqSlaveTattooOID)
-    bNakedReqSlaveTattoo = ! bNakedReqSlaveTattoo
-    SetToggleOptionValue(a_option, bNakedReqSlaveTattoo)  
-  elseif (a_option == bNakedReqSlutTattooOID)
-    bNakedReqSlutTattoo = ! bNakedReqSlutTattoo
-    SetToggleOptionValue(a_option, bNakedReqSlutTattoo)
   elseif (a_option == bAttackersGuardsOID)
     bAttackersGuards = ! bAttackersGuards
     SetToggleOptionValue(a_option, bAttackersGuards)
@@ -1068,7 +1004,7 @@ event OnOptionSelect(int a_option)
   
 endEvent
 
-
+; sliders
 ; @implements SKI_ConfigBase
 event OnOptionSliderOpen(int a_option)
   {Called when the user selects a slider option}
@@ -1737,6 +1673,101 @@ event OnOptionSliderOpen(int a_option)
     SetSliderDialogRange(1, 10)
     SetSliderDialogInterval( 0.1 )
     
+  ; new replacements for toggle controls with regards to vulnerability
+  elseif a_option == iVulnerableGagOID
+		SetSliderDialogStartValue(iVulnerableGag)
+    SetSliderDialogRange(0, 4)
+    SetSliderDialogInterval( 1 )
+  elseif a_option == iVulnerableCollarOID
+		SetSliderDialogStartValue(iVulnerableCollar)
+    SetSliderDialogRange(0, 4)
+    SetSliderDialogInterval( 1 )
+  elseif a_option == iVulnerableArmbinderOID
+		SetSliderDialogStartValue(iVulnerableArmbinder)
+    SetSliderDialogRange(0, 4)
+    SetSliderDialogInterval( 1 )
+  elseif a_option == iVulnerableBlindfoldOID
+		SetSliderDialogStartValue(iVulnerableBlindfold)
+    SetSliderDialogRange(0, 4)
+    SetSliderDialogInterval( 1 )
+  elseif a_option == iVulnerableBukkakeOID
+		SetSliderDialogStartValue(iVulnerableBukkake)
+    SetSliderDialogRange(0, 4)
+    SetSliderDialogInterval( 1 )
+  elseif a_option == iVulnerableSlaveBootsOID
+		SetSliderDialogStartValue(iVulnerableSlaveBoots)
+    SetSliderDialogRange(0, 4)
+    SetSliderDialogInterval( 1 )
+  elseif a_option == iVulnerableHarnessOID
+		SetSliderDialogStartValue(iVulnerableHarness)
+    SetSliderDialogRange(0, 4)
+    SetSliderDialogInterval( 1 )
+  elseif a_option == iVulnerablePiercedOID
+		SetSliderDialogStartValue(iVulnerablePierced)
+    SetSliderDialogRange(0, 4)
+    SetSliderDialogInterval( 1 )
+  elseif a_option == iVulnerableSlaveTattooOID
+		SetSliderDialogStartValue(iVulnerableSlaveTattoo)
+    SetSliderDialogRange(0, 4)
+    SetSliderDialogInterval( 1 )
+  elseif a_option == iVulnerableSlutTattooOID ;
+		SetSliderDialogStartValue(iVulnerableSlutTattoo)
+    SetSliderDialogRange(0, 4)
+    SetSliderDialogInterval( 1 )
+  elseif a_option == iVulnerableAnkleChainsOID 
+		SetSliderDialogStartValue(iVulnerableAnkleChains)
+    SetSliderDialogRange(0, 4)
+    SetSliderDialogInterval( 1 )
+
+  elseif a_option == iNakedReqGagOID
+		SetSliderDialogStartValue(iNakedReqGag)
+    SetSliderDialogRange(0, 4)
+    SetSliderDialogInterval( 1 )
+  elseif a_option == iNakedReqCollarOID
+		SetSliderDialogStartValue(iNakedReqCollar)
+    SetSliderDialogRange(0, 4)
+    SetSliderDialogInterval( 1 )
+  elseif a_option == iNakedReqArmbinderOID
+		SetSliderDialogStartValue(iNakedReqArmbinder)
+    SetSliderDialogRange(0, 4)
+    SetSliderDialogInterval( 1 )
+  elseif a_option == iNakedReqBlindfoldOID
+		SetSliderDialogStartValue(iNakedReqBlindfold)
+    SetSliderDialogRange(0, 4)
+    SetSliderDialogInterval( 1 )
+  elseif a_option == iNakedReqBukkakeOID
+		SetSliderDialogStartValue(iNakedReqBukkake)
+    SetSliderDialogRange(0, 4)
+    SetSliderDialogInterval( 1 )
+  elseif a_option == iNakedReqSlaveBootsOID
+		SetSliderDialogStartValue(iNakedReqSlaveBoots)
+    SetSliderDialogRange(0, 4)
+    SetSliderDialogInterval( 1 )
+  elseif a_option == iNakedReqHarnessOID
+		SetSliderDialogStartValue(iNakedReqHarness)
+    SetSliderDialogRange(0, 4)
+    SetSliderDialogInterval( 1 )
+  elseif a_option == iNakedReqPiercedOID
+		SetSliderDialogStartValue(iNakedReqPierced)
+    SetSliderDialogRange(0, 4)
+    SetSliderDialogInterval( 1 )
+  elseif a_option == iNakedReqSlaveTattooOID
+		SetSliderDialogStartValue(iNakedReqSlaveTattoo)
+    SetSliderDialogRange(0, 4)
+    SetSliderDialogInterval( 1 )
+  elseif a_option == iNakedReqSlutTattooOID ;
+		SetSliderDialogStartValue(iNakedReqSlutTattoo)
+    SetSliderDialogRange(0, 4)
+    SetSliderDialogInterval( 1 )
+  elseif a_option == iNakedReqAnkleChainsOID ;
+		SetSliderDialogStartValue(iNakedReqAnkleChains)
+    SetSliderDialogRange(0, 4)
+    SetSliderDialogInterval( 1 )
+  elseif a_option == iVulnerableNakedOID
+		SetSliderDialogStartValue(iVulnerableNaked)
+    SetSliderDialogRange(0, 4)
+    SetSliderDialogInterval( 1 )
+    
   endIf ; 
   
   
@@ -2218,6 +2249,77 @@ event OnOptionSliderAccept(int a_option, float a_value)
     SetSliderOptionValue(a_option, a_value, "{1}")
     reevaluateitemParabolicModifier()
    
+  elseif a_option == iVulnerableGagOID
+    iVulnerableGag = a_value as int
+    SetSliderOptionValue(a_option, a_value, "{0}")
+  elseif a_option == iVulnerableCollarOID
+    iVulnerableCollar = a_value as int
+    SetSliderOptionValue(a_option, a_value, "{0}")
+  elseif a_option == iVulnerableArmbinderOID
+    iVulnerableArmbinder = a_value as int
+    SetSliderOptionValue(a_option, a_value, "{0}")
+  elseif a_option == iVulnerableBlindfoldOID
+    iVulnerableBlindfold = a_value as int
+    SetSliderOptionValue(a_option, a_value, "{0}")
+  elseif a_option == iVulnerableBukkakeOID
+    iVulnerableBukkake = a_value as int
+    SetSliderOptionValue(a_option, a_value, "{0}")
+  elseif a_option == iVulnerableSlaveBootsOID
+    iVulnerableSlaveBoots = a_value as int
+    SetSliderOptionValue(a_option, a_value, "{0}")
+  elseif a_option == iVulnerableHarnessOID
+    iVulnerableHarness = a_value as int
+    SetSliderOptionValue(a_option, a_value, "{0}")
+  elseif a_option == iVulnerablePiercedOID
+    iVulnerablePierced = a_value as int
+    SetSliderOptionValue(a_option, a_value, "{0}")
+  elseif a_option == iVulnerableSlaveTattooOID
+    iVulnerableSlaveTattoo = a_value as int
+    SetSliderOptionValue(a_option, a_value, "{0}")
+  elseif a_option == iVulnerableSlutTattooOID ;
+    iVulnerableSlutTattoo = a_value as int
+    SetSliderOptionValue(a_option, a_value, "{0}")
+  elseif a_option == iVulnerableAnkleChainsOID ;
+    iVulnerableAnkleChains = a_value as int
+    SetSliderOptionValue(a_option, a_value, "{0}")
+
+  elseif a_option == iNakedReqGagOID
+    iNakedReqGag = a_value as int
+    SetSliderOptionValue(a_option, a_value, "{0}")
+  elseif a_option == iNakedReqCollarOID
+    iNakedReqCollar = a_value as int
+    SetSliderOptionValue(a_option, a_value, "{0}")
+  elseif a_option == iNakedReqArmbinderOID
+    iNakedReqArmbinder = a_value as int
+    SetSliderOptionValue(a_option, a_value, "{0}")
+  elseif a_option == iNakedReqBlindfoldOID
+    iNakedReqBlindfold = a_value as int
+    SetSliderOptionValue(a_option, a_value, "{0}")
+  elseif a_option == iNakedReqBukkakeOID
+    iNakedReqBukkake = a_value as int
+    SetSliderOptionValue(a_option, a_value, "{0}")
+  elseif a_option == iNakedReqSlaveBootsOID
+    iNakedReqSlaveBoots = a_value as int
+    SetSliderOptionValue(a_option, a_value, "{0}")
+  elseif a_option == iNakedReqHarnessOID
+    iNakedReqHarness = a_value as int
+    SetSliderOptionValue(a_option, a_value, "{0}")
+  elseif a_option == iNakedReqPiercedOID
+    iNakedReqPierced = a_value as int
+    SetSliderOptionValue(a_option, a_value, "{0}")
+  elseif a_option == iNakedReqSlaveTattooOID
+    iNakedReqSlaveTattoo = a_value as int
+    SetSliderOptionValue(a_option, a_value, "{0}")
+  elseif a_option == iNakedReqSlutTattooOID ;
+    iNakedReqSlutTattoo = a_value as int
+    SetSliderOptionValue(a_option, a_value, "{0}")
+  elseif a_option == iNakedReqAnkleChainsOID
+    iNakedReqAnkleChains = a_value as int
+    SetSliderOptionValue(a_option, a_value, "{0}")
+  elseif a_option == iVulnerableNakedOID ;
+    iVulnerableNaked = a_value as int
+    SetSliderOptionValue(a_option, a_value, "{0}")
+   
   endIf ; 
 
 endEvent
@@ -2301,17 +2403,17 @@ event OnOptionHighlight(int a_option)
   elseif a_option == iReqLevelSLSFSlaveMakeVulnerableOID
     SetInfoText("(Sexlab Fame Framework) The Required amount of Fame as an submissive slave before you are considered vulnerable from it alone") 
    
-  elseif a_option == bIsVulNakedOID
-    SetInfoText("Toggles whether Nudity itself counts as a low level vulnerability (LVL 1)")
+  elseif a_option == iVulnerableNakedOID
+    SetInfoText("Sets if being naked itself should have its own vulnerability")
   elseif a_option == bIsNonChestArmorIgnoredNakedOID 
     SetInfoText("Toggles whether wearing Armor on any other part than the chest protects you from being considered Naked (IE: Armoured helmet: no longer nude) legacy nudity detection")
-  elseIf (a_option == bVulnerableGagOID)
+  elseIf (a_option == iVulnerableGagOID)
     SetInfoText("Toggles whether DD gags as a vulnerable item")
-  elseIf (a_option == bVulnerableCollarOID)
+  elseIf (a_option == iVulnerableCollarOID)
     SetInfoText("Toggles whether DD collars as a vulnerable item")
-  elseIf (a_option == bVulnerableArmbinderOID)
+  elseIf (a_option == iVulnerableArmbinderOID)
     SetInfoText("Toggles whether DD armbinders and yokes as vulnerable items")
-  elseIf (a_option == bVulnerableBlindfoldOID)
+  elseIf (a_option == iVulnerableBlindfoldOID)
     SetInfoText("Toggles whether DD blindfolds as a vulnerable item")
   elseif a_option == bChastityToggleOID
     SetInfoText("Toggles whether the chastity system is on")
@@ -2326,21 +2428,24 @@ event OnOptionHighlight(int a_option)
   elseif (a_option == fChastityCompleteModifierOID )
     SetInfoText("Modifies (devisor) the chance of being approached for sex and enslavement while wearing a complete set of chastity items")
     
-  elseif a_option == bVulnerableSlaveTattooOID
-    SetInfoText("Toggles whether being marked with slave tattoos is considered a vulnerability (turns on slavetats detection)")
-  elseif a_option == bVulnerableSlutTattooOID
-    SetInfoText("Toggles whether being marked with slut tattoos is considered a vulnerability (turns on slavetats detection)")
-  elseif a_option == bNakedReqGagOID || a_option == bNakedReqCollarOID || a_option == bNakedReqArmbinderOID || a_option == bNakedReqBlindfoldOID ||\
-        a_option == bNakedReqBukkakeOID || a_option == bNakedReqSlaveBootsOID || a_option == bNakedReqHarnessOID || a_option == bNakedReqPiercedOID ||  a_option == bNakedReqSlaveTattooOID || a_option ==bNakedReqSlutTattooOID
+  elseif a_option == iVulnerableSlaveTattooOID
+    SetInfoText("Sets the vulnerability you can recieve from being marked with slave tattoos (turns on slavetats detection)")
+  elseif a_option == iVulnerableSlutTattooOID
+    SetInfoText("Sets the vulnerability you can recieve from being marked with slut tattoos (turns on slavetats detection)")
+  elseif a_option == iVulnerableAnkleChainsOID
+    SetInfoText("Sets the vulnerability you can recieve from wearing anklechains")
+
+  elseif a_option == iNakedReqGagOID || a_option == iNakedReqCollarOID || a_option == iNakedReqArmbinderOID || a_option == iNakedReqBlindfoldOID ||\
+        a_option == iNakedReqBukkakeOID || a_option == iNakedReqSlaveBootsOID || a_option == iNakedReqHarnessOID || a_option == iNakedReqPiercedOID ||  a_option == iNakedReqSlaveTattooOID || a_option ==iNakedReqSlutTattooOID || a_option == iNakedReqAnkleChainsOID
     SetInfoText("Toggles whether the item is counted for vulnerability ONLY while naked/nude")
-  elseIf (a_option == bVulnerableLOSOID)
+  elseIf (a_option == iVulnerableLOSOID)
     SetInfoText("Restricts NPC detection to those that have Line of Sight (this is literal, they have to look RIGHT AT YOU at the moment we check")
   elseIf (a_option == iWeaponHoldingProtectionLevelOID)
     SetInfoText("Sets the Max vulnerable level that an equipped weapon or college robe prevents being approached for sex/enslavement")
   elseif a_option == iWeaponWavingProtectionLevelOID
     SetInfoText("Sets the Max vulnerable level that waving a weapon or spell prevents being approached for sex/enslavement")
 
-  elseIf (a_option == bVulnerableFurnitureOID)
+  elseIf (a_option == iVulnerableFurnitureOID)
     SetInfoText("Allows the player to be considered vulnerable when locked in Xaz furniture")
     
   elseIf a_option == bGuardDialogueToggleOID
@@ -2701,8 +2806,8 @@ int iRapeEventDeviceOID
 Int Property iRapeEventEnslave  Auto  
 int iRapeEventEnslaveOID
 
-Bool Property bIsVulNaked  Auto  
-int bIsVulNakedOID 
+int Property iVulnerableNaked  Auto  
+int iVulnerableNakedOID 
 Bool Property bIsNonChestArmorIgnoredNaked  Auto  
 int bIsNonChestArmorIgnoredNakedOID 
 
@@ -2781,61 +2886,61 @@ Int iWeaponWavingProtectionLevelOID
 int Property iRelationshipProtectionLevel Auto 
 int iRelationshipProtectionLevelOID
 
-bool Property bVulnerableLOS Auto
-int bVulnerableLOSOID
+bool Property iVulnerableLOS Auto
+int iVulnerableLOSOID
 
-bool Property bVulnerableFurniture Auto
-Int bVulnerableFurnitureOID
-bool Property bVulnerableGag Auto
-bool Property bVulnerableCollar Auto
-bool Property bVulnerableArmbinder Auto
-bool Property bVulnerableBlindfold Auto
-Int  bVulnerableGagOID 
-Int  bVulnerableCollarOID 
-Int  bVulnerableArmbinderOID 
-Int  bVulnerableBlindfoldOID 
-bool Property bVulnerableBukkake Auto
-Int bVulnerableBukkakeOID
-bool Property bVulnerableSlaveBoots Auto
-Int bVulnerableSlaveBootsOID
-bool Property bVulnerableHarness Auto
-Int bVulnerableHarnessOID
-bool Property bVulnerablePierced Auto
-Int bVulnerablePiercedOID
-bool Property bVulnerableStained Auto
-Int bVulnerableStainedOID
+Int iVulnerableFurnitureOID
+Int iVulnerableGagOID 
+Int iVulnerableCollarOID 
+Int iVulnerableArmbinderOID 
+Int iVulnerableBlindfoldOID 
+Int iVulnerableBukkakeOID
+Int iVulnerableSlaveBootsOID
+Int iVulnerableHarnessOID
+Int iVulnerablePiercedOID
+int iVulnerableSlaveTattooOID
+int iVulnerableSlutTattooOID
+int iVulnerableAnkleChainsOID
 
-bool Property bVulnerableSlaveTattoo Auto
-bool Property bVulnerableSlutTattoo Auto
-int bVulnerableSlaveTattooOID
-int bVulnerableSlutTattooOID
+Int Property  iVulnerableFurniture Auto
+Int Property  iVulnerableGag Auto
+Int Property  iVulnerableCollar Auto
+Int Property  iVulnerableArmbinder Auto
+Int Property  iVulnerableBlindfold Auto
+Int Property  iVulnerableBukkake Auto
+Int Property  iVulnerableSlaveBoots Auto
+Int Property  iVulnerableHarness Auto
+Int Property  iVulnerablePierced Auto
+Int Property  iVulnerableSlaveTattoo Auto
+Int Property  iVulnerableSlutTattoo Auto
+Int Property  iVulnerableAnkleChains Auto
 
 ; naked requirement for vulnerability
-bool Property bNakedReqFurniture Auto
-Int bNakedReqFurnitureOID
-bool Property bNakedReqGag Auto
-bool Property bNakedReqCollar Auto
-bool Property bNakedReqArmbinder Auto
-bool Property bNakedReqBlindfold Auto
-Int  bNakedReqGagOID 
-Int  bNakedReqCollarOID 
-Int  bNakedReqArmbinderOID 
-Int  bNakedReqBlindfoldOID 
-bool Property bNakedReqBukkake Auto
-Int bNakedReqBukkakeOID
-bool Property bNakedReqSlaveBoots Auto
-Int bNakedReqSlaveBootsOID
-bool Property bNakedReqHarness Auto
-Int bNakedReqHarnessOID
-bool Property bNakedReqPierced Auto
-Int bNakedReqPiercedOID
-bool Property bNakedReqStained Auto
-Int bNakedReqStainedOID
+bool Property iNakedReqFurniture Auto
+Int iNakedReqFurnitureOID
+Int Property  iNakedReqGag Auto
+Int iNakedReqGagOID
+Int Property  iNakedReqCollar Auto
+Int iNakedReqCollarOID
+Int Property  iNakedReqArmbinder Auto
+Int iNakedReqArmbinderOID
+Int Property  iNakedReqBlindfold Auto
+Int iNakedReqBlindfoldOID
+Int Property  iNakedReqBukkake Auto
+Int iNakedReqBukkakeOID
+Int Property  iNakedReqSlaveBoots Auto
+Int iNakedReqSlaveBootsOID
+Int Property  iNakedReqHarness Auto
+Int iNakedReqHarnessOID
+Int Property  iNakedReqPierced Auto
+Int iNakedReqPiercedOID
+Int Property  iNakedReqSlaveTattoo Auto
+Int iNakedReqSlaveTattooOID
+Int Property  iNakedReqSlutTattoo Auto
+Int iNakedReqSlutTattooOID
+Int Property  iNakedReqAnkleChains Auto
+Int iNakedReqAnkleChainsOID 
 
-bool Property bNakedReqSlaveTattoo Auto
-bool Property bNakedReqSlutTattoo Auto
-int bNakedReqSlaveTattooOID
-int bNakedReqSlutTattooOID
 
 ; chasity items valid/off
 ; rename this to chastitytoggle one day

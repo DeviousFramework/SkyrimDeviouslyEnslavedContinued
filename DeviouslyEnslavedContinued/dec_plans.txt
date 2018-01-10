@@ -446,8 +446,31 @@ more recent (not mothballed either):
   double reset is still in effect, damn it.
   container check cell is NULL when we're out in the overworld... crap
    
+  ;changed player gender in doplayersex to sexlab gender 
+   
   follower in furniture should not approach player for stuff
+    -- what the hell this should be working
  
+  add more ddi 4.0 items, as soft dependency
+ 
+  work more on the approach follower dialogue
+   - can we fix the struggle emotes?
+   + add dialogue for follower realizing you don't want to wait until you get home to be bound up
+          should be a simple compare if time has expired
+  ;fix equipFollowerAndPlayerItems to make sure it detects that we need a gag ; should detect much more
+  recompile all that had getRandomHarnessAndStuff <- just item manupulate
+  ;recompile all that used that new follower and player item function, needs more stuff
+  
+  rebase MCM vulnerablities from toggle to level
+    rebuild the vulnerability function
+    search through everything for iVulnerable and iNakedReq
+    assign some reasonable intro values
+ 
+  ---- switched to new dcur and ddi -----
+  Need to swap DDzaZAPCArmBZaDS0* files
+  ;need to filter pieces  
+  ;need to detect if DDi 4.0 to save broken scripts
+  ;fix POX compatibility
    
   ; random chance of finding a key
   add special finding key stuff, not just pocketing it
@@ -971,5 +994,31 @@ tif__0800437c.psc
 tif__0800437d.psc
 
 49. pf_crde_followergaggedaddblindfold.psc: Fixed a compile error accessing an undeclared variable.      
+
+***** new MCM option
+
+* references *
+string[] Property genderList Auto
+
+event OnOptionMenuOpen(int a_option)
+if a_option == iGenderPrefOID
+  SetMenuDialogStartIndex(iGenderPref)
+  SetMenuDialogDefaultIndex(0)
+  SetMenuDialogOptions(genderList)
+
+event OnOptionMenuAccept(int a_option, int a_index)
+  {Called when the user accepts a new menu entry}  
+  if a_option == iGenderPrefOID
+    iGenderPref = a_index
+    SetMenuOptionValue(a_option, genderList[iGenderPref])
+
+iGenderPrefMasterOID    = AddMenuOption("Master Gender Preference", genderList[iGenderPrefMaster])
+
+*<>*
+; actual
+string[] Property singleVulnerabilities Auto
+
+
+
 
 

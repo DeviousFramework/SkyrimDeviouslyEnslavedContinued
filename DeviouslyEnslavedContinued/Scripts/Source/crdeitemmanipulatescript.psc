@@ -858,7 +858,7 @@ bool function equipRandomHarnessAndStuff(actor actorRef)
   endWhile
 endFunction
 
-armor[] function getRandomHarnessAndStuff(actor actorRef)
+armor[] function getRandomHarnessAndStuff(actor actorRef, bool punishment = false, bool force_stuff = false)
   PlayerMon.debugmsg("checking if harness are worn already ...", 1)
   armor[] items = new armor[5]
   if actorRef.wornHasKeyword(libs.zad_DeviousHarness) == false 
@@ -1110,6 +1110,8 @@ bool function equipRandomDDArmbinders(actor actorRef)
   return false
 endFunction
 
+; todo alter this so we check if the NPC can take an armbinder
+; todo alter this so we can do yokes or armchains
 armor function getRandomDDArmbinders()
   armor armbinder = None
   ; check what color the other items are, modify index
@@ -1738,24 +1740,96 @@ function equipFollowerFoundItems(actor actorRef)
   
 endFunction
 
-function equipFollowerAndPlayerItems(actor follower, bool forceBelt = false, bool forceGag = false, bool forceCollar = false, bool forceArmbinder = false)
+; this is to apply follower items, and from player if they exist, onto the player from the follower context
+function equipFollowerAndPlayerItems(actor follower, bool forceBelt = false, bool forceGag = false, bool forceCollar = false, bool forceArmbinder = false, bool forceHarness = false)
   ; for now, if forcebelt is true, but they don't have one, we make a new one
-  ; XXX found items
   
   ; at least 3: armbinder/blindfold/gag/belt/naked with collar
   ; follower borrows your keys
-  ; roll 75% we use what the player or follower has, else we make something new
+  ; roll 25% we use what the player or follower has, else we make something new
   
-  ; for now just use follower found items
-  ;if forceBelt
-  ;  ;PlayerMon.followerItemsWhichOneFree = checkItemAddingAvailability(follower, libs.zad_DeviousBelt) ; probably skippable
-   ; PlayerMon.followerItemsWhichOneFree = 2
-  ;  PlayerMon.followerItemsCombination  = 3
-  ;else
-  ;  rollFollowerFoundItems(follower)
-  ;endif
-  getRandomMultipleDD(player)
-  ;equipFollowerFoundItems(player)
+  ; XXX
+  ;getRandomMultipleDD(player)
+  ; because getRandomMultipleDD equips them too, due to outfits, we have to do all we want here instead
+  
+  int requiredMin = (forceBelt as int) + (forceGag as int) + (forceCollar as int) + (forceArmbinder as int)
+  int icount = Utility.RandomInt(requiredMin ,4) ; for now, 4 is max because it seems reasonable
+  PlayerMon.debugmsg("minimum items: " + requiredMin + ", count roll: " + icount)
+  
+  armor[] items = new armor[6] ; assuming 3 for belt, 1 collar, 1 armbinder, 1 gag, 2 for cuffs, 5 should be enough but lets do 6
+  int itemsptr = 0
+  armor[] tmp = new armor[1] ; irelevant, just there for delcare really
+  
+  ; for items we DONT specify, get randomly
+  ; right now this is only single items, no outfits or combos
+  int remainingitems = 4 - requiredMin
+  while remainingitems > 0 
+    tmp = getRandomSingleDD(player)
+    if tmp[1] != None
+      items[itemsptr] = tmp[0]
+      items[itemsptr + 1] = tmp[1]
+      itemsptr += 2
+    else ; tmp[1] != None ; else will be shorter compiler code
+      items[itemsptr] = tmp[0]
+      itemsptr += 1
+    endif
+    remainingitems -= 1
+  endWhile
+  
+  ; specific items we need to add
+  if forceBelt  && !player.WornHasKeyword(libs.zad_DeviousBelt)  ; *** BELT ***
+    tmp = getRandomBeltAndStuff(player, force_stuff = true)
+    int i = 0
+    while i < tmp.length
+      if tmp[i] == None
+        i = 100
+      else
+        items[itemsptr] = tmp[i]
+        itemsptr += 1
+      endif
+      i += 1
+    endWhile
+  endif
+  if forceHarness
+    tmp = getRandomHarnessAndStuff(player, force_stuff = true) 
+    int i = 0
+    while i < tmp.length
+      if tmp[i] == None
+        i = 100
+      else
+        items[itemsptr] = tmp[i]
+        itemsptr += 1
+      endif
+      i += 1
+    endWhile
+  endif
+  if forceGag && ! player.WornHasKeyword(libs.zad_DeviousGag)
+    ;tmp = getRandomGag()
+    items[itemsptr] = getRandomGag()
+    itemsptr += 1  
+  endif
+  if forceArmbinder && ! player.WornHasKeyword(libs.zad_DeviousArmbinder)
+    ;armor temp ()
+    items[itemsptr] = getRandomDDArmbinders()
+    itemsptr += 1  
+  endif
+  if forceCollar && ! player.WornHasKeyword(libs.zad_DeviousCollar)
+    items[itemsptr] = getRandomGag()
+    ;itemsptr += 1  
+  endif
+
+  int i = 0
+  armor t
+  while i < items.length
+    t = items[i]
+    if t != None
+      ;name = tmp.GetName()
+      ;PlayerMon.debugmsg(" equipping " + tmp + " on actor "+ actorRef, 2)
+      equipRegularDDItem(player, t, None)
+      Utility.Wait(0.25)
+    endif
+    i += 1
+  endWhile
   
 endFunction
 

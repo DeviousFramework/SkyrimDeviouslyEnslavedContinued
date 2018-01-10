@@ -96,7 +96,7 @@ Event TattooUpdate( String s1, String s2, Form f1)
   debug.trace("[CRDE] *** Tattoo update detected ***")
   if modEnabled.GetValueInt() == 0 || Mods.iEnslavedLevel == 3
     changesHappened = true
-  elseif (PlayerMon.MCM.bVulnerableSlaveTattoo || PlayerMon.MCM.bVulnerableSlutTattoo )
+  elseif (PlayerMon.MCM.iVulnerableSlaveTattoo || PlayerMon.MCM.iVulnerableSlutTattoo )
     detectTattoos()
   endif
 

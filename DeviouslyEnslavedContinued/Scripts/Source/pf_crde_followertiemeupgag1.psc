@@ -8,7 +8,13 @@ Actor akSpeaker = akSpeakerRef as Actor
 ;BEGIN CODE
 ; tie me up -> force gag 1
 crdePlayerMonitorScript PlayerMon = GetOwningQuest() as crdePlayerMonitorScript
-PlayerMon.ItemScript.equipFollowerAndPlayerItems(akSpeaker, forceGag = true )
+
+; assuming we reset the values for the follower we are talking to specifically at the start of this conversation
+if PlayerMon.follower_enjoys_dom > 10 || PlayerMon.follower_thinks_player_sub > 10
+  PlayerMon.ItemScript.equipFollowerAndPlayerItems(akSpeaker, forceGag = true , forceCollar = true)
+else
+  PlayerMon.ItemScript.equipFollowerAndPlayerItems(akSpeaker, forceGag = true )
+endif
 
 ;END CODE
 EndFunction

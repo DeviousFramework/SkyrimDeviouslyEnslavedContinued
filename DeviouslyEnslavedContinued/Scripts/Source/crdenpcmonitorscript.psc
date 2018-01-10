@@ -385,7 +385,7 @@ bool function isActorIneligable(actor actorRef, bool includeSlaveTraders = false
   elseif(Mods.ModLoadedCD == true && actorRef.IsInFaction(Mods.cdGeneralFaction) || actorRef.IsInFaction(Mods.cdCustomerFaction)) 
     debugmsg("invalid: " + actorRef.GetDisplayName() + " is in a CD faction", 3)
     return true
-  elseif(actorRef.HasLOS(player) == false && MCM.bVulnerableLOS )
+  elseif(actorRef.HasLOS(player) == false && MCM.iVulnerableLOS )
     debugmsg("invalid: " + actorRef.GetDisplayName() + " has no los", 3)
     return true
   endif
@@ -510,7 +510,7 @@ bool function isActorRefIneligable(actor actorRef, bool includeSlaveTraders = fa
   elseif Mods.modLoadedAngrim && StorageUtil.GetIntValue( actorRef, "Angrim_iEnthralled" ) > 0
     debugmsg(actorRef.GetDisplayName() + " is an angrim's apprentice thrawl, and loves the player", 3)
     return true
-  elseif(MCM.bVulnerableLOS && actorRef.HasLOS(player) == false)
+  elseif(MCM.iVulnerableLOS && actorRef.HasLOS(player) == false)
     debugmsg("invalid: " + actorRef.GetDisplayName() + " has no los", 3)
     return true
   endif
@@ -728,7 +728,7 @@ function timeTestActorTraits(actor actorRef)
   str += " morality: " + timeTaken
   
   timeTaken = Utility.GetCurrentRealTime()
-  throwaway = MCM.bVulnerableLOS && actorRef.HasLOS(player) == false
+  throwaway = MCM.iVulnerableLOS && actorRef.HasLOS(player) == false
   timeTaken = Utility.GetCurrentRealTime() - timeTaken 
   str += " LOS: " + timeTaken
 

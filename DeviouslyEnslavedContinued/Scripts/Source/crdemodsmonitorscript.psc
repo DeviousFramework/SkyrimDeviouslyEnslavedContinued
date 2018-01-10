@@ -82,6 +82,7 @@ bool Property modLoadedSlavesOfTamriel auto Conditional
 bool Property modLoadedDeathAlternative auto Conditional
 bool Property modLoadedSlaveTats auto Conditional
 bool Property modLoadedPrisonOverhaulPatch auto Conditional
+bool prisonoverhaulNewESP
 bool Property modLoadedSLUTS auto Conditional
 bool Property modLoadedWorkingGirl auto Conditional
 bool Property modLoadedFameFramework auto Conditional
@@ -910,12 +911,20 @@ function updateForms()
   modLoadedDeviousSurrender       = (tamslavesMainQuest != None)
   
   bool previouslyLoaded              = modLoadedPrisonOverhaul || modLoadedPrisonOverhaulPatch
+  prisonoverhaulNewESP = false
   xazMain                            = Game.GetFormFromFile(0x3E0012C7 , "xazPrisonOverhaul.esp") as Quest
   xazPrisonerFaction                  = Game.GetFormFromFile(0x0400FA9F , "xazPrisonOverhaul.esp") as Faction
   ;modLoadedPrisonOverhaul            = xazMain != None
   modLoadedPrisonOverhaul             = xazPrisonerFaction != None
   xazPOPatchQuest                     = Game.GetFormFromFile(0x0500EFF7  , "xazPrisonOverhaul - Patch.esp") as Quest
   modLoadedPrisonOverhaulPatch        = xazPOPatchQuest    != None
+  if !modLoadedPrisonOverhaulPatch
+    xazPOPatchQuest = Game.GetFormFromFile(0x0500EFF7  , "xazPrisonOverhaulPatched.esp") as Quest
+    if xazPOPatchQuest != None
+      Debug.Trace("[crde] Prison overhual newer esp discovered")
+    endif
+    prisonoverhaulNewESP = true
+  endif
   PlayMonScript.isArrestable = modLoadedPrisonOverhaulPatch 
   if previouslyLoaded && !(modLoadedPrisonOverhaul || modLoadedPrisonOverhaulPatch)
     Debug.Trace("[crde] Prison overhual was previously loaded but now isn't")
@@ -925,7 +934,12 @@ function updateForms()
     if !(modLoadedPrisonOverhaul || modLoadedPrisonOverhaulPatch)
       Debug.Trace("[crde] PrisonOverhual loaded successfully! (wtf) " + modLoadedPrisonOverhaul + " " + modLoadedPrisonOverhaulPatch)
     else
+      modLoadedPrisonOverhaulPatch    = isModActive("xazPrisonOverhaulPatched.esp")
+      if modLoadedPrisonOverhaulPatch
+        Debug.Trace("[crde] PrisonOverhual loaded successfully! (wtf) " + modLoadedPrisonOverhaul + " " + modLoadedPrisonOverhaulPatch)
+      else
       Debug.Trace("[crde] Prison overhual did not load with esp lookup")
+      endif
     endif
   endif
 
