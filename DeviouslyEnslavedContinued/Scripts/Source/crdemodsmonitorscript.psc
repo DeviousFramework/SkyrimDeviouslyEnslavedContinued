@@ -165,6 +165,8 @@ Armor Property dcurLeonSlaveCollar Auto
 Actor Property dcurLeonActor Auto ; we need leon so we can enable him
 Cell Property dcurLeonHouse Auto ; we need his house to teleport to
 FormList Property dcur_removableBlockedItems Auto
+armor Property dcurBaloonHoodBlk auto
+armor Property dcurBaloonHoodPink Auto
 
 ; sd+
 Keyword Property sdEnslaveKeyword Auto
@@ -349,6 +351,7 @@ Faction Property zazFactionSlaver Auto
 Keyword Property zazFurnitureMilkOMatic auto
 Keyword Property zazFurnitureMilkOMatic2 auto
 Keyword Property zazFurnitureFuroTub1 auto
+Keyword Property zazSlowMove  Auto
 
 ; darkwind
 ; quest
@@ -437,14 +440,18 @@ Quest Property dfwFramework Auto
 Quest Property huntedHouseQuest Auto
 
 ; slave trainer
-Faction Property sltSlaveFaction auto
-
+Faction Property sltSlaveFaction Auto
 MagicEffect Property dawnguardLordForm Auto
-
 Quest Property dflowQuest Auto
-bool property bRefreshModDetect Auto
 
-Perk property crdeContainerPerk Auto
+; dd 4.0 soft dependency stuff for users who want to keep with 3.3 for now
+armor Property DD4HoodBlackEbonite Auto
+armor Property DD4HoodRubberHood Auto
+armor Property DD4YokeSteel Auto
+
+bool Property bRefreshModDetect Auto
+
+Perk Property crdeContainerPerk Auto
 
 Event OnInit()
   Debug.Trace("[CRDE] Mods::init() ...")
@@ -600,6 +607,10 @@ function updateForms()
     dcurMisogynyCooldown    = Game.GetFormFromFile(0x080873E6, "Deviously Cursed Loot.esp") as GlobalVariable
     dcurHeavyGag            = Game.GetFormFromFile(0x080A44A4, "Deviously Cursed Loot.esp") as Armor 
     dcurHeavyCollar         = Game.GetFormFromFile(0x080A44A6, "Deviously Cursed Loot.esp") as Armor
+    dcurBaloonHoodBlk       = Game.GetFormFromFile(0x080B0754, "Deviously Cursed Loot.esp") as Armor
+    dcurBaloonHoodPink      = Game.GetFormFromFile(0x080B1222, "Deviously Cursed Loot.esp") as Armor
+    ;dcurRubberHood          = Game.GetFormFromFile(0x080B0754, "Deviously Cursed Loot.esp") as Armor) ;wait where did it go
+
   else
     Debug.Trace("[CRDE] Cursed loot is not installed")
   endIf
@@ -1024,6 +1035,13 @@ function updateForms()
   dflowQuest = Quest.GetQuest("_DFlow")
   
   dfwFramework = Quest.GetQuest("_dfwDeviousFramework")
+  
+  if libs.GetVersion() >= 8.0
+    DD4HoodBlackEbonite = Game.GetFormFromFile(0x0603D2D7, "Devious Devices - Expansion.esm") as Armor
+    DD4HoodRubberHood   = Game.GetFormFromFile(0x0603D850, "Devious Devices - Expansion.esm") as armor
+    DD4YokeSteel        = Game.GetFormFromFile(0x0003d2e1, "Devious Devices - Expansion.esm") as armor
+    ;DD4BreastYoke       = Game.GetFormFromFile(0x, "Devious Devices - Expansion.esm") as armor
+  endif
   
   ; this is temporary to fix update 13.11 -> 13.12
   ; reason: ItemScript::player was never used, and we were calling PlayerMon.player all the time

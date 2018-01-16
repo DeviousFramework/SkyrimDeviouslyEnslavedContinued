@@ -211,12 +211,12 @@ event OnPageReset(string a_page)
     
   elseif a_page == Pages[2] ; items
     AddHeaderOption("Event weights")
-    iWeightSingleDDOID         = AddSliderOption("Standard Devious Device", iWeightSingleDD, "{0}")
+    iWeightSingleDDOID         = AddSliderOption("Single Devious Device", iWeightSingleDD, "{0}")
     iWeightMultiDDOID          = AddSliderOption("Multiple Devious Devices", iWeightMultiDD, "{0}")
     iWeightUniqueCollarsOID    = AddSliderOption("Unique Collars", iWeightUniqueCollars, "{0}")
     iWeightRandomCDOID         = AddSliderOption("Random CD collection", iWeightRandomCD, "{0}", (!Mods.modLoadedCD) as int)
 
-    
+     
     AddEmptyOption() ; spacer
     AddHeaderOption("Single Event weights")
     iWeightSingleCollarOID        = AddSliderOption("Collar", iWeightSingleCollar, "{0}")
@@ -227,10 +227,10 @@ event OnPageReset(string a_page)
     iWeightSingleBeltOID          = AddSliderOption("Belt", iWeightSingleBelt, "{0}")
     iWeightSingleGlovesBootsOID   = AddSliderOption("Gloves and Boots", iWeightSingleGlovesBoots, "{0}")
     iWeightSingleAnkleChainsOID   = AddSliderOption("Ankle Chains", iWeightSingleAnkleChains, "{0}");(!Mods.iWeightSingleAnkleChains) as int)
-    iWeightSingleBlindfoldOID     = AddSliderOption("Blindfold", iWeightSingleBlindfold, "{0}",1)
-    iWeightSingleYokeOID          = AddSliderOption("Yoke", iWeightSingleYoke, "{0}", 1)
-    iWeightSingleBootsOID         = AddSliderOption("Boots", iWeightSingleBoots, "{0}", 1);(!Mods.iWeightSingleBoots) as int)
-    iWeightSingleHoodOID          = AddSliderOption("Hoods", iWeightSingleHood, "{0}", 1);(!Mods.iWeightSingleHood) as int)
+    iWeightSingleBlindfoldOID     = AddSliderOption("Blindfold", iWeightSingleBlindfold, "{0}")
+    iWeightSingleYokeOID          = AddSliderOption("Yoke", iWeightSingleYoke, "{0}")
+    ;iWeightSingleBootsOID         = AddSliderOption("Boots", iWeightSingleBoots, "{0}", 1);(!Mods.iWeightSingleBoots) as int)
+    iWeightSingleHoodOID          = AddSliderOption("Hoods", iWeightSingleHood, "{0}");(!Mods.iWeightSingleHood) as int)
 
     
     AddEmptyOption() ; spacer
@@ -253,6 +253,7 @@ event OnPageReset(string a_page)
     iWeightDeviousPunishEquipmentNakedCollarOID       = AddSliderOption("Naked Collar", iWeightDeviousPunishEquipmentNakedCollar, "{0}",(!Mods.modLoadedDeviousPunishEquipment) as int)
     iWeightStripCollarOID             = AddSliderOption("Strip Collar", iWeightStripCollar, "{0}", (!Mods.modLoadedCursedLoot) as int)
     iWeightHeavyCollarOID             = AddSliderOption("DCUR Heavy Collar", iWeightHeavyCollar, "{0}", (!Mods.modLoadedCursedLoot) as int);
+    
 
     AddEmptyOption() ; spacer
     ;AddHeaderOption("Event weights")

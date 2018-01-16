@@ -461,16 +461,35 @@ more recent (not mothballed either):
   recompile all that had getRandomHarnessAndStuff <- just item manupulate
   ;recompile all that used that new follower and player item function, needs more stuff
   
-  rebase MCM vulnerablities from toggle to level
-    rebuild the vulnerability function
-    search through everything for iVulnerable and iNakedReq
-    assign some reasonable intro values
+  ;rebase MCM vulnerablities from toggle to level
+  ;  rebuild the vulnerability function
+  ;  search through everything for iVulnerable and iNakedReq
+  ;  assign some reasonable intro values
+  
+  ;add SD+ to slave tats
+  ;add detection for zaz chains
+  Make sure it still works without slavestats
+  ;add follower faction to all actors that get pushed into the first alias
+  ;add follower faction to all actors that get forced into permanent folower list
+  ;added getincell = invalid for "not out here"
+ 
  
   ---- switched to new dcur and ddi -----
   Need to swap DDzaZAPCArmBZaDS0* files
   ;need to filter pieces  
   ;need to detect if DDi 4.0 to save broken scripts
   ;fix POX compatibility
+  
+  new items:
+    elbow binders... ugh
+    pony gag, 1/2 of 5
+      modify new pony suit, includes gag, tailplug among other things
+    rubber cat suit is now in DDi4, small conselation though if its going to be a soft dependency
+    hobble dress for follower interaction?
+    what else was added...?
+    hood needs updated
+    yoke too, blindfold
+    regular non-harness gags
    
   ; random chance of finding a key
   add special finding key stuff, not just pocketing it
@@ -478,8 +497,6 @@ more recent (not mothballed either):
     - removing and running to player for sex
     - bringing key to player for safe keeping
 
-    
-  
   ** TODO / NOTES (bottom is most recent, older in ascending order)  --^ **
   
       +###############+

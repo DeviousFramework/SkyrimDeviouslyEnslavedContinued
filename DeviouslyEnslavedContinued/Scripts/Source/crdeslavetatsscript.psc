@@ -94,9 +94,11 @@ EndEvent
 ; too lazy to look up the details of the tattoo, especially when we don't care
 Event TattooUpdate( String s1, String s2, Form f1)
   debug.trace("[CRDE] *** Tattoo update detected ***")
+  ; this is saving the status for future, assuming we shouldn't do any work right now
   if modEnabled.GetValueInt() == 0 || Mods.iEnslavedLevel == 3
     changesHappened = true
-  elseif (PlayerMon.MCM.iVulnerableSlaveTattoo || PlayerMon.MCM.iVulnerableSlutTattoo )
+    ; todo: condense this down in the MCM so we don't need 4 prop gets
+  elseif (PlayerMon.MCM.iVulnerableSlaveTattoo + PlayerMon.MCM.iVulnerableSlutTattoo + PlayerMon.MCM.iNakedReqSlaveTattoo + PlayerMon.MCM.iNakedReqSlutTattoo > 0 )
     detectTattoos()
   endif
 
@@ -255,6 +257,7 @@ Function detectTattooBySlot(String area = "BODY")
     int entry = SlaveTats.get_applied_tattoo_in_slot(Game.GetPlayer(), area, slot)
     if entry == 0
       ;Debug.Trace("[CRDE] no tattoo found in slot:" + slot)
+      ; we should NOT assume users will use slots in serial, do not attempt to end early
     else
       Debug.Trace("[CRDE]: tattoo name:" + JMap.getStr(entry, "name") + " tattoo section:" + JMap.getStr(entry, "section"))
       checkNameForKeywords(JMap.getStr(entry, "section"), JMap.getStr(entry, "name"), (area == "FACE"))

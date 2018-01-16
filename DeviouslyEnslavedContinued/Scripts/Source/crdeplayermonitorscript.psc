@@ -499,7 +499,7 @@ Function CheckDevices()
   wearingSlaveBoots = player.WornHasKeyword(libs.zad_DeviousBoots)
   wearingHarness    = player.WornHasKeyword(libs.zad_DeviousHarness)
   wearingPiercings  = player.WornHasKeyword(libs.zad_DeviousPiercingsNipple) || player.WornHasKeyword(libs.zad_DeviousPiercingsVaginal)
-  wearingAnkleChains= player.WornHasKeyword(libs.zad_BoundCombatDisableKick); zzzz) ; todo get ankle chains
+  wearingAnkleChains = player.WornHasKeyword(libs.zad_BoundCombatDisableKick) || player.WornHasKeyword(Mods.zazSlowMove) ; todo get ankle chains
   
   PlayerScript.equipmentChanged = false
   
@@ -559,31 +559,29 @@ function updateEquippedPlayerVulnerability(bool isSlaver = false)
       
       
   ; regular first, then non-naked sensitive
-  int[] vulnerableValues = new int[20]
-  vulnerableValues[0] = MCM.iVulnerableNaked * (isNude as int) 
+  int[] vulnerableValues = new int[16] ; depends on how many we have
+  vulnerableValues[0] = MCM.iVulnerableNaked * ((isNude || isSlaver) as int) 
   vulnerableValues[1] = MCM.iVulnerableCollar * (wearingCollar as int)          
-  vulnerableValues[2] = MCM.iNakedReqCollar * (wearingCollar && isNude) as int
+  vulnerableValues[2] = MCM.iNakedReqCollar * (wearingCollar && (isNude || isSlaver)) as int
   vulnerableValues[3] = MCM.iVulnerableGag * (wearingGag as int)                
-  vulnerableValues[4] = MCM.iNakedReqGag * (wearingGag && isNude) as int
+  vulnerableValues[4] = MCM.iNakedReqGag * (wearingGag && (isNude || isSlaver)) as int
   vulnerableValues[5] = MCM.iVulnerableBukkake * (wearingBukkake as int)
-  vulnerableValues[6] = MCM.iNakedReqBukkake * (wearingBukkake && isNude) as int
+  vulnerableValues[6] = MCM.iNakedReqBukkake * (wearingBukkake && (isNude || isSlaver)) as int
   vulnerableValues[7] = MCM.iVulnerableHarness * (wearingHarness as int)
-  vulnerableValues[8] = MCM.iNakedReqHarness * (wearingHarness && isNude) as int
+  vulnerableValues[8] = MCM.iNakedReqHarness * (wearingHarness && (isNude || isSlaver)) as int
   vulnerableValues[9] = MCM.iVulnerablePierced * (wearingPiercings as int)
-  vulnerableValues[10] = MCM.iNakedReqPierced * (wearingPiercings && isNude) as int
-  vulnerableValues[11] = MCM.iVulnerableSlaveTattoo * (SlavetatsScript.wearingSlaveTattoo as int)
-  vulnerableValues[12] = MCM.iNakedReqSlaveTattoo * (SlavetatsScript.wearingSlaveTattoo && isNude) as int
-  vulnerableValues[13] = MCM.iVulnerableSlutTattoo * (SlavetatsScript.wearingSlutTattoo as int)
-  vulnerableValues[14] = MCM.iNakedReqSlutTattoo * (SlavetatsScript.wearingSlutTattoo && isNude) as int
-  vulnerableValues[15] = MCM.iVulnerableArmbinder * (wearingArmbinder as int)    
-  vulnerableValues[16] = MCM.iVulnerableBlindfold * (wearingBlindfold as int)
-  vulnerableValues[17] = MCM.iVulnerableSlaveBoots * (wearingSlaveBoots as int)
+  vulnerableValues[10] = MCM.iNakedReqPierced * (wearingPiercings && (isNude || isSlaver)) as int
+  vulnerableValues[11] = MCM.iVulnerableAnkleChains * (wearingAnkleChains as int)
+  vulnerableValues[12] = MCM.iNakedReqAnkleChains * (wearingAnkleChains && (isNude || isSlaver)) as int
+  vulnerableValues[13] = MCM.iVulnerableSlaveBoots * (wearingSlaveBoots as int)
+  vulnerableValues[14] = MCM.iVulnerableArmbinder * (wearingArmbinder as int)
+  vulnerableValues[15] = MCM.iVulnerableBlindfold * (wearingBlindfold as int)
   
   int largest = 0
   int num2    = 0
   int num3    = 0
   int i = 0
-  while i < 19
+  while i < vulnerableValues.length
     if vulnerableValues[i] > 0
       if vulnerableValues[i] == 2
         num2 += 1
@@ -621,9 +619,6 @@ function updateEquippedPlayerVulnerability(bool isSlaver = false)
   ;  return 
   ;endif
  
-   
-  ;clothingPlayerVulnerability = 0
-  
 endFunction 
 
 ; 0 not vulnerable, range: 1 - 4 are levels of vulnerable for clothing, where several factors can make it rise
@@ -663,12 +658,31 @@ function updatePlayerVulnerability(bool isSlaver = false)
   elseif PlayerScript.releasedFromZaz
     PlayerScript.releasedFromZaz = false
   
-  elseif isSlaver && playerVulnerability < 2
-    ; ??? confused, did we want to increase vulnerability if they are a slaver and they are only lvl 1? shouldn't this be MCM dependant instead of static?
-    debugmsg("slaver found, double checking playerVulnerability" , 3)
-    updateEquippedPlayerVulnerability(isSlaver)
+  ; this was commented out because slaver no longer counts for vulnearbility function until I go back and fix it
+  ;elseif isSlaver && playerVulnerability < 2
+  ;  ; ??? confused, did we want to increase vulnerability if they are a slaver and they are only lvl 1? shouldn't this be MCM dependant instead of static?
+  ;  debugmsg("slaver found, double checking playerVulnerability" , 3)
+  ;  updateEquippedPlayerVulnerability(isSlaver)
   endif
     
+  
+  ; equipped vulnerability should be updated by this point, lets check tattos
+  int tempClothingPlayerVulnerability = clothingPlayerVulnerability
+  if Mods.modLoadedSlaveTats
+    int[] tatVulLvls = new int[4]
+    tatVulLvls[0] = MCM.iVulnerableSlaveTattoo * (SlavetatsScript.wearingSlaveTattoo as int)
+    tatVulLvls[1] = MCM.iNakedReqSlaveTattoo * (SlavetatsScript.wearingSlaveTattoo && isNude) as int
+    tatVulLvls[2] = MCM.iVulnerableSlutTattoo * (SlavetatsScript.wearingSlutTattoo as int)
+    tatVulLvls[3] = MCM.iNakedReqSlutTattoo * (SlavetatsScript.wearingSlutTattoo && isNude) as int
+    int i = 0
+    while i < 4
+      if tempClothingPlayerVulnerability < tatVulLvls[i]
+        debugmsg("Slavetats vul discovered: " + tatVulLvls[i], 3)
+        tempClothingPlayerVulnerability = tatVulLvls[i]
+      endif
+      i += 1
+    endWhile
+  endif
   
   CheckBukkake()  ; was originally called AFTER this updatePlayerVulnerability, but always only after an equippment change
                   ; (old assumption:) player would undress and dress for/after sex
@@ -678,11 +692,11 @@ function updatePlayerVulnerability(bool isSlaver = false)
   int situationalIncrease = frameworkFameIncrease + nightAddition + temporaryVulnerableIncrease + bukkakeVulnerable
 
 
-  playerVulnerability = clothingPlayerVulnerability + situationalIncrease
+  playerVulnerability = tempClothingPlayerVulnerability + situationalIncrease
   if situationalIncrease > 0
     debugmsg("situational(sex fame/night/temporary event/bukkake): (" + frameworkFameIncrease + "/" + nightAddition + ":" + temporaryVulnerableIncrease + ":" + bukkakeVulnerable + ")")
   endif
-  debugmsg("vuln lvl(clothing/situation/total): (" + clothingPlayerVulnerability + ":" + situationalIncrease + ":" + playerVulnerability + ")")
+  debugmsg("vuln lvl(clothing/situation/total): (" + tempClothingPlayerVulnerability + ":" + situationalIncrease + ":" + playerVulnerability + ")")
   
   
   ; extra cases, to compensate for not being in clothing detection anymore:
@@ -1191,12 +1205,14 @@ bool function attemptFollowerApproach(actor[] followers)
       forceGreetIncomplete = true
       busyGameTime = CurrentGameTime + ( MCM.iApproachDuration * (1.0/1400.0)) ; 24 * 60 minutes in a day
       reshuffleFollowerAliases(follower);
+
       return true
     endif
   endif
   
   if current_count == 0
     debugmsg("not high enough for sex approach, and the current friendlies aren't followers so no item possible",3)
+    return false
   endif;if follower ; REALLY just randomly reroll regardless?
   
   ; check if follower has found items
@@ -1318,7 +1334,6 @@ bool function attemptFollowerApproach(actor[] followers)
 
     forceGreetFollower = 1
     reshuffleFollowerAliases(follower)
-    
     return true
   endif
   return false
@@ -2392,6 +2407,7 @@ function addPermanentFollower()
     endif
     permanentFollowers.addForm(tmp)
     Mods.PreviousFollowers.addForm(tmp)
+    tmp.addToFaction(crdeFormerFollowerFaction)
     reshuffleFollowerAliases(tmp)
     Debug.Trace(a[result] + " -> " + tmp.GetDisplayName() +" has been added to the DEC manually marked list of followers.")
   elseif result == a.length
@@ -3302,6 +3318,10 @@ function reshuffleFollowerAliases(actor mostRecent)
     followerRefAlias01.forceRefTo(mostRecent)
   endif
 
+  if ! mostRecent.IsInFaction(crdeFormerFollowerFaction)
+    mostRecent.addToFaction(crdeFormerFollowerFaction)
+  endif
+
 endFunction
 
 ; form rather than armor because we use this same function for keys
@@ -3398,3 +3418,5 @@ Worldspace Property markarthSpace Auto ; used with slaverun
 Race Property WerewolfBeastRace Auto
 
 Keyword Property BrawlKeyword  Auto  
+
+Faction Property crdeFormerFollowerFaction Auto
