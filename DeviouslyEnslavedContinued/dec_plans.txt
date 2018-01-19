@@ -1,4 +1,4 @@
-; verstort 11/2017
+; verstort 1/2018
 ; this is more notes at this point than just plans
 ; the top is really old, from early 2015, the bottom is the most up-to-date
 ; search for "more recent", above it is the newest todo list, below are some notes on follower dialogue and other stuff
@@ -471,14 +471,60 @@ more recent (not mothballed either):
   Make sure it still works without slavestats
   ;add follower faction to all actors that get pushed into the first alias
   ;add follower faction to all actors that get forced into permanent folower list
-  ;added getincell = invalid for "not out here"
+  ;added getincell = invalid for "not out here" dialogue
+  add "Is in permanent follower list" to reasons we can approach for items?
+    - for now, use the new faction (which is checkable in the dialogue conditions)
+  if NPC is former follower, prevent random NPC attack, or give special dialogue
+  Talk to PAHE about:
+    home: "you stop" ignores belt
+    can we get gag detection working for PAHE dialogue?
+  fix your struggle animations
+  fix bug where follower forgets item if they get interupted
+  ; changed the requirments for item finding follower to crdeFormerFollowerFaction
+  belt required added to special dialogue, TODO add a special property in playermon for if gag+belt is an option
+  
+  
+  ;swapped to singlepiercing to keep belted and non-belted as different outcomes
+    ;did we switch the value in the item roll?
+    we should add a unique attacker option if already armbound and naked?
+      maybe also one for vag if naked + armbinder + gag?
+  ;ddi 4 catsuit isn't used yet UNTESTED
+    ;we need the boots id
+    ;we need to finish adding both to the mods and to the add function
+  ;ddi 4 elbowbinders input yet
+    needs to be added to single attacker item
+  unique collar roll ignores that we are already wearing one
+  removing one collar and adding one didn't work, just removed one collar
+  alter the "come to think of it why do plugs not come flanged" dialogue for only if the player is belted, they are belted, or the item was a belt
+  straitjacket multiple?
+  ;why isn't elbinder showing up
+  ;"I think I have akey that fits" + "not really, a little tight" doesn't really work for nipple piercings
+  "soulgem from a necromancer" -> rubber inflateable insert?
+  "have you found a key for this annoying belt yet?" dom version?
+  CK: set the mcm inits better, check if race is okay
+  check if post sex is completely broken
+  
+  make sure for each item:
+    ;mcm option exists
+      MCM starting values are set < do last since we're releasing early, to keep users from stumbling onto broken code
+    loaded in mods
+    rolled in single or unique functions OR has separate funtion
+    rolled in follower items found
+    has a unique follower dialogue
+    has a unique attacker dialogue
+    can followers find the item in a chest
+    new DD 4 rubber suit
+    new DD 4 see through suit
+     what other cursed loot items can we now use without cursed loot?
+    
+    extra: rename rubbercollar -> catsuit collar
  
+CHECK before next major release:
+  check if piercing set to zero never makes it past stuff roll
+
  
   ---- switched to new dcur and ddi -----
   Need to swap DDzaZAPCArmBZaDS0* files
-  ;need to filter pieces  
-  ;need to detect if DDi 4.0 to save broken scripts
-  ;fix POX compatibility
   
   new items:
     elbow binders... ugh
@@ -829,6 +875,18 @@ player is approached by friendly NPC, because NPC has noticed player likes it ((
   follower remarks about player while player is busy with sex tied up and/or rape orgasm    
 
 &&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+  
+  when making a new testing save:
+    get a follower and sex them for follower detection, breezehome
+    add a weapon to the player, whip?
+    get the power to pull items from mods, set to string search
+    set dcur settings, dd to easy, fame tutorial off, sexlab settings
+    add gag, collar, armbinder, belt to player for testing. keys
+    add an item to the nearest container for quick pull testing
+  
+**************************************
+  
+  
   
 bleed out events:
 IdleForceDefaultState

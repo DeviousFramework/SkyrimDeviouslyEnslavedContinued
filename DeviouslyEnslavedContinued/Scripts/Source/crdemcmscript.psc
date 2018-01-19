@@ -193,7 +193,7 @@ event OnPageReset(string a_page)
     SetCursorPosition(1) ; switched sides
     
     AddHeaderOption("Sex Events")
-    bHookAnySexlabEventOID      = AddToggleOption("Trigger after all sex", bHookAnySexlabEvent, 1)
+    bHookAnySexlabEventOID      = AddToggleOption("Bypass DEC only requirement", bHookAnySexlabEvent)
     bHookReqVictimStatusOID     = AddToggleOption("Require Victim Requirement", bHookReqVictimStatus)
     bFxFAlwaysAggressiveOID     = AddToggleOption("FxF always aggressive", bFxFAlwaysAggressive)
     iSexEventKeyOID             = AddSliderOption("Chance of Key Removal", iSexEventKey, "{0}%")
@@ -222,15 +222,23 @@ event OnPageReset(string a_page)
     iWeightSingleCollarOID        = AddSliderOption("Collar", iWeightSingleCollar, "{0}")
     iWeightSingleGagOID           = AddSliderOption("Gag", iWeightSingleGag, "{0}")
     iWeightSingleArmbinderOID     = AddSliderOption("Armbinder", iWeightSingleArmbinder, "{0}")
+    iWeightSingleElbowbinderOID   = AddSliderOption("Elbowbinder", iWeightSingleElbowbinder, "{0}", (!Mods.modLoadedDD4) as int)
+
     iWeightSingleCuffsOID         = AddSliderOption("Cuffs", iWeightSingleCuffs, "{0}")
     iWeightSingleHarnessOID       = AddSliderOption("Harness", iWeightSingleHarness, "{0}")
     iWeightSingleBeltOID          = AddSliderOption("Belt", iWeightSingleBelt, "{0}")
+    iWeightSingleVagPiercingsOID     = AddSliderOption("Vaginal Piercing", iWeightSingleVagPiercings, "{0}")
+    iWeightSingleNipplePiercingsOID  = AddSliderOption("Nipple Piercing", iWeightSingleNipplePiercings, "{0}")
+
     iWeightSingleGlovesBootsOID   = AddSliderOption("Gloves and Boots", iWeightSingleGlovesBoots, "{0}")
     iWeightSingleAnkleChainsOID   = AddSliderOption("Ankle Chains", iWeightSingleAnkleChains, "{0}");(!Mods.iWeightSingleAnkleChains) as int)
     iWeightSingleBlindfoldOID     = AddSliderOption("Blindfold", iWeightSingleBlindfold, "{0}")
     iWeightSingleYokeOID          = AddSliderOption("Yoke", iWeightSingleYoke, "{0}")
     ;iWeightSingleBootsOID         = AddSliderOption("Boots", iWeightSingleBoots, "{0}", 1);(!Mods.iWeightSingleBoots) as int)
     iWeightSingleHoodOID          = AddSliderOption("Hoods", iWeightSingleHood, "{0}");(!Mods.iWeightSingleHood) as int)
+    iWeightHobleDressOID          = AddSliderOption("Bondage Dress", iWeightHobleDress, "{0}", (!(Mods.modLoadedCursedLoot || Mods.modLoadedDD4) ) as int)
+    iWeightStraitJacketOID        = AddSliderOption("StraitJacket", iWeightStraitJacket, "{0}", (!Mods.modLoadedDD4) as int)
+
 
     
     AddEmptyOption() ; spacer
@@ -253,7 +261,8 @@ event OnPageReset(string a_page)
     iWeightDeviousPunishEquipmentNakedCollarOID       = AddSliderOption("Naked Collar", iWeightDeviousPunishEquipmentNakedCollar, "{0}",(!Mods.modLoadedDeviousPunishEquipment) as int)
     iWeightStripCollarOID             = AddSliderOption("Strip Collar", iWeightStripCollar, "{0}", (!Mods.modLoadedCursedLoot) as int)
     iWeightHeavyCollarOID             = AddSliderOption("DCUR Heavy Collar", iWeightHeavyCollar, "{0}", (!Mods.modLoadedCursedLoot) as int);
-    
+    iWeightCatSuitCollarOID            = AddSliderOption("RubberCollar", iWeightCatSuitCollar, "{0}", (!(Mods.modLoadedCursedLoot || Mods.modLoadedDD4)) as int)
+
 
     AddEmptyOption() ; spacer
     ;AddHeaderOption("Event weights")
@@ -275,10 +284,10 @@ event OnPageReset(string a_page)
     AddEmptyOption() ; spacer
     AddHeaderOption("Plugs and stuff")
     iWeightPlugsOID               = AddSliderOption("Plugs", iWeightPlugs, "{0}")
-    iWeightPiercingsOID           = AddSliderOption("Piercings", iWeightPiercings, "{0}")
+    iWeightBeltPiercingsOID           = AddSliderOption("Piercings", iWeightBeltPiercings, "{0}")
     AddEmptyOption() ; spacer
-    iWeightPiercingsSoulGemOID    = AddSliderOption("iWeightPiercingsSoulGem", iWeightPiercingsSoulGem, "{0}", 1);(!Mods.iWeightPiercingsSoulGem) as int)
-    iWeightPiercingsShockOID      = AddSliderOption("iWeightPiercingsShock", iWeightPiercingsShock, "{0}", 1);(!Mods.iWeightPiercingsShock) as int)
+    iWeightBeltPiercingsSoulGemOID    = AddSliderOption("iWeightBeltPiercingsSoulGem", iWeightBeltPiercingsSoulGem, "{0}", 1);(!Mods.iWeightBeltPiercingsSoulGem) as int)
+    iWeightBeltPiercingsShockOID      = AddSliderOption("iWeightBeltPiercingsShock", iWeightBeltPiercingsShock, "{0}", 1);(!Mods.iWeightBeltPiercingsShock) as int)
     iWeightPlugSoulGemOID         = AddSliderOption("Soul Gem Plug", iWeightPlugSoulGem, "{0}")
     iWeightPlugInflatableOID      = AddSliderOption("Inflatable Plug", iWeightPlugInflatable, "{0}")
     iWeightPlugChargingOID        = AddSliderOption("Charging Plug", iWeightPlugCharging, "{0}")
@@ -293,11 +302,14 @@ event OnPageReset(string a_page)
 
     AddEmptyOption() ; spacer
     AddHeaderOption("Gags")
-    iWeightGagBallOID          = AddSliderOption("Ball gag", iWeightGagBall, "{0}");
-    iWeightGagRingOID          = AddSliderOption("Ring Gag", iWeightGagRing, "{0}");
-    iWeightGagPanelOID         = AddSliderOption("Panal Gag", iWeightGagPanel, "{0}");
-    iWeightGagPenisOID         = AddSliderOption("DCUR Penis Gag", iWeightGagPenis, "{0}", (!Mods.modLoadedCursedLoot) as int);
-    ; penis gag from DCUR
+    iWeightHarnessedGagTypeOID  = AddSliderOption("Harness style", iWeightHarnessedGagType, "{0}", 1)
+    iWeightSimpleGagTypeOID     = AddSliderOption("Simple style", iWeightSimpleGagType, "{0}", 1)
+    iWeightGagBallOID           = AddSliderOption("Ball gag", iWeightGagBall, "{0}");
+    iWeightGagRingOID           = AddSliderOption("Ring gag", iWeightGagRing, "{0}");
+    iWeightGagPanelOID          = AddSliderOption("Panal gag", iWeightGagPanel, "{0}");
+    iWeightGagPenisOID          = AddSliderOption("DCUR Penis gag", iWeightGagPenis, "{0}", (!Mods.modLoadedCursedLoot) as int);
+    iWeightGagPonyOID           = AddSliderOption("Pony gag", iWeightGagPony, "{0}", (!Mods.modLoadedDD4) as int)
+
     
     AddEmptyOption() ; spacer
     AddHeaderOption("Tattoos")
@@ -570,6 +582,7 @@ event OnPageReset(string a_page)
       AddTextOption("If you have a follower and they","")
       AddTextOption("haven't shown up, exit the menu","")
       AddTextOption("and wait ~30 seconds for DEC to find them","")
+      AddTextOption("OR, you can use the manual add button above","")
       
     else
       ; follower dom
@@ -676,7 +689,6 @@ function reevaluateItemParabolicModifier()
   ; a = (y - c)/ x^2
 
   itemParabolicModifier = ( fFollowerFindChanceMaxPercentage ) / (Math.Pow(iFollowerFindChanceMaxContainers, fFollowerItemApproachExp))
-  ;itemParabolicModifier = ( fFollowerFindChanceMaxPercentage - fFollowerFindMinContainers ) / (Math.Pow(iFollowerFindChanceMaxContainers, fFollowerItemApproachExp))
 
 endFunction
 
@@ -1332,8 +1344,8 @@ event OnOptionSliderOpen(int a_option)
     SetSliderDialogStartValue(iWeightSingleYoke)
     SetSliderDialogRange(0, 150)
     SetSliderDialogInterval( 1 )
-  elseif a_option == iWeightPiercingsOID
-    SetSliderDialogStartValue(iWeightPiercings)
+  elseif a_option == iWeightBeltPiercingsOID
+    SetSliderDialogStartValue(iWeightBeltPiercings)
     SetSliderDialogRange(0, 150)
     SetSliderDialogInterval( 1 )
   elseif a_option == iWeightPlugsOID
@@ -1408,12 +1420,12 @@ event OnOptionSliderOpen(int a_option)
     SetSliderDialogStartValue(iWeightMultiRubber)
     SetSliderDialogRange(0, 150)
     SetSliderDialogInterval( 1 )
-  elseif a_option == iWeightPiercingsSoulGemOID
-    SetSliderDialogStartValue(iWeightPiercingsSoulGem)
+  elseif a_option == iWeightBeltPiercingsSoulGemOID
+    SetSliderDialogStartValue(iWeightBeltPiercingsSoulGem)
     SetSliderDialogRange(0, 150)
     SetSliderDialogInterval( 1 )
-  elseif a_option == iWeightPiercingsShockOID
-    SetSliderDialogStartValue(iWeightPiercingsShock)
+  elseif a_option == iWeightBeltPiercingsShockOID
+    SetSliderDialogStartValue(iWeightBeltPiercingsShock)
     
     SetSliderDialogRange(0, 150)
     SetSliderDialogInterval( 1 )
@@ -1769,6 +1781,45 @@ event OnOptionSliderOpen(int a_option)
     SetSliderDialogRange(0, 4)
     SetSliderDialogInterval( 1 )
     
+  elseif a_option == iWeightSingleElbowbinderOID
+		SetSliderDialogStartValue(iWeightSingleElbowbinder)
+    SetSliderDialogRange(0, 150)
+    SetSliderDialogInterval( 1 )
+  elseif a_option == iWeightHobleDressOID
+		SetSliderDialogStartValue(iWeightHobleDress)
+    SetSliderDialogRange(0, 150)
+    SetSliderDialogInterval( 1 )
+  elseif a_option == iWeightCatSuitCollarOID
+		SetSliderDialogStartValue(iWeightCatSuitCollar)
+    SetSliderDialogRange(0, 150)
+    SetSliderDialogInterval( 1 )
+  elseif a_option == iWeightStraitJacketOID
+		SetSliderDialogStartValue(iWeightStraitJacket)
+    SetSliderDialogRange(0, 150)
+    SetSliderDialogInterval( 1 )
+  elseif a_option == iWeightHarnessedGagTypeOID
+		SetSliderDialogStartValue(iWeightHarnessedGagType)
+    SetSliderDialogRange(0, 150)
+    SetSliderDialogInterval( 1 )
+  elseif a_option == iWeightSimpleGagTypeOID
+		SetSliderDialogStartValue(iWeightSimpleGagType)
+    SetSliderDialogRange(0, 150)
+    SetSliderDialogInterval( 1 )
+  elseif a_option == iWeightGagPonyOID
+		SetSliderDialogStartValue(iWeightGagPony)
+    SetSliderDialogRange(0, 150)
+    SetSliderDialogInterval( 1 )
+  elseif a_option == iWeightSingleVagPiercingsOID
+		SetSliderDialogStartValue(iWeightSingleVagPiercings)
+    SetSliderDialogRange(0, 150)
+    SetSliderDialogInterval( 1 )
+  elseif a_option == iWeightSingleNipplePiercingsOID
+		SetSliderDialogStartValue(iWeightSingleNipplePiercings)
+    SetSliderDialogRange(0, 150)
+    SetSliderDialogInterval( 1 )
+
+    
+    
   endIf ; 
   
   
@@ -2009,8 +2060,8 @@ event OnOptionSliderAccept(int a_option, float a_value)
   elseif a_option == iWeightSingleYokeOID
     iWeightSingleYoke = a_value as int
     SetSliderOptionValue(a_option, a_value, "{0}")
-  elseif a_option == iWeightPiercingsOID
-    iWeightPiercings = a_value as int
+  elseif a_option == iWeightBeltPiercingsOID
+    iWeightBeltPiercings = a_value as int
     SetSliderOptionValue(a_option, a_value, "{0}")
   elseif a_option == iWeightPlugsOID
     iWeightPlugs = a_value as int
@@ -2066,11 +2117,11 @@ event OnOptionSliderAccept(int a_option, float a_value)
   elseif a_option == iWeightMultiRubberOID
     iWeightMultiRubber = a_value as int
     SetSliderOptionValue(a_option, a_value, "{0}")
-  elseif a_option == iWeightPiercingsSoulGemOID
-    iWeightPiercingsSoulGem = a_value as int
+  elseif a_option == iWeightBeltPiercingsSoulGemOID
+    iWeightBeltPiercingsSoulGem = a_value as int
     SetSliderOptionValue(a_option, a_value, "{0}")
-  elseif a_option == iWeightPiercingsShockOID
-    iWeightPiercingsShock = a_value as int
+  elseif a_option == iWeightBeltPiercingsShockOID
+    iWeightBeltPiercingsShock = a_value as int
     SetSliderOptionValue(a_option, a_value, "{0}")
   elseif a_option == iWeightPlugSoulGemOID
     iWeightPlugSoulGem = a_value as int
@@ -2321,6 +2372,35 @@ event OnOptionSliderAccept(int a_option, float a_value)
     iVulnerableNaked = a_value as int
     SetSliderOptionValue(a_option, a_value, "{0}")
    
+  elseif a_option == iWeightSingleElbowbinderOID
+    iWeightSingleElbowbinder = a_value as int
+    SetSliderOptionValue(a_option, a_value, "{0}")
+  elseif a_option == iWeightHobleDressOID
+    iWeightHobleDress = a_value as int
+    SetSliderOptionValue(a_option, a_value, "{0}")
+  elseif a_option == iWeightCatSuitCollarOID
+    iWeightCatSuitCollar = a_value as int
+    SetSliderOptionValue(a_option, a_value, "{0}")
+  elseif a_option == iWeightStraitJacketOID
+    iWeightStraitJacket = a_value as int
+    SetSliderOptionValue(a_option, a_value, "{0}")
+  elseif a_option == iWeightHarnessedGagTypeOID
+    iWeightHarnessedGagType = a_value as int
+    SetSliderOptionValue(a_option, a_value, "{0}")
+  elseif a_option == iWeightSimpleGagTypeOID
+    iWeightSimpleGagType = a_value as int
+    SetSliderOptionValue(a_option, a_value, "{0}")
+  elseif a_option == iWeightGagPonyOID
+    iWeightGagPony = a_value as int
+    SetSliderOptionValue(a_option, a_value, "{0}")
+  elseif a_option == iWeightSingleVagPiercingsOID
+    iWeightSingleVagPiercings = a_value as int
+    SetSliderOptionValue(a_option, a_value, "{0}")
+  elseif a_option == iWeightSingleNipplePiercingsOID
+    iWeightSingleNipplePiercings = a_value as int
+    SetSliderOptionValue(a_option, a_value, "{0}")
+
+   
   endIf ; 
 
 endEvent
@@ -2371,7 +2451,7 @@ event OnOptionHighlight(int a_option)
     SetInfoText("Modifier than increases chance Slaver will approach the player (1 is same, 0 is no slaver, 2 is half chance,ect)")
     
   elseif a_option == bHookAnySexlabEventOID
-    SetInfoText("Toggles Deviously enslaved to catch sexlab sessions started by other mods and run events on them (rape, adding DD items, enslave, ect)")
+    SetInfoText("Toggles Deviously enslaved to catch sexlab sessions started by OTHER mods and run events on them (rape, adding DD items, enslave, ect) This is dangerous and should not be used")
   elseif a_option == bHookReqVictimStatusOID 
     SetInfoText("Toggles if player's victim status from sexlab should be a requirement for postsex. If ON, player must be sexlab \"Victim\" to get post-sex events from DEC")
   elseif a_option == bFxFAlwaysAggressiveOID ;bFxFAlwaysAggressive
@@ -2561,7 +2641,7 @@ event OnOptionHighlight(int a_option)
     SetInfoText("Weight for getting pair of restrictive Gloves and Boots")
   elseif a_option == iWeightSingleYokeOID
     SetInfoText("Weight for getting a single Yoke")
-  elseif a_option == iWeightPiercingsOID
+  elseif a_option == iWeightBeltPiercingsOID
     SetInfoText("Weight for getting Piercings with a Belt/Harness")
   elseif a_option == iWeightPlugsOID
     SetInfoText("Weight for getting Plugs with a Belt/Harness")
@@ -2599,9 +2679,9 @@ event OnOptionHighlight(int a_option)
     SetInfoText("Weight for getting a DCL Transparent suit")
   elseif a_option == iWeightMultiRubberOID
     SetInfoText("Weight for getting a DCL Rubber suit")
-  elseif a_option == iWeightPiercingsSoulGemOID
+  elseif a_option == iWeightBeltPiercingsSoulGemOID
     SetInfoText("Weight for getting a DD Soul gem Piercing")
-  elseif a_option == iWeightPiercingsShockOID
+  elseif a_option == iWeightBeltPiercingsShockOID
     SetInfoText("Weight for getting a DDx Shock Piercing")
   elseif a_option == iWeightPlugSoulGemOID
     SetInfoText("Weight for getting a DD Soul gem Plug")
@@ -2753,6 +2833,26 @@ event OnOptionHighlight(int a_option)
 
   elseif a_option == bAlternateNPCSearchOID
     SetInfoText("Switches from using a quest to detect nearby NPCs to using SKSE's NPC search method")
+
+  elseif a_option == iWeightSingleElbowbinderOID
+    SetInfoText("Weight for getting a single Elbowbinder (DDi 4.0 only)")
+  elseif a_option == iWeightHobleDressOID
+    SetInfoText("Weight for getting a bondage dress from Cursed loot or DDi 4.0")
+  elseif a_option == iWeightCatSuitCollarOID
+    SetInfoText("Weight for getting a rubber collar from Cursed loot or DDi 4.0")
+  elseif a_option == iWeightStraitJacketOID
+    SetInfoText("Weight for getting a single straitjacket (DDi 4.0 only)")
+  elseif a_option == iWeightHarnessedGagTypeOID
+    SetInfoText("Weight for getting a harness variant of certain gags")
+  elseif a_option == iWeightSimpleGagTypeOID
+    SetInfoText("Weight for getting a simple variant of certain gags")
+  elseif a_option == iWeightGagPonyOID
+    SetInfoText("Weight for getting a single pony gag (DDi 4.0 only)")
+  elseif a_option == iWeightSingleVagPiercingsOID
+    SetInfoText("Weight for getting a vaginal piercing")
+  elseif a_option == iWeightSingleNipplePiercingsOID
+    SetInfoText("Weight for getting a pair of nipple piercings")
+
     
   else ; catch all; the stuff I forgot and then some
     SetInfoText("Catchall tooltip: typing hints is tedious, if you want to know what this does ask in the support thread, and/or report which option is missing the tooltip")
@@ -3169,10 +3269,14 @@ Int Property  iWeightSingleGlovesBoots Auto
 Int  iWeightSingleGlovesBootsOID
 Int Property  iWeightSingleYoke Auto
 Int  iWeightSingleYokeOID
-Int Property  iWeightPiercings Auto
-Int  iWeightPiercingsOID
+Int Property  iWeightBeltPiercings Auto
+Int  iWeightBeltPiercingsOID
 Int Property  iWeightPlugs Auto
 Int  iWeightPlugsOID
+
+
+
+; never used
 Int Property  iWeightEboniteRegular Auto
 Int  iWeightEboniteRegularOID
 Int Property  iWeightEboniteRed Auto
@@ -3207,10 +3311,10 @@ Int Property  iWeightMultiTransparent Auto
 Int  iWeightMultiTransparentOID
 Int Property  iWeightMultiRubber Auto
 Int  iWeightMultiRubberOID
-Int Property  iWeightPiercingsSoulGem Auto
-Int  iWeightPiercingsSoulGemOID
-Int Property  iWeightPiercingsShock Auto
-Int  iWeightPiercingsShockOID
+Int Property  iWeightBeltPiercingsSoulGem Auto
+Int  iWeightBeltPiercingsSoulGemOID
+Int Property  iWeightBeltPiercingsShock Auto
+Int  iWeightBeltPiercingsShockOID
 Int Property  iWeightPlugSoulGem Auto
 Int  iWeightPlugSoulGemOID
 Int Property  iWeightPlugWood Auto
@@ -3353,3 +3457,23 @@ int bAddFollowerManuallyOID
 
 bool property bAlternateNPCSearch Auto
 int bAlternateNPCSearchOID
+
+Int Property  iWeightSingleElbowbinder Auto
+Int iWeightSingleElbowbinderOID
+Int Property  iWeightHobleDress Auto
+Int iWeightHobleDressOID
+Int Property  iWeightCatSuitCollar Auto
+Int iWeightCatSuitCollarOID
+Int Property  iWeightStraitJacket Auto
+Int iWeightStraitJacketOID
+Int Property  iWeightHarnessedGagType Auto
+Int iWeightHarnessedGagTypeOID
+Int Property  iWeightSimpleGagType Auto
+Int iWeightSimpleGagTypeOID
+Int Property  iWeightGagPony Auto
+Int iWeightGagPonyOID
+Int Property  iWeightSingleVagPiercings Auto
+Int iWeightSingleVagPiercingsOID
+Int Property  iWeightSingleNipplePiercings Auto
+Int iWeightSingleNipplePiercingsOID
+

@@ -216,8 +216,8 @@ Event OnUpdate()
     else ; not a combat situation
       float onupdatetimeteststart = Utility.GetCurrentRealTime()
       CurrentGameTime             = Utility.GetCurrentGameTime() ; use gametime, since realtime gets reset per game session, cannot work through game saves
+      ; approach is already active, test for reset
       if forceGreetIncomplete    
-
         if busyGameTime < CurrentGameTime ; took too long, reset
           Mods.dhlpResume()
           ;attackerRefAlias.ForceRefTo(previousAttacker)
@@ -229,7 +229,10 @@ Event OnUpdate()
         endif
       endif
       
-      bool completedApproach = false
+      ; no approach active, lets attempt a new one
+      bool completedApproach = false ; this was used for debugging, to detect when a thread gets stuck
+      ; and papyrus complains if we don't store the value of a function return
+      ; thread semephore, attempt to keep only one instance running at once, TODO remove, all instances get their own variable
       if threadBusy == false
         threadBusy   = true
         ;debugmsg("global search range: " + MCM.gSearchRange.GetValueInt()) 
@@ -239,26 +242,25 @@ Event OnUpdate()
       
       debugmsg("OnUpdate time:" + (Utility.GetCurrentRealTime() - onupdatetimeteststart)) ; measuring time for searching
       
-      ;debugmsg("Calling isPlayerinjail ...")
-      ;Mods.isPlayerInJail()
       if forceGreetIncomplete
         RegisterForSingleUpdate(2) ; boosted to 2 seconds in 13.10; 5 seconds, faster because we want to catch conditions, for now static
       else
         RegisterForSingleUpdate(MCM.fEventInterval)
       endif
 
-      ; moving these to AFTER the other stuff, since it takes so fracking long
-      tryDebug() ; moved to save space
+      ; has the user set any debug options? these run after we've already set the schedule for next run
+      tryDebug()
       
     endif
     
+    ; removed in 13.13.7, hasn't been seen in months/years, just a waste of CPU cycles
     ; TODO this seems to not fire, but I need to double check
     ; it SHOULDN'T fire, but that's 90% of error code for ya
-    actor tmpActor = Game.GetPlayer()
-    if tmpActor != player
-      debugmsg("Player alias has changed! Resetting ...", 5) ; good to know this doesn't seem to change, still
-      player = tmpActor
-    endif
+    ;actor tmpActor = Game.GetPlayer()
+    ;if tmpActor != player
+    ;  debugmsg("Player alias has changed! Resetting ...", 5) ; good to know this doesn't seem to change, still
+    ;  player = tmpActor
+    ;endif
     
   endif
    
@@ -924,7 +926,7 @@ bool function attemptApproach()
     ; changed in 13.12
   elseif followers[0] == None ; no followers nearby
     if forceGreetFollower
-      clear_force_variables()
+      clear_force_variables(true)
       ;forceGreetFollower = 0 ; forceclear instead
     endif
     playerContainerOpenCount = 0 ; no followers, nobody saw anything
@@ -1149,7 +1151,10 @@ bool function attemptFollowerApproach(actor[] followers)
     elseif SexLab.HadPlayerSex(tmp_follower) || StorageUtil.GetFloatValue(tmp_follower, "crdeThinksPCEnjoysSub") > 0 || follower_count == 0 
       valid_followers[follower_count] = tmp_follower
       follower_count += 1
-      if tmp_follower.IsInFaction(CurrentFollowerFaction) || tmp_follower.IsInFaction(Mods.paradiseFollowingFaction)
+      if tmp_follower.IsInFaction(CurrentFollowerFaction) \
+       || tmp_follower.IsInFaction(crdeFormerFollowerFaction) \
+       || tmp_follower.IsInFaction(Mods.paradiseFollowingFaction) 
+       
         current_followers[current_count] = tmp_follower
         current_count += 1
         ; while we're here lets update our current followers container counts, 
@@ -1213,18 +1218,18 @@ bool function attemptFollowerApproach(actor[] followers)
   if current_count == 0
     debugmsg("not high enough for sex approach, and the current friendlies aren't followers so no item possible",3)
     return false
-  endif;if follower ; REALLY just randomly reroll regardless?
+  endif
   
-  ; check if follower has found items
+  ; search through the follower list looking for a follower that has found items
   int  follower_item_count  = StorageUtil.GetIntValue(follower, "crdeFollContainersSearched") 
   int  randomStart          = Utility.RandomInt(0, current_count - 1)
   int  followerRemaining    = current_count 
-  while follower_item_count <= 0 && followerRemaining >= 0
-    follower = current_followers[(current_count + randomStart - followerRemaining) % current_count]
+  while  followerRemaining >= 0 && follower_item_count <= 0 ; while we haven't found a good follower yet
+    follower = current_followers[(current_count + randomStart - followerRemaining) % current_count] ; circle around the buffer
     follower_item_count  = StorageUtil.GetIntValue(follower, "crdeFollContainersSearched")
     followerRemaining -= 1
   endWhile
-  if followerRemaining == -1
+  if followerRemaining == -1 ; we searched until the end
     debugmsg("No present followers have seen the player open any containers, exiting early")
     return false
   endif
@@ -1240,19 +1245,17 @@ bool function attemptFollowerApproach(actor[] followers)
   objectReference[] containerArray  = new objectReference[32]
   ;debugmsg("past items: " + followerFoundDDItems )
   ;debugmsg("and their contianers: " + followerFoundDDItemsContainers )
+  
+  ; check the containers we found for DD itmems and keys still there
   followerItemsArraySemaphore = true
   form testForm
   objectReference testContainer
-  
-  ; check the containers we found for DD itmems and keys still there
   bool alreadyFoundOneKey = false
   actor randomFoll
   while i < 32
     ; we need to count how many items we have, and calculate additional chance of item being found for this one cycle
     absoluteIndex = (followerFoundDDItemsIndex + 32 - i) % 32
     testForm = followerFoundDDItems[absoluteIndex] 
-    ;followerFoundDDItems[absoluteIndex] = NONE ; clear as we go
-      ; maybe we should clear per approach after all?
     if testForm != NONE
       Key keyTest = testForm as Key
       testContainer = followerFoundDDItemsContainers[absoluteIndex]
@@ -1326,8 +1329,10 @@ bool function attemptFollowerApproach(actor[] followers)
     endif
     
     if !(MCM.gForceGreetItemFind.GetValueInt() as bool)
+      ; force greet is off, we just want to notify player but not appraoch
       Debug.Notification( follower.GetDisplayName() + " wants to talk to you.")
-    else ; force greet is on, setup cancel timeout
+    else 
+      ; force greet is on, setup cancel timeout
       forceGreetIncomplete = true
       busyGameTime = CurrentGameTime + ( MCM.iApproachDuration * (1.0/1400.0)) ; 24 * 60 minutes in a day
     endif
@@ -3338,10 +3343,10 @@ function addToFollowerFoundItems(form[] foundItems, objectReference itemContaine
     ; if this gets stuck at weird places, we COULD make this a timestamp instead, where > 0 is active, and then count when it was set and reset if taking too long
     Utility.Wait(0.3)
   endWhile 
-  ; not locked (anymore)
-  ;debugmsg("locking semiphore")
+  ; not locked (anymore), our turn
   followerItemsArraySemaphore = true
-  
+  ;debugmsg("locking semiphore")
+
   int len = 0
   form tmp = None
   while len < foundItems.length
@@ -3362,7 +3367,6 @@ function addToFollowerFoundItems(form[] foundItems, objectReference itemContaine
   ;debugmsg("releasing semiphore")
 
 endFunction
-
 
 Armor[] Property ponyGearDD  Auto 
 Armor[] Property ponyGearZaz  Auto 
