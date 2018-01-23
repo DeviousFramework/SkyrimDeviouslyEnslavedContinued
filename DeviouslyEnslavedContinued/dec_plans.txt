@@ -497,12 +497,21 @@ more recent (not mothballed either):
   removing one collar and adding one didn't work, just removed one collar
   alter the "come to think of it why do plugs not come flanged" dialogue for only if the player is belted, they are belted, or the item was a belt
   straitjacket multiple?
-  ;why isn't elbinder showing up
   ;"I think I have akey that fits" + "not really, a little tight" doesn't really work for nipple piercings
   "soulgem from a necromancer" -> rubber inflateable insert?
   "have you found a key for this annoying belt yet?" dom version?
-  CK: set the mcm inits better, check if race is okay
-  check if post sex is completely broken
+  
+  ;check if post sex is completely broken; doesn't seem to be
+  user wants unlocking dialogue for follower
+  user wants new pony suit finished
+  user thinks "Oh right, you are still tied up... oh well, only one end needs to be open, right" leads to no belt re-adding, which 
+  re-organize unique collars to not roll against single/double, but to fit under collars themselves
+  also add unique collars to post sex, meaning single item detection
+  finish straitjacket
+  inspiration from SS, make a few generic NPC masters that can be put anywhere with generic AI and decent appearance, then create a list of locations they can spawn at, to get around limited NPCs that are killable
+
+  
+  fix kimy's cursed loot by removing bondage mittens or at least checking to see if there is an MCM option I missed
   
   make sure for each item:
     ;mcm option exists
@@ -517,7 +526,6 @@ more recent (not mothballed either):
     new DD 4 see through suit
      what other cursed loot items can we now use without cursed loot?
     
-    extra: rename rubbercollar -> catsuit collar
  
 CHECK before next major release:
   check if piercing set to zero never makes it past stuff roll

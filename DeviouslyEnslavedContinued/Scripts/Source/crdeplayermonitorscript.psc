@@ -1869,9 +1869,16 @@ Event crdeSexHook(int tid, bool HasPlayer);(string eventName, string argString, 
   ; mod must be active, 
   ;  sex must have come from DEC or we don't care,
   ;  and the player must be involved in sex from this side
-  if MCM.gCRDEEnable.GetValueInt() == 1 \
-      && (sexFromDEC || MCM.bHookAnySexlabEvent) \
-      && Thread.HasPlayer() 
+  if MCM.gCRDEEnable.GetValueInt() != 1 
+    ; do nothing, mod is off lets not flood the log
+    debugmsg("err: sex ended but DEC is turned off")
+  elseif !(sexFromDEC || MCM.bHookAnySexlabEvent) 
+    debugmsg("err: sex ended but DEC was not the starting mod, and override is not set, ignoring")
+  elseif !Thread.HasPlayer() 
+    Actor[] a = SexLab.HookActors(tid as string)
+    debugmsg("err: sex ended but the sexlab thread that finished does not have player as an participant, actors:" + a)
+   
+  else 
   
     setPreviousPlayerHome() ; here because we want the last home the player wanted to have sex in
     
@@ -1960,8 +1967,8 @@ Event crdeSexHook(int tid, bool HasPlayer);(string eventName, string argString, 
     ; did nearby npc, who might one day be your follower, see you have sex and/or bondage (check if they are in LOS I guess...)
     modifyNearbyNPCPerception(actorList, vicIsPlayer)
     
-  else
-    debugmsg("crdeSexhook ERR: sexlab doesn't have player controller or mod is turned off", 2)
+  ;else
+    ;debugmsg("crdeSexhook ERR: sexlab doesn't have player controller or mod is turned off", 2)
   endif
   
 endEvent
