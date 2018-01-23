@@ -1,7 +1,6 @@
 ; verstort 1/2018
 ; this is more notes at this point than just plans
-; the top is really old, from early 2015, the bottom is the most up-to-date
-; search for "more recent", above it is the newest todo list, below are some notes on follower dialogue and other stuff
+
 
 known bugs:
   player's inventory is not checked at the start of a fresh load
@@ -20,7 +19,7 @@ known bugs:
   Milk pump for MME isn't being detected correctly  
   NPC is walking away after attack, again, instead of animating... why?
 
-  
+
 Debug report form:
   DE Mod version being tested
   Does the problem persist up to two versions back?
@@ -30,489 +29,37 @@ Debug report form:
   Memory patch?  
   Can you hand me the save in addition to the log? save could have interesting information
   
- vvv------vVv------vvv THIS IS OLD, SKIP TO "more recent" vvv------vVv------vvv
  legend (start of the line):
  ; <- fixed, leave for a version before removing
  * <- high priority 
  + <- new feature
  - <- needs to be optimized out
  ? <- unsure if this is still a problem
+
+###################################################
+#                                                 #
+#   Don't forget to change the version number!    #
+#                                                 #
+###################################################
  
-add gagged attack? (gagged slaves can still aproach you, new dialogue)
-add gag attack? (npc can gag player, context?)
-add furniture attack? (out of my league, maybe)?
-add spanking attack? (really, this should be implemented from the slave mods)
 
-  get array of random npcs, that don't overlap? (all at once instead, one one function call?)
-    never found, switched to alias loading anyway
-  add furniture attack? (out of my league) (maybe)
-  higher than normal chance if thalmor?
+  ---- switching to new dcur and ddi -----
+  Need to swap DDzaZAPCArmBZaDS0* files for animations, were removed in ddi 4
   
-plans:
-  new dialogue:
-
-    different behavior for wearing a plugged chastity belt, or wearing CD piercings (naked requirement)
-    Approachers walking up and talking to your master if you're maria's eden slave, instead of talking to you
-      similarly, can we make the player walk up to the master in SD and pay them for your use?
-    being enslaved by high disposition friends/allies, deserves different dialogue
-      half the chance of being approached by thugs?
-      sex is not limited to aggressive?
-      less likely to be sold, more likely to be given/taken directly
-      good use of petcollar compared to the other slavey types, needs full implementation though
-      will need two lists of NPCs to send in the world, one aggressive, one softer
-        too bad we don't have a way to make Maria's eden enslavement more aggressive/relaxed, same for SD+
-      if the NPC thinks you have bahavior issues or need training, more likely to send you to "training" mods
-        introduced to new dom? There aren't enough of these mods currently.
-        aggressive: sent to slaverun, slaves of tamriel, CD as working slave
-        softer training: sent to CD through other means, maria's eden to some Dom in the city, mistaken idenity
-          
-         
-  add andrew to detection during mia?
-  
-  add -1 to weapon max, and check if there are any other min/maxes I forgot to include
-  Add enslave only option to menu so users can use Dcur sex attacks instead
-  deprecate mcm "default value" in mcm, doesn't work anyway just wasting 20-50 lines of code
+  new items:
+    ;elbow binders
+    pony gag, 1/2 of 5
+      modify new pony suit, includes gag, tailplug among other things
+    rubber cat suit is now in DDi4, small conselation though if its going to be a soft dependency
+    hobble dress for follower interaction?
+    ;hood needs updated
+    ;yoke too, blindfold
+    regular non-harness gags
+    
+    round 2:
+    pony boots and slave boots as se
+    bondage mittens
    
-  player more likely to get raped while alone with deviant
-    
-  rewrite canRun to be less useless, more compartimentalized
-    wish I could know if papyrus inlined properly, so I can use more functional programming
-    not as important on the code that runs so late in the check
-    
-  extra items that can be equipped:
-    dasha's items
-      cursed loot rubber stuff
-    angeli's stuff
-    aradia might come back?? who knows
-    vel's DD infused zaz items, locking, interesting no?
-    CD colored items
-    Regular colored DD gear (currently only black ebonite right?)
-    
-  send slave to SD cage instead of just to master (sd, hard)
-  
-    
-  Extra enslavement ideas (and event ideas)
-    put player in zaz furniture/tie up (old idea)
-      use spell to teleport player, more in line with lore
-        user needs to be mage I think
-        or we need a way to walk the player to the device
-      cages work too, in the case of something like SD cages?
-        force greet often unlocks locked doors
-        safety, summon some demon to mess with you instead?
-        or an NPC (nearby even)
-    (pet collar)
-    scene with maria, PO bounty hunter, 
-      maria eden is deprecated
-    entrance with Slaves of Tamriel?
-    custom scenes with certain items, like toys
-
-  added risk: 
-    if owner, higher chance
-    if trader, can see through clothing
-    if alone (might not be easy to find)
-    if player orgasmed during sex
-
-  force stripping
-    whiterun: if slaverun
-      slaves must be naked
-      naked or arrested
-    immoral cities: if slave
-    old people specific?
-  for stealing/pickpocketing
-    need a way to detect if caught, currently not seeing a condition function
-      ; haven't found one yet, oh well
-    cursed loot invisible suit counts as nude (maybe already happens? on it's own?)
-    new SD version needs testing
-      has pickpocket detection? hmm...
-
-  consider tying up the player before sex if walk away
-    if we could magic force player into rope, followed by wiggle into armbinder, that might be cool
-        needs testing
-
-  
-  add for testing:
-    slaverun quest forcing, to change the city
-    test slavetats some more too
-      testbutton3 might give me a better hint
-    look at devious surrender again for detection, he's working on it again
-         
-  add different player response dialogue if the player is super aroused or approached while masturbating
-  
-  plans to optimise isPlayerEnslaved()
-    move faction checks lower than quest stage checks
-    mods that use faction detection, that might have a better option:
-      FTD
-      Darkwind (dead mod)
-      TIR
-      ForswornStory
-      you know... none of these are commonly used by the average user, so they won't see see a performance hit..
-
-  Combat dialogue
-    Toggle on/off for certain situations (armbinder, gag, whatelse)
-    Make sure leg shackles are included? What if DDi no it's open source they can fix if they want
-    More options (slave training? running away, level detection)
-
-      
-  change mod enabled to be a global toggle
-    that way, users can still turn it off even if the MCM isn't showing up
-    mods can shut it off too
-
-  force stripping
-  whiterun: if slaverun
-    slaves must be naked
-    naked or arrested
-      if uncomplient, and wearing softclothing, can strip instead of arrest   
-        low armor amount?
-  immoral cities: if slave
-  old people specific?
-     
-  Return to check out Devious Fame when 1.0 comes out, use fame to lower confidence requirement, and other things
-  
-  ;Check SD for pickpocket code
-  Master wizards can still approach player at college?
-  
-  change NPC checking to array instead of single, sorted NPC array with confidence sorting is probably best given conf is last checked
-  ; change the NPC count to greyed out, and default 7
-  itemtheme watcher/checker needs to be made
-  Fight dialogue
-    "I'd rather die than be your slave!" <- can we exit out into combat? Might be interesting
-    # needs knowledge on how to make the attack you
-      console in game, can use "setaggressiveness and setrelationship"
-  
-  Add debug output for when the fragment fires off for the approach start
-  Reduce time in the loop
-     
-  Better interaction with adding items?
-    Scene for Multiple devices?
-    Fix Cursed collar start, too poorly made
-    add stripping animation before outfits
-      If adding armbinder, struggle animation as it's being added?  
-        Actually doable, since the armbinder itself will cancel out the animation when walking, suposidly
-
-  Rich detection:
-    add CD items, gold/silver I mean
-    cuffs, belt, percings, plugs?
-    Captured dreams random NPCs that buy CDx stuff, can I use that somehow?
-      Meaning the dynamic quest NPCs, they buy stuff so they should have his stuff
-      Is there an easy way to detect if NPC is in CDx's list of buyers? need to search
-  
-  Add arousal animations # delayed, can't do without a lot more effort
-
-  add slaverun reloaded for slaverun normal turn on
-    since slaverun local doesn't work anymore   
-
-  #Change some of the NPC search MCM variables to globals so we can use them in NPC conditions
-    # not much to change, the range it the #1 reason they don't still count, followed by arousal *which I can't change* and confidence
-
-  Change/add dialogue for slave to slave interaction
-  Naked plus harness doesn't count as slave NPC, or it gets canceled some other way (the girl in SSR long house)
-
-  How would stipping work as an animation anyway?
-      
-  test player animation adding
-  seriously, slaverun reloaded integration needs work
-  if you're standing near other slaves wearing similar stuff?
-    not as easy as I wish it was
-
-  attacker useing user keys doesn't exist yet, for chasitity alone there are few enough key/belt compinations to probably get away with custom function
-    gags too
-  option to use second leon instead
-    nah, we can use the original and just fix it for ourselves, change it back
-  +kimy keys for items too
-  need to store items we remove, then add them again after, or add ANYthing after
-
-  ? Black out for leon enslave, animation too  
-  add dcur keys to list for detection      
-
-  + Remove follower protection if they are also are bound? (armbinder + gag) 
-  
-  Add devious attributes support
-    A few mod events should do it
-  
-    
-  - check how much of DEC pre-sex filter can dissapear to help with the speed
-  NPC with bed and cage in fort sunguard annor?
-  
-
-  Items follower can find and add:
-    Rubber suit collection, 
-      Follower can put on the rubber collar afterward
-    
-  Different dialogue for if the player is already wearing stuff like this 
-  
-  
-  NPCs can approach other NPC?
-    Can piggyback on what we already have: if NPC is not confident enough to attack player
-    can still attack other nearby slaves?
-    we can probably create a list of nearby slaves while checking the nearby NPC list, 
-    but also one slave slot might work well enough
-
-  Not enough post aggressive add possible reactions
-  Option for follower to suggest putting the item on slave/pet/ect
-  Items -> leads to sex from NPC side
-  Location in dungeon detect? and/or detect if looted something recently
-  Add harness text, along with an item function to add harness and stuff, not just belt and stuff
-  
-  Slave and follower frustration
-    We finally have a use for spanking... maybe.
-  Also, new animations for zaz bondage stuff? How to use...
-  If other wearing certain collars or gag or... faction?
-  Player/follower can't say some things if they are trained and/or levels
-  Rubber suit wearing, maybe transparent too?
-  
-  Random starting positions for followers, if BOTH are set to zero and no previous knowledge (all zero) 
-  Rebuild code such that it can return items as well as equip them
-  
-  NPC asks if player has ever considered slave training?
-  Need a way to keep track of items each follower has put on the player
-    Maybe a slot based system where each slot
-    No, multislot items are bad
-    we need a way to look up per-item, not other way around
-    If we could do a keyword -> actor data structure that would be cool
-  
-  Master hit counts for healing too
-  
-  
-  if player orgasms, nearby followers notice?
-    If player is enjoying sex while wearing bondage too
-      Certain inprovments based on gear, gag/armbinder/belt/collar/blindfold/buttplug?
-  if master, and punishing player, might allow sex attacks?
-    Maybe advertising of some kind? Gagged with paint or yoke or something?
-  Detect other follower types?
-  Write a scene for multiple item adding (visbile/animated?)
-
-  Instead of just player location, would be better with player bed actually
-  Maybe we can detect exact location, and then re-use that if the player has sex there it must be a decent spot
-  If follower dom, can use drip spells on you for disobeying?
-    Maybe if we give them the book?
-    
-  Either add a follower cooldown on sex or make female + female orgasm 
-  Follower remembers if the items you are wearing were put on by them, if so no birthday dialogue
-    complicated...
-  Need more non-equip outcomes
-  
-  Gagged follower can still beg
-  Follower can beg to be put in bondage
-  - less than begging too
-  
-  Fix horse followers?
-  
-  & Test master items memory, manually by added and removing manually
-  
-  Follower sex attack needs a bdsm angle
-    More Follower Dom in general
-  PAH following faction for detecting the difference between a slave that is following and a slave tied up on the floor
-  ;If Player is already <itemed>, and player cannot wear another, needs special outcomes
-    problem: we need to be able to tell he player what the item is and if they want to interact with it or not.
-           
-  + Follower should unlock player if they have a key for new plug
-  + PAHE if slave is angry, we can ignore respectful
- 
-  + If player is attacked, and slave is attacked, maybe other NPC will rape your slave while you're busy?
-  + Can I detect when the player finds a thing in a thing? If I can, the follower can detect that and confront I think.
-    "Oh cool, a vibrator, I wonder how we could make this interesting... Oh look a harness too"
-  
-  
-  Try out sold follower quest thing
-    Make sure that there's a failure option too
-    Need list of cages/places where follower can be found
-  If CD:
-    Follower on display
-    Can pay to free follower
-    Or can leave them alone... ?
-  
-  Fix ME becoming a whore, early, is not detected  
-  Search through ME code for fix, try to compile said fix
-  
-  make a function to check for items in followers inventory that might match what you want (keyword)
-  try again to find someone somewhere who knows of a way to assign a script to a quest through MO
-  make sure follower stops approaching after certain dialogue, not sure which one it was wouldn't stop, maybe belted + begging?
-  need more ways for frustration to manifest and dissipate
-    * sex
-    * adding items to them if sub, to player if dom
-    * frustration while belted and ignored
-      * but we also need to make some dialogue to go there
-      
-      
-  ;If SD is still acting weird, is there a way to turn off the follower acting that way?
-  Detection if the follower has been to CDx or Dollmakers house, where else...
-  We can detect if the follower took items off of the player, right?
-  
-  Can we detect which mod started sex?
-    we could use some context for sex
-    SNAG: Cannot compile quest fragments, because the fragments are not being stored in the overwrite folder...?
-  
-  Maybe MCM to allow users to add extra SD+ masters..?
-  BUG: if you add a follower manually, one that would be detected normally, they will get twice the item count
-  
-  Can we detect where a DD item was equipped from? I mean we can if we're the one's putting them on at least.
-  + Notice if player is bound and struggling
-    
-
-  If anal with plug, can they cum with sound effect and notificaiton?
-    Maybe vib effect too? Orgasm effect is dangerous because of animation override.
-  Does follower hit detection care about shouts yet?
-  Slavetats: detect those tattoos that count as weapons
-
-  ;We need to swap zbf keywords for zad keywords, or add them as additional: looks like kimy has finally scrapped ZAZ from cursed loot
-  ;Sex through PAHE and PAHHSH counts as sex we should allow enslavment and items for
-more recent (not mothballed either):
-
-  Remove random stormcloak guy from the SD thing
-
-  extend want to sell -> "no way!" option
-  + Follower wants to craft something, you are to be tied up while they work
-    If only we could let the player be "used" during that period by other people
-  + If slave is open, follower is horny, and has been let use slave before, might use on their own without asking you.
-
-  Waiting for lsm to get back to my email about skse for theft/pickpocket detection using skse
-    ^- gah, he actually did insert assmebler into the esp, fucking hell I'm not messing with that
-
-  player is stuck performing oral on attacker if belted
-    we should check to make sure there are oral animations available to the player?
-    if cunnilingus is used, we need to flip the "victim" as the player is the one being sucked off which is backwards
-    The whole pre-sex animation filter should be re-written with female vag suppression tag avoidance in mind, it's too hard to follow right now
-      
-  + Test all available spanking animations
-    Specifically, grab them all in testing
-  make it so that the follower can replace non-blocking collars, and check for it the present collar is removable through DCUR
-    means writing a function or two
-  ? Wait several seconds and disable the struggle animation for enslavement, since it doesn't self cancel
-    How does DD handle this? can I just make an event that catches movement once and then forget? would that be safe?
-  + Maybe use UIextensions to add interface for hand-picking clothes to count as magic/wizards clothes for intimidation
-  DCL lucky charm, maybe we can prevent the player from getting new items through dialogue if they are wearing this?
-  If player is in brothel, less vulnerable (or ask for sex under assumption of whore only)?
-    Extra dialogue for in brothel/freeuse zone?
-
-  detect proximity to bed for sex approach percentage (1.5?)
-
-    
-  Follower game planning:
-    Items: Book with DD stuff, DD vibrating spells, collar, set of items (rubber, leather, heavy collar/gag/blindfold)
-      whip, harness? Piercings.
-  
-  check for SD+ ending slave states to see what we need to set detection for
-  check DCL quest end detection again
-  
-
-  add a dialogue for follower finding lucky charms from DCL if they exist
-  add DF API calls instead of doing everything myself...? hope this is actually useful
-  
-  
-  UI busy removed, might be an issue at some points > became issue, would interupt dialogue
-  NPC analysis takes too long to work, we need to look deeper
-  test maria eden again? 
-  
-  check to make sure the follower replaces items with the right one
-  check to make sure cursed loot items cannot be super imposed * not seeing anything here...
-  
-  Can we test for PAHE slave being angry?
-    maybe special dialogue though...
-  make sure our hasFollowers change didn't break everything, need to test with 2 slave followers
-  
-  
-  
-  Lets check the follower to see if they look like an owner/master, and if not can backfire
-  ;attacker + follower 3 some if follower is horny?
-  
-  
-  add debug to display DD version if it doesn't already show
-  equipping black ebonite collar causes double equip, one on top of mutex?
-  - huh?
-    
-  ++~~++  
-    
-  add random chance follower already had key (even if you have to add them yourself)
-  add random chance attacker already had a key (even if you have to add them yourself)
-    
-  + User asked for hoods and other items added
-  User says the bdsm aversion can happen at positive values, two users, but no evidence?
-  Follower nag lock will lockout item approach too, should it?
-  +  Maybe extra dialogue, or different dialogue, if the same person appraoches you a second time, especially if you said no last time?
-  + addgag: what's wrong
-  + healer dialogue, follower aproaches for annoyance at no healing?
-  + check POX for furniture stuff we can do
-  follower gets attacked out of combat, why wouldn't they get angry?
-  lower arousal of attacking NPC if follower/aggression scares them off? > requires a lot of script fragments
-  + Dialogue option to beg for keys back and/or unlocking from previous items
-    needs additional dialogue
-  + "Tie me up" > ties you to a bondage furniture
-  Tell DD team about the loading blindfold bug
-
-  User thinks kidnapped is incompatible, maybe check and fix
-  nearby NPC check stops follower if all of them are slaves... bad?
-  why was unique collar rolled twice
-  boots slider
-  double reset is still in effect, damn it.
-  container check cell is NULL when we're out in the overworld... crap
-   
-  ;changed player gender in doplayersex to sexlab gender 
-   
-  follower in furniture should not approach player for stuff
-    -- what the hell this should be working
- 
-  add more ddi 4.0 items, as soft dependency
- 
-  work more on the approach follower dialogue
-   - can we fix the struggle emotes?
-   + add dialogue for follower realizing you don't want to wait until you get home to be bound up
-          should be a simple compare if time has expired
-  ;fix equipFollowerAndPlayerItems to make sure it detects that we need a gag ; should detect much more
-  recompile all that had getRandomHarnessAndStuff <- just item manupulate
-  ;recompile all that used that new follower and player item function, needs more stuff
-  
-  ;rebase MCM vulnerablities from toggle to level
-  ;  rebuild the vulnerability function
-  ;  search through everything for iVulnerable and iNakedReq
-  ;  assign some reasonable intro values
-  
-  ;add SD+ to slave tats
-  ;add detection for zaz chains
-  Make sure it still works without slavestats
-  ;add follower faction to all actors that get pushed into the first alias
-  ;add follower faction to all actors that get forced into permanent folower list
-  ;added getincell = invalid for "not out here" dialogue
-  add "Is in permanent follower list" to reasons we can approach for items?
-    - for now, use the new faction (which is checkable in the dialogue conditions)
-  if NPC is former follower, prevent random NPC attack, or give special dialogue
-  Talk to PAHE about:
-    home: "you stop" ignores belt
-    can we get gag detection working for PAHE dialogue?
-  fix your struggle animations
-  fix bug where follower forgets item if they get interupted
-  ; changed the requirments for item finding follower to crdeFormerFollowerFaction
-  belt required added to special dialogue, TODO add a special property in playermon for if gag+belt is an option
-  
-  
-  ;swapped to singlepiercing to keep belted and non-belted as different outcomes
-    ;did we switch the value in the item roll?
-    we should add a unique attacker option if already armbound and naked?
-      maybe also one for vag if naked + armbinder + gag?
-  ;ddi 4 catsuit isn't used yet UNTESTED
-    ;we need the boots id
-    ;we need to finish adding both to the mods and to the add function
-  ;ddi 4 elbowbinders input yet
-    needs to be added to single attacker item
-  unique collar roll ignores that we are already wearing one
-  removing one collar and adding one didn't work, just removed one collar
-  alter the "come to think of it why do plugs not come flanged" dialogue for only if the player is belted, they are belted, or the item was a belt
-  straitjacket multiple?
-  ;"I think I have akey that fits" + "not really, a little tight" doesn't really work for nipple piercings
-  "soulgem from a necromancer" -> rubber inflateable insert?
-  "have you found a key for this annoying belt yet?" dom version?
-  
-  ;check if post sex is completely broken; doesn't seem to be
-  user wants unlocking dialogue for follower
-  user wants new pony suit finished
-  user thinks "Oh right, you are still tied up... oh well, only one end needs to be open, right" leads to no belt re-adding, which 
-  re-organize unique collars to not roll against single/double, but to fit under collars themselves
-  also add unique collars to post sex, meaning single item detection
-  finish straitjacket
-  inspiration from SS, make a few generic NPC masters that can be put anywhere with generic AI and decent appearance, then create a list of locations they can spawn at, to get around limited NPCs that are killable
-
-  
-  fix kimy's cursed loot by removing bondage mittens or at least checking to see if there is an MCM option I missed
-  
   make sure for each item:
     ;mcm option exists
       MCM starting values are set < do last since we're releasing early, to keep users from stumbling onto broken code
@@ -525,39 +72,497 @@ more recent (not mothballed either):
     new DD 4 rubber suit
     new DD 4 see through suit
      what other cursed loot items can we now use without cursed loot?
-    
- 
-CHECK before next major release:
-  check if piercing set to zero never makes it past stuff roll
 
- 
-  ---- switched to new dcur and ddi -----
-  Need to swap DDzaZAPCArmBZaDS0* files
-  
-  new items:
-    elbow binders... ugh
-    pony gag, 1/2 of 5
-      modify new pony suit, includes gag, tailplug among other things
-    rubber cat suit is now in DDi4, small conselation though if its going to be a soft dependency
-    hobble dress for follower interaction?
-    what else was added...?
-    hood needs updated
-    yoke too, blindfold
-    regular non-harness gags
-   
-  ; random chance of finding a key
-  add special finding key stuff, not just pocketing it
+    
+  new interactions:
+    add special finding key stuff, not just pocketing it
     - removing and masterbating
     - removing and running to player for sex
     - bringing key to player for safe keeping
+    ask folower to help you search for keys?
+    new follower brings you dialogue for new items
 
-  ** TODO / NOTES (bottom is most recent, older in ascending order)  --^ **
+  --- $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$ --- 
+
+      CHECK before next major release: 
+        check if piercing set to zero never makes it past stuff roll
+        check if DFW leash game doesn't block DEC
+        
+
+  --- $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$ --- 
+
+ 
+    
   
-      +###############+
-      +###############+
-          Don't forget to change the version number!
-      +###############+
-      +###############+
+  fix kimy's cursed loot by removing bondage mittens or at least checking to see if there is an MCM option I missed
+  
+  inspiration from SS, make a few generic NPC masters that can be put anywhere with generic AI and decent appearance, 
+    then create a list of locations they can spawn at, to get around limited NPCs that are killable
+  finish straitjacket
+  also add unique collars to post sex, meaning single item detection
+  re-organize unique collars to not roll against single/double, but to fit under collars themselves
+  user thinks "Oh right, you are still tied up... oh well, only one end needs to be open, right" leads to no belt re-adding, which 
+  user wants new pony suit finished
+  user wants unlocking dialogue for follower
+  ;check if post sex is completely broken; doesn't seem to be
+  
+  "have you found a key for this annoying belt yet?" dom version?
+  "soulgem from a necromancer" -> rubber inflateable insert?
+  ;"I think I have akey that fits" + "not really, a little tight" doesn't really work for nipple piercings
+  straitjacket multiple?
+  alter the "come to think of it why do plugs not come flanged" dialogue for only if the player is belted, they are belted, or the item was a belt
+  removing one collar and adding one didn't work, just removed one collar
+  unique collar roll ignores that we are already wearing one
+    needs to be added to single attacker item
+  ;ddi 4 elbowbinders input yet
+    ;we need to finish adding both to the mods and to the add function
+    ;we need the boots id
+  ;ddi 4 catsuit isn't used yet UNTESTED
+      maybe also one for vag if naked + armbinder + gag?
+    we should add a unique attacker option if already armbound and naked?
+    ;did we switch the value in the item roll?
+  ;swapped to singlepiercing to keep belted and non-belted as different outcomes
+  
+  
+  belt required added to special dialogue, TODO add a special property in playermon for if gag+belt is an option
+  ; changed the requirments for item finding follower to crdeFormerFollowerFaction
+  fix bug where follower forgets item if they get interupted
+  fix your struggle animations
+    can we get gag detection working for PAHE dialogue?
+    home: "you stop" ignores belt
+  Talk to PAHE about:
+  if NPC is former follower, prevent random NPC attack, or give special dialogue
+    - for now, use the new faction (which is checkable in the dialogue conditions)
+  add "Is in permanent follower list" to reasons we can approach for items?
+  ;added getincell = invalid for "not out here" dialogue
+  ;add follower faction to all actors that get forced into permanent folower list
+  ;add follower faction to all actors that get pushed into the first alias
+  Make sure it still works without slavestats
+  ;add detection for zaz chains
+  ;add SD+ to slave tats
+  
+  ;rebase MCM vulnerablities from toggle to level
+  ;  rebuild the vulnerability function
+  ;  search through everything for iVulnerable and iNakedReq
+  ;  assign some reasonable intro values
+  
+  work more on the approach follower dialogue
+   - can we fix the struggle emotes?
+   + add dialogue for follower realizing you don't want to wait until you get home to be bound up
+          should be a simple compare if time has expired
+  ;fix equipFollowerAndPlayerItems to make sure it detects that we need a gag ; should detect much more
+  recompile all that had getRandomHarnessAndStuff <- just item manupulate
+  ;recompile all that used that new follower and player item function, needs more stuff
+ 
+  add more ddi 4.0 items, as soft dependency
+ 
+    -- what the hell this should be working
+  follower in furniture should not approach player for stuff
+   
+  ;changed player gender in doplayersex to sexlab gender 
+   
+  container check cell is NULL when we're out in the overworld... crap
+  double reset is still in effect, damn it.
+  boots slider
+  why was unique collar rolled twice
+  nearby NPC check stops follower if all of them are slaves... bad?
+  User thinks kidnapped is incompatible, maybe check and fix
+
+  + User asked for hoods and other items added
+  User says the bdsm aversion can happen at positive values, two users, but no evidence?
+  Follower nag lock will lockout item approach too, should it?
+  +  Maybe extra dialogue, or different dialogue, if the same person appraoches you a second time, especially if you said no last time?
+  + addgag: what's wrong
+  + healer dialogue, follower aproaches for annoyance at no healing?
+  + check POX for furniture stuff we can do
+  follower gets attacked out of combat, why wouldn't they get angry?
+  lower arousal of attacking NPC if follower/aggression scares them off? > requires a lot of script fragments
+  + Dialogue option to beg for keys back and/or unlocking from previous items
+    needs additional dialogue
+  + "Tie me up" > ties you to a bondage furniture
+    
+  add random chance attacker already had a key (even if you have to add them yourself)
+  add random chance follower already had key (even if you have to add them yourself)
+    
+    
+  - huh?
+  equipping black ebonite collar causes double equip, one on top of mutex?
+  add debug to display DD version if it doesn't already show
+  
+  
+  Lets check the follower to see if they look like an owner/master, and if not can backfire
+  
+  
+  make sure our hasFollowers change didn't break everything, need to test with 2 slave followers
+    maybe special dialogue though...
+  Can we test for PAHE slave being angry?
+  
+  check to make sure cursed loot items cannot be super imposed * not seeing anything here...
+  check to make sure the follower replaces items with the right one
+  
+  test maria eden again? 
+  NPC analysis takes too long to work, we need to look deeper
+  UI busy removed, might be an issue at some points > became issue, would interupt dialogue
+  
+  
+  add DF API calls instead of doing everything myself...? hope this is actually useful
+  add a dialogue for follower finding lucky charms from DCL if they exist
+
+  
+  check DCL quest end detection again
+  check for SD+ ending slave states to see what we need to set detection for
+  
+      whip, harness? Piercings.
+    Items: Book with DD stuff, DD vibrating spells, collar, set of items (rubber, leather, heavy collar/gag/blindfold)
+  Follower game planning:
+    
+
+  detect proximity to bed for sex approach percentage (1.5?)
+
+    Extra dialogue for in brothel/freeuse zone?
+  If player is in brothel, less vulnerable (or ask for sex under assumption of whore only)?
+  DCL lucky charm, maybe we can prevent the player from getting new items through dialogue if they are wearing this?
+  + Maybe use UIextensions to add interface for hand-picking clothes to count as magic/wizards clothes for intimidation
+    How does DD handle this? can I just make an event that catches movement once and then forget? would that be safe?
+  ? Wait several seconds and disable the struggle animation for enslavement, since it doesn't self cancel
+    means writing a function or two
+  make it so that the follower can replace non-blocking collars, and check for it the present collar is removable through DCUR
+    Specifically, grab them all in testing
+  + Test all available spanking animations
+      
+    The whole pre-sex animation filter should be re-written with female vag suppression tag avoidance in mind, it's too hard to follow right now
+    if cunnilingus is used, we need to flip the "victim" as the player is the one being sucked off which is backwards
+    we should check to make sure there are oral animations available to the player?
+  player is stuck performing oral on attacker if belted
+
+    ^- gah, he actually did insert assmebler into the esp, fucking hell I'm not messing with that
+  Waiting for lsm to get back to my email about skse for theft/pickpocket detection using skse
+
+  + If slave is open, follower is horny, and has been let use slave before, might use on their own without asking you.
+    If only we could let the player be "used" during that period by other people
+  + Follower wants to craft something, you are to be tied up while they work
+  extend want to sell -> "no way!" option
+
+  Remove random stormcloak guy from the SD thing
+
+EVERYTHING after this is backwards and out of date, should be cut but I'm too lazy to search through git for data
+
+  Slavetats: detect those tattoos that count as weapons
+  Does follower hit detection care about shouts yet?
+    Maybe vib effect too? Orgasm effect is dangerous because of animation override.
+  If anal with plug, can they cum with sound effect and notificaiton?
+
+    
+  + Notice if player is bound and struggling
+  Can we detect where a DD item was equipped from? I mean we can if we're the one's putting them on at least.
+  
+  BUG: if you add a follower manually, one that would be detected normally, they will get twice the item count
+  Maybe MCM to allow users to add extra SD+ masters..?
+  
+    SNAG: Cannot compile quest fragments, because the fragments are not being stored in the overwrite folder...?
+    we could use some context for sex
+  Can we detect which mod started sex?
+  
+  We can detect if the follower took items off of the player, right?
+  Detection if the follower has been to CDx or Dollmakers house, where else...
+  ;If SD is still acting weird, is there a way to turn off the follower acting that way?
+      
+      
+      * but we also need to make some dialogue to go there
+    * frustration while belted and ignored
+    * adding items to them if sub, to player if dom
+    * sex
+  need more ways for frustration to manifest and dissipate
+  make sure follower stops approaching after certain dialogue, not sure which one it was wouldn't stop, maybe belted + begging?
+  try again to find someone somewhere who knows of a way to assign a script to a quest through MO
+  make a function to check for items in followers inventory that might match what you want (keyword)
+  
+  Search through ME code for fix, try to compile said fix
+  Fix ME becoming a whore, early, is not detected  
+  
+    Or can leave them alone... ?
+    Can pay to free follower
+    Follower on display
+  If CD:
+    Need list of cages/places where follower can be found
+    Make sure that there's a failure option too
+  Try out sold follower quest thing
+  
+  
+    "Oh cool, a vibrator, I wonder how we could make this interesting... Oh look a harness too"
+  + Can I detect when the player finds a thing in a thing? If I can, the follower can detect that and confront I think.
+  + If player is attacked, and slave is attacked, maybe other NPC will rape your slave while you're busy?
+ 
+  + PAHE if slave is angry, we can ignore respectful
+  + Follower should unlock player if they have a key for new plug
+           
+    problem: we need to be able to tell he player what the item is and if they want to interact with it or not.
+  ;If Player is already <itemed>, and player cannot wear another, needs special outcomes
+  PAH following faction for detecting the difference between a slave that is following and a slave tied up on the floor
+    More Follower Dom in general
+  Follower sex attack needs a bdsm angle
+  
+  & Test master items memory, manually by added and removing manually
+  
+  Fix horse followers?
+  
+  - less than begging too
+  Follower can beg to be put in bondage
+  Gagged follower can still beg
+  
+  Need more non-equip outcomes
+    complicated...
+  Follower remembers if the items you are wearing were put on by them, if so no birthday dialogue
+  Either add a follower cooldown on sex or make female + female orgasm 
+    
+    Maybe if we give them the book?
+  If follower dom, can use drip spells on you for disobeying?
+  Maybe we can detect exact location, and then re-use that if the player has sex there it must be a decent spot
+  Instead of just player location, would be better with player bed actually
+
+  Write a scene for multiple item adding (visbile/animated?)
+  Detect other follower types?
+    Maybe advertising of some kind? Gagged with paint or yoke or something?
+  if master, and punishing player, might allow sex attacks?
+      Certain inprovments based on gear, gag/armbinder/belt/collar/blindfold/buttplug?
+    If player is enjoying sex while wearing bondage too
+  if player orgasms, nearby followers notice?
+  
+  
+  Master hit counts for healing too
+  
+    If we could do a keyword -> actor data structure that would be cool
+    we need a way to look up per-item, not other way around
+    No, multislot items are bad
+    Maybe a slot based system where each slot
+  Need a way to keep track of items each follower has put on the player
+  NPC asks if player has ever considered slave training?
+  
+  Rebuild code such that it can return items as well as equip them
+  Random starting positions for followers, if BOTH are set to zero and no previous knowledge (all zero) 
+  
+  Rubber suit wearing, maybe transparent too?
+  Player/follower can't say some things if they are trained and/or levels
+  If other wearing certain collars or gag or... faction?
+  Also, new animations for zaz bondage stuff? How to use...
+    We finally have a use for spanking... maybe.
+  Slave and follower frustration
+  
+  Add harness text, along with an item function to add harness and stuff, not just belt and stuff
+  Location in dungeon detect? and/or detect if looted something recently
+  Items -> leads to sex from NPC side
+  Option for follower to suggest putting the item on slave/pet/ect
+  Not enough post aggressive add possible reactions
+
+    but also one slave slot might work well enough
+    we can probably create a list of nearby slaves while checking the nearby NPC list, 
+    can still attack other nearby slaves?
+    Can piggyback on what we already have: if NPC is not confident enough to attack player
+  NPCs can approach other NPC?
+  
+  
+  Different dialogue for if the player is already wearing stuff like this 
+    
+      Follower can put on the rubber collar afterward
+    Rubber suit collection, 
+  Items follower can find and add:
+
+  
+  NPC with bed and cage in fort sunguard annor?
+  - check how much of DEC pre-sex filter can dissapear to help with the speed
+    
+  
+    A few mod events should do it
+  Add devious attributes support
+  
+  + Remove follower protection if they are also are bound? (armbinder + gag) 
+
+  add dcur keys to list for detection      
+  ? Black out for leon enslave, animation too  
+
+  need to store items we remove, then add them again after, or add ANYthing after
+  +kimy keys for items too
+    nah, we can use the original and just fix it for ourselves, change it back
+  option to use second leon instead
+    gags too
+  attacker useing user keys doesn't exist yet, for chasitity alone there are few enough key/belt compinations to probably get away with custom function
+
+    not as easy as I wish it was
+  if you're standing near other slaves wearing similar stuff?
+  seriously, slaverun reloaded integration needs work
+  test player animation adding
+      
+  How would stipping work as an animation anyway?
+
+  Naked plus harness doesn't count as slave NPC, or it gets canceled some other way (the girl in SSR long house)
+  Change/add dialogue for slave to slave interaction
+
+    # not much to change, the range it the #1 reason they don't still count, followed by arousal *which I can't change* and confidence
+  #Change some of the NPC search MCM variables to globals so we can use them in NPC conditions
+
+    since slaverun local doesn't work anymore   
+  add slaverun reloaded for slaverun normal turn on
+
+  Add arousal animations # delayed, can't do without a lot more effort
+  
+      Is there an easy way to detect if NPC is in CDx's list of buyers? need to search
+      Meaning the dynamic quest NPCs, they buy stuff so they should have his stuff
+    Captured dreams random NPCs that buy CDx stuff, can I use that somehow?
+    cuffs, belt, percings, plugs?
+    add CD items, gold/silver I mean
+  Rich detection:
+
+        Actually doable, since the armbinder itself will cancel out the animation when walking, suposidly
+      If adding armbinder, struggle animation as it's being added?  
+    add stripping animation before outfits
+    Fix Cursed collar start, too poorly made
+    Scene for Multiple devices?
+  Better interaction with adding items?
+     
+  Reduce time in the loop
+  Add debug output for when the fragment fires off for the approach start
+  
+      console in game, can use "setaggressiveness and setrelationship"
+    # needs knowledge on how to make the attack you
+    "I'd rather die than be your slave!" <- can we exit out into combat? Might be interesting
+  Fight dialogue
+  itemtheme watcher/checker needs to be made
+  ; change the NPC count to greyed out, and default 7
+  change NPC checking to array instead of single, sorted NPC array with confidence sorting is probably best given conf is last checked
+  
+  Master wizards can still approach player at college?
+  ;Check SD for pickpocket code
+  
+  Return to check out Devious Fame when 1.0 comes out, use fame to lower confidence requirement, and other things
+     
+  old people specific?
+  immoral cities: if slave
+        low armor amount?
+      if uncomplient, and wearing softclothing, can strip instead of arrest   
+    naked or arrested
+    slaves must be naked
+  whiterun: if slaverun
+  force stripping
+
+    mods can shut it off too
+    that way, users can still turn it off even if the MCM isn't showing up
+  change mod enabled to be a global toggle
+      
+
+    More options (slave training? running away, level detection)
+    Make sure leg shackles are included? What if DDi no it's open source they can fix if they want
+    Toggle on/off for certain situations (armbinder, gag, whatelse)
+  Combat dialogue
+
+      you know... none of these are commonly used by the average user, so they won't see see a performance hit..
+      ForswornStory
+      TIR
+      Darkwind (dead mod)
+      FTD
+    mods that use faction detection, that might have a better option:
+    move faction checks lower than quest stage checks
+  plans to optimise isPlayerEnslaved()
+  
+  add different player response dialogue if the player is super aroused or approached while masturbating
+         
+    look at devious surrender again for detection, he's working on it again
+      testbutton3 might give me a better hint
+    test slavetats some more too
+    slaverun quest forcing, to change the city
+  add for testing:
+  
+
+        needs testing
+    if we could magic force player into rope, followed by wiggle into armbinder, that might be cool
+  consider tying up the player before sex if walk away
+
+      has pickpocket detection? hmm...
+    new SD version needs testing
+    cursed loot invisible suit counts as nude (maybe already happens? on it's own?)
+      ; haven't found one yet, oh well
+    need a way to detect if caught, currently not seeing a condition function
+  for stealing/pickpocketing
+    old people specific?
+    immoral cities: if slave
+      naked or arrested
+      slaves must be naked
+    whiterun: if slaverun
+  force stripping
+
+    if player orgasmed during sex
+    if alone (might not be easy to find)
+    if trader, can see through clothing
+    if owner, higher chance
+  added risk: 
+
+    custom scenes with certain items, like toys
+    entrance with Slaves of Tamriel?
+      maria eden is deprecated
+    scene with maria, PO bounty hunter, 
+    (pet collar)
+        or an NPC (nearby even)
+        safety, summon some demon to mess with you instead?
+        force greet often unlocks locked doors
+      cages work too, in the case of something like SD cages?
+        or we need a way to walk the player to the device
+        user needs to be mage I think
+      use spell to teleport player, more in line with lore
+    put player in zaz furniture/tie up (old idea)
+  Extra enslavement ideas (and event ideas)
+    
+  
+  send slave to SD cage instead of just to master (sd, hard)
+    
+    Regular colored DD gear (currently only black ebonite right?)
+    CD colored items
+    vel's DD infused zaz items, locking, interesting no?
+    aradia might come back?? who knows
+    angeli's stuff
+      cursed loot rubber stuff
+    dasha's items
+  extra items that can be equipped:
+    
+    not as important on the code that runs so late in the check
+    wish I could know if papyrus inlined properly, so I can use more functional programming
+  rewrite canRun to be less useless, more compartimentalized
+    
+  player more likely to get raped while alone with deviant
+   
+  deprecate mcm "default value" in mcm, doesn't work anyway just wasting 20-50 lines of code
+  Add enslave only option to menu so users can use Dcur sex attacks instead
+  add -1 to weapon max, and check if there are any other min/maxes I forgot to include
+  
+  add andrew to detection during mia?
+         
+          
+        softer training: sent to CD through other means, maria's eden to some Dom in the city, mistaken idenity
+        aggressive: sent to slaverun, slaves of tamriel, CD as working slave
+        introduced to new dom? There aren't enough of these mods currently.
+      if the NPC thinks you have bahavior issues or need training, more likely to send you to "training" mods
+        too bad we don't have a way to make Maria's eden enslavement more aggressive/relaxed, same for SD+
+      will need two lists of NPCs to send in the world, one aggressive, one softer
+      good use of petcollar compared to the other slavey types, needs full implementation though
+      less likely to be sold, more likely to be given/taken directly
+      sex is not limited to aggressive?
+      half the chance of being approached by thugs?
+    being enslaved by high disposition friends/allies, deserves different dialogue
+      similarly, can we make the player walk up to the master in SD and pay them for your use?
+    Approachers walking up and talking to your master if you're maria's eden slave, instead of talking to you
+    different behavior for wearing a plugged chastity belt, or wearing CD piercings (naked requirement)
+
+  new dialogue:
+plans:
+  
+  higher than normal chance if thalmor?
+  add furniture attack? (out of my league) (maybe)
+    never found, switched to alias loading anyway
+  get array of random npcs, that don't overlap? (all at once instead, one one function call?)
+
+add spanking attack? (really, this should be implemented from the slave mods)
+add furniture attack? (out of my league, maybe)?
+add gag attack? (npc can gag player, context?)
+add gagged attack? (gagged slaves can still aproach you, new dialogue)
+  
   
   4.0 update: change ponygear over to new 4.0 pony gear
           change silver/gold items to ddi?
