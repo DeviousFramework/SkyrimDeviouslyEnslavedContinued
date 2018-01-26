@@ -513,6 +513,7 @@ Event Maintenance()
   if  i == 1 ; we want the perk to be re-added
     player.addPerk(crdeContainerPerk)
   endif
+  Debug.Trace("[CRDE]Mods:Maintenance, starting updateForms ...")
   finishedCheckingMods = false
   updateForms()
   checkStatuses()
@@ -567,14 +568,16 @@ function checkStatuses()
 endFunction
 
 function updateForms()
-  player = Game.GetPlayer()
+  player = Game.GetPlayer() 
   
   ; I know this is bad practice, but I don't know enough about the life cycle of the papyrus script to remove either call
   if finishedCheckingMods ; we've been here already, leave
+    Debug.Trace("[CRDE] already finished checking before, exit early")
+
     return
   endIf
     
-  Debug.Trace("[CRDE]Mods script updateForms() start ...")
+  Debug.Trace("[CRDE] Mods script updateForms() start ...")
   Debug.Trace("[CRDE] ******** ignore any errors between these two messages START ********", 1)
 
   modLoadedDeathAlternative   = Quest.GetQuest("daymoyl_Monitor") != None

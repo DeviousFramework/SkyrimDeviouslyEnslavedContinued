@@ -7,7 +7,9 @@ Function Fragment_0(ObjectReference akSpeakerRef)
 Actor akSpeaker = akSpeakerRef as Actor
 ;BEGIN CODE
 ; hey... -> What is it
-(GetOwningQuest() as crdePlayerMonitorScript).updateFollowerOpinions(akSpeaker)
+crdePlayerMonitorScript PlayerMon = GetOwningQuest() as crdePlayerMonitorScript
+PlayerMon.updateFollowerOpinions(akSpeaker)
+PlayerMon.updatePlayerVulnerability()
 
 ;END CODE
 EndFunction

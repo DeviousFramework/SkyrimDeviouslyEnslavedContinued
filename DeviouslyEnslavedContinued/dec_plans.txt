@@ -46,6 +46,12 @@ Debug report form:
   ---- switching to new dcur and ddi -----
   Need to swap DDzaZAPCArmBZaDS0* files for animations, were removed in ddi 4
   
+  -^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v-
+    Changes to esp scheduled once it's available:
+   
+  
+  -^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v-
+  
   new items:
     ;elbow binders
     pony gag, 1/2 of 5
@@ -81,21 +87,50 @@ Debug report form:
     - bringing key to player for safe keeping
     ask folower to help you search for keys?
     new follower brings you dialogue for new items
+    
+    player "Tie me up!" "you want more??"
+    
 
   --- $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$ --- 
 
       CHECK before next major release: 
         check if piercing set to zero never makes it past stuff roll
         check if DFW leash game doesn't block DEC
+        remove debug from playermonitor, or at least categorize the output of it
         
-
   --- $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$ --- 
 
- 
-    
+Notes:
   
-  fix kimy's cursed loot by removing bondage mittens or at least checking to see if there is an MCM option I missed
+    - follower dialogue for asking for unlock
+      does the unlock dialogue work and make sense for most items, with context being either they put them on the player or they did not
+      
+      missing dialogue for already gagged, ask for sex get belt?
+      missing variety for gagged talking to follower
+      
+  change follower found items so that special collars cannot be equipped through glib follower comments, only through experimental
+  player asking to be tied up should increase reputation
   
+  got pony gag with 0 setting in MCM
+  tie me up items gives one more than count if items don't match
+   rolled 3 got chains, collar, gag, belt
+  update removeDDs to include all items
+   update it to accept a list list of available removing keys ; pretty sure I had this at one point
+    possible but very slow: for all keys, compare against all DD items required keys
+     otherway around, get all DD items, then get all keys needed for those items, then for each key, compare with what the NPC has
+  
+  ;player approaching follower requires uptodate vulnerability, but it doesn't update except before an approach
+  if follower finds an item, should reduce containers searched for other nearby followers to reduce chaining
+    should we reduce by volume? the more followers the more we reduce? 2 is 30% 5 is 90%?
+  there should be a special follower interaction from "what did you have in mind" -> "Can I put this on?" player controls
+  
+  
+  
+  ;looks like the MODS automatic updater is broken, slaverun was uninstalled and now isn't working..?
+    ; wouldn't replicate after save clean
+  users think we shouldn't get belt with plugs always
+    could have sworn I had belt OR harness setup, but guess not?  
+   
   inspiration from SS, make a few generic NPC masters that can be put anywhere with generic AI and decent appearance, 
     then create a list of locations they can spawn at, to get around limited NPCs that are killable
   finish straitjacket
@@ -104,7 +139,6 @@ Debug report form:
   user thinks "Oh right, you are still tied up... oh well, only one end needs to be open, right" leads to no belt re-adding, which 
   user wants new pony suit finished
   user wants unlocking dialogue for follower
-  ;check if post sex is completely broken; doesn't seem to be
   
   "have you found a key for this annoying belt yet?" dom version?
   "soulgem from a necromancer" -> rubber inflateable insert?
@@ -896,6 +930,8 @@ player is approached by friendly NPC, because NPC has noticed player likes it ((
     set dcur settings, dd to easy, fame tutorial off, sexlab settings
     add gag, collar, armbinder, belt to player for testing. keys
     add an item to the nearest container for quick pull testing
+    make sure sexlab slow approach bed is off
+    make sure the player has a vulnerable item that doesn't block any sex or dialogue
   
 **************************************
   
