@@ -83,26 +83,92 @@ Event OnInit()
 endEvent
 
 ; just from player, was meant to clear armor quickly, not sure if it's even still being used 
-function removeDDs()
+function removeDDs(actor targetActor = none, bool hasChastityKey = true, bool hasRestraintsKey = true)
+  ; bool cursedLootOnly = PlayerMon.isBlockFromDCURItemsOnly()
+ 
+  ; if player.WornHasKeyword(libs.zad_DeviousCollar); && !PlayerMon.knownCollar.HasKeyword(libs.zad_BlockGeneric))
+   ; if PlayerMon.knownCollar.HasKeyword(libs.zad_BlockGeneric) && (!cursedLootOnly || !MCM.bEnslaveLockoutDCUR)
+     ; debugmsg("not enslaved: zad block generic detected, but only on DCUR items", 3)
+   ; else
+     ; removeDDbyKWD(player, libs.zad_DeviousCollar)
+   ; endif
+ ; endif
+ ; if player.WornHasKeyword(libs.zad_DeviousArmbinder) 
+   ; if PlayerMon.knownCollar.HasKeyword(libs.zad_BlockGeneric) && (!cursedLootOnly || !MCM.bEnslaveLockoutDCUR)
+     ; debugmsg("not enslaved: zad block generic detected, but only on DCUR items", 3)
+   ; else
+     ; removeDDbyKWD(player, libs.zad_DeviousCollar)
+   ; endif
+  ; endif
+  ; if player.WornHasKeyword(libs.zad_DeviousGag) 
+    ; removeDDbyKWD(player, libs.zad_DeviousGag)
+    ;;removeDDbyArmor(PlayerMon.knownGag)
+  ; endif
+  ; if player.WornHasKeyword(libs.zad_DeviousBlindFold) 
+    ; removeDDbyKWD(player, libs.zad_DeviousBlindFold)
+    ;;removeDDbyArmor(PlayerMon.knownBlindfold)
+  ; endif
+  ; if targetActor == none
+    ; targetActor = player
+  ; endif
+  
+  ; borrowed from kimy, modified
+  Armor id    ; inventory device, physical device that exists in the inventory
+  Armor rd    ; rendered device, the device that shows on the player, depending on circumstances
+  Keyword kw  ; keyword we want to check against
+  if !targetActor.WornHasKeyword(libs.zad_Lockable)
+    ; no DD items equipped, can abort here
+    return
+  endif   
+  bool playerHasBlockingKeyword = player.WornHasKeyword(libs.zad_BlockGeneric) ; only need to call this once
+  int i = deviceKeywords.length 
+  While i > 0
+    i -= 1
+    kw = deviceKeywords[i]    
+    if targetActor.wornhaskeyword(kw)
+      id = libs.GetWornDevice(targetActor, kw)
+      if id
+        rd = libs.GetRenderedDevice(id)
+      Endif     
+      If id && rd       
+        ; dcur_removableBlockedItems.Find(tmp_armor) == -1
+        if playerHasBlockingKeyword  
+          if  id.HasKeyword(libs.zad_BlockGeneric) || rd.HasKeyword(libs.zad_BlockGeneric) 
+            ; need to check if the item is cursed loot removable or not
+            if !MCM.bEnslaveLockoutDCUR && Mods.modLoadedCursedLoot \
+               && Mods.dcur_removableBlockedItems.Find(id) > 0 ; we look 
+              ; TODO TODO
+              libs.removeDevice(targetActor, id, rd, kw, false, skipevents = false, skipmutex = true)      
+              Utility.Wait(0.5)
+            else
+              PlayerMon.debugmsg("Cannot remove " + id +" because its blocked")
+              ; do nothing
+            endif
+        
+          else 
+
+            if targetActor == player  && libs.IsLockJammed(targetActor, kw)
+              ; we don't remove jammed devices if we're removing generic devices only
+              PlayerMon.debugmsg("Cannot remove " + id + " because the lock is jammed")
+            ; for now, lets see what happens if we leave this out
+            ; Elseif rd.HasKeyWord(dcur_kw_QuestItem)
+              ; ;That's a quest item. Needs to be taken off with the proper routine
+              ; libs.RemoveQuestDevice(targetActor, id, rd, kw, dcur_kw_QuestItem, destroyDevice = destroyDevices, skipMutex = true)
+            Else
+              libs.removeDevice(targetActor, id, rd, kw, false, skipevents = false, skipmutex = true)      
+              Utility.Wait(0.5)
+            EndIf
+            
+          endif
+        endif   
+      Endif
+    endif
+  EndWhile
   
   PlayerMon.updateWornDD(); good idea
   ; TODO add other items that we might want to remove, like cuffs/belts
   ;TODO add specifics for specialty colars later
-  if PlayerMon.wearingCollar; && !PlayerMon.knownCollar.HasKeyword(libs.zad_BlockGeneric))
-    removeDDbyKWD(player, libs.zad_DeviousCollar)
-  endif
-  if PlayerMon.wearingArmbinder ;&& !PlayerMon.knownCollar.HasKeyword(libs.zad_BlockGeneric))
-    removeDDbyKWD(player, libs.zad_DeviousArmbinder)
-    ;removeDDbyArmor(PlayerMon.knownArmbinder)
-  endif
-  if PlayerMon.wearingGag; && !PlayerMon.knownCollar.HasKeyword(libs.zad_BlockGeneric))
-    removeDDbyKWD(player, libs.zad_DeviousGag)
-    ;removeDDbyArmor(PlayerMon.knownGag)
-  endif
-  if PlayerMon.wearingBlindfold; && !PlayerMon.knownCollar.HasKeyword(libs.zad_BlockGeneric))
-    removeDDbyKWD(player, libs.zad_DeviousBlindFold)
-    ;removeDDbyArmor(PlayerMon.knownBlindfold)
-  endif
+
 endFunction
 
 function removeDDbyArmor(actor actorRef, armor armorRef)
@@ -1611,7 +1677,8 @@ function setFollowerFoundItem(actor actorRef, int itemCombo, keyword kw, objectR
 endFunction
 
 ; this assumes the armors passed are shuffled to allow for random searching, 
-; as this doesn't shuffle or randomize the armor and checks sequentially
+;  as this doesn't shuffle or randomize the armor and checks sequentially
+; this needs to be updated for more potential items
 bool function checkFollowerFoundItems(actor actorRef, armor[] armorArray, objectReference[] containerArray)
   ; for keyword, check to see if an item in the list is included
   int i = 0
@@ -1899,7 +1966,7 @@ endFunction
 
 ; this is to apply follower items, and from player if they exist, onto the player from the follower context
 function equipFollowerAndPlayerItems(actor follower, bool forceBelt = false, bool forceGag = false, bool forceCollar = false, bool forceArmbinder = false, bool forceHarness = false)
-  ; for now, if forcebelt is true, but they don't have one, we make a new one
+  ; for now, the "and player items if they have it" isn't implemented, instead pulling items out of thin air
   
   ; at least 3: armbinder/blindfold/gag/belt/naked with collar
   ; follower borrows your keys
@@ -1910,16 +1977,19 @@ function equipFollowerAndPlayerItems(actor follower, bool forceBelt = false, boo
   ; because getRandomMultipleDD equips them too, due to outfits, we have to do all we want here instead
   
   int requiredMin = (forceBelt as int) + (forceGag as int) + (forceCollar as int) + (forceArmbinder as int)
+  ;int roll = ; 
   int icount = Utility.RandomInt(requiredMin ,4) ; for now, 4 is max because it seems reasonable
+  ; this is equal chance, which leans toward 4 too heavily when we don't need 4
+  ; TODO swap to a system that swings heavier toward the other direction
   PlayerMon.debugmsg("minimum items: " + requiredMin + ", count roll: " + icount)
   
   armor[] items = new armor[6] ; assuming 3 for belt, 1 collar, 1 armbinder, 1 gag, 2 for cuffs, 5 should be enough but lets do 6
   int itemsptr = 0
-  armor[] tmp = new armor[1] ; irelevant, just there for delcare really
+  armor[] tmp = new armor[1] ; just declaring, ignore the size
   
   ; for items we DONT specify, get randomly
   ; right now this is only single items, no outfits or combos
-  int remainingitems = 4 - requiredMin
+  int remainingitems = icount - requiredMin
   while remainingitems > 0 
     tmp = getRandomSingleDD(player)
     if tmp[1] != None
@@ -1987,6 +2057,10 @@ function equipFollowerAndPlayerItems(actor follower, bool forceBelt = false, boo
     endif
     i += 1
   endWhile
+  
+  ; set the follower's containers to zero, 
+  ;  because it would be weird if the follower ties the player up then turns around and adds more
+  PlayerMon.resetFollowerContainerCount(follower)  
   
 endFunction
 

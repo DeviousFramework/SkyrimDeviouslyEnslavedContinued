@@ -108,12 +108,17 @@ Notes:
       missing dialogue for already gagged, ask for sex get belt?
       missing variety for gagged talking to follower
       
+  
   change follower found items so that special collars cannot be equipped through glib follower comments, only through experimental
   player asking to be tied up should increase reputation
-  
+  rename "actorRef" and replace with variable names that make sense in context in code
+  ; set the follower's containers to zero after a request for more items
+
+  need to tell the difference between the follower having added items and the player getting items otherwise
   got pony gag with 0 setting in MCM
-  tie me up items gives one more than count if items don't match
-   rolled 3 got chains, collar, gag, belt
+  ;tie me up items gives one more than count if items don't match
+  ; rolled 3 got chains, collar, gag, belt
+  ; PlayerMon.ItemScript.equipFollowerAndPlayerItems
   update removeDDs to include all items
    update it to accept a list list of available removing keys ; pretty sure I had this at one point
     possible but very slow: for all keys, compare against all DD items required keys

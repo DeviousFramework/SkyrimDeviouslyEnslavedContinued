@@ -1731,7 +1731,7 @@ bool function isBlockFromDCURItemsOnly()
     return false
   endif
 
-  int exp = 1
+  int exp = 1 ; this is a exponential bitmask, as we move up in ^2 increments we move one slot up
   Form armor_form = None
   Armor tmp_armor = None
   ; for all item slots

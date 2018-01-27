@@ -10,7 +10,7 @@ Actor akSpeaker = akSpeakerRef as Actor
 ; can you untie me now
 ; you need a belt to look more like a slave
   crdePlayerMonitorScript PlayerMon = GetOwningQuest() as crdePlayerMonitorScript
-  PlayerMon.ItemScript.getRandomBeltAndStuff(Game.GetPlayer(), force_stuff = true)
+  PlayerMon.ItemScript.equipRandomBeltAndStuff(Game.GetPlayer(), force_stuff = true)
   actor[] a = PlayerMon.NPCSearchScript.getNearbyActors(500)
   PlayerMon.adjustPerceptionPlayerSub(a, 3.0, 25)
   PlayerMon.modFollowerLikesDom(akSpeaker, 2.0)
