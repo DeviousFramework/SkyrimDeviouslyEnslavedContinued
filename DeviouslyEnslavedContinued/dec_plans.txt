@@ -48,7 +48,8 @@ Debug report form:
   
   -^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v-
     Changes to esp scheduled once it's available:
-   
+    alter the "come to think of it why do plugs not come flanged" dialogue for only if the player is belted, they are belted, or the item was a belt
+
   
   -^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v-
   
@@ -107,15 +108,43 @@ Notes:
       
       missing dialogue for already gagged, ask for sex get belt?
       missing variety for gagged talking to follower
-      
+  
+  can we detect what items the player is wearing that the follower put on them?
+   - outcomes:
+   - no items were put on by follower (surprise, where did you find these)
+   - follower items + non-follower items (surprise addition, modification?)
+   - only follower items (interaction)
+   - 
+  
+  can we change the plug adding to avoid belts
+   - at the least we need to allow harnesses with it
+  
+  () set SD limite removal to off, might be the cause of the stack dump
+  
+  ;test suit is working
+  got pony gag with 0 setting in MCM
+  add MCM modifier for approach chance for when the player is alone with the attacker
+   maybe remove some dialogue or add some too
+
+  detect cuffs for vulnerable?
+  need to tell the difference between the follower having added items and the player getting items otherwise
+  users think we shouldn't get belt with plugs always
+    could have sworn I had belt OR harness setup, but guess not?  
+  also add unique collars to post sex, meaning single item detection
+  user thinks "Oh right, you are still tied up... oh well, only one end needs to be open, right" leads to no belt re-adding, which 
+  user wants new pony suit finished 
+  ;"soulgem from a necromancer" -> rubber inflateable insert?
+    new system, needs testing to see if we can actually reach it
+  fix bug where follower forgets item if they get interupted
+  fix your struggle animations
+    can we get gag detection working for PAHE dialogue? ; you mean override his dialogue with our own? we can't make a tree that big
+    home: "you stop, sex with me" ignores belt
   
   change follower found items so that special collars cannot be equipped through glib follower comments, only through experimental
   player asking to be tied up should increase reputation
   rename "actorRef" and replace with variable names that make sense in context in code
   ; set the follower's containers to zero after a request for more items
 
-  need to tell the difference between the follower having added items and the player getting items otherwise
-  got pony gag with 0 setting in MCM
   ;tie me up items gives one more than count if items don't match
   ; rolled 3 got chains, collar, gag, belt
   ; PlayerMon.ItemScript.equipFollowerAndPlayerItems
@@ -129,33 +158,17 @@ Notes:
     should we reduce by volume? the more followers the more we reduce? 2 is 30% 5 is 90%?
   there should be a special follower interaction from "what did you have in mind" -> "Can I put this on?" player controls
   
-  
-  
-  ;looks like the MODS automatic updater is broken, slaverun was uninstalled and now isn't working..?
-    ; wouldn't replicate after save clean
-  users think we shouldn't get belt with plugs always
-    could have sworn I had belt OR harness setup, but guess not?  
-   
   inspiration from SS, make a few generic NPC masters that can be put anywhere with generic AI and decent appearance, 
     then create a list of locations they can spawn at, to get around limited NPCs that are killable
   finish straitjacket
-  also add unique collars to post sex, meaning single item detection
   re-organize unique collars to not roll against single/double, but to fit under collars themselves
-  user thinks "Oh right, you are still tied up... oh well, only one end needs to be open, right" leads to no belt re-adding, which 
-  user wants new pony suit finished
-  user wants unlocking dialogue for follower
   
   "have you found a key for this annoying belt yet?" dom version?
-  "soulgem from a necromancer" -> rubber inflateable insert?
   ;"I think I have akey that fits" + "not really, a little tight" doesn't really work for nipple piercings
   straitjacket multiple?
-  alter the "come to think of it why do plugs not come flanged" dialogue for only if the player is belted, they are belted, or the item was a belt
   removing one collar and adding one didn't work, just removed one collar
-  unique collar roll ignores that we are already wearing one
-    needs to be added to single attacker item
-  ;ddi 4 elbowbinders input yet
-    ;we need to finish adding both to the mods and to the add function
-    ;we need the boots id
+  ;unique collar roll ignores that we are already wearing one
+  ;  needs to be added to single attacker item
   ;ddi 4 catsuit isn't used yet UNTESTED
       maybe also one for vag if naked + armbinder + gag?
     we should add a unique attacker option if already armbound and naked?
@@ -165,10 +178,6 @@ Notes:
   
   belt required added to special dialogue, TODO add a special property in playermon for if gag+belt is an option
   ; changed the requirments for item finding follower to crdeFormerFollowerFaction
-  fix bug where follower forgets item if they get interupted
-  fix your struggle animations
-    can we get gag detection working for PAHE dialogue?
-    home: "you stop" ignores belt
   Talk to PAHE about:
   if NPC is former follower, prevent random NPC attack, or give special dialogue
     - for now, use the new faction (which is checkable in the dialogue conditions)
@@ -186,20 +195,17 @@ Notes:
   ;  assign some reasonable intro values
   
   work more on the approach follower dialogue
-   - can we fix the struggle emotes?
    + add dialogue for follower realizing you don't want to wait until you get home to be bound up
           should be a simple compare if time has expired
   ;fix equipFollowerAndPlayerItems to make sure it detects that we need a gag ; should detect much more
   recompile all that had getRandomHarnessAndStuff <- just item manupulate
   ;recompile all that used that new follower and player item function, needs more stuff
- 
-  add more ddi 4.0 items, as soft dependency
- 
-    -- what the hell this should be working
+  
   follower in furniture should not approach player for stuff
+    -- what the hell this should be working
+
    
-  ;changed player gender in doplayersex to sexlab gender 
-   
+old:   
   container check cell is NULL when we're out in the overworld... crap
   double reset is still in effect, damn it.
   boots slider

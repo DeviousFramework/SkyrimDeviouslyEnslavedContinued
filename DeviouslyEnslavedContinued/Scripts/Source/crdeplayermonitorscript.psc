@@ -157,17 +157,21 @@ int followerFoundDDItemsIndex
 
 FormList property permanentFollowers Auto 
 
-; WARNING: this list exists in different spots, make sure they stay updated with each other
+;   last edited: 2018-1-29 , there is another list in ItemScript with the same info
+; -------------------------------------------------------------------------------------------------
 ;   0 is random single item, 1 is random collar
-;   2 is plug and extra, 3 is belt and extra
+;-  2 is plug and extra, 3 is belt and extra                 DEPRECATED
 ;   4 is gloves and boots, 5 is other boots, 6 cuffs
 ;   7 is blindfold, 8 is armbinder,  
 ;   10 is random ringgag, 11 is random ball gag, 12 is random panel gag, 13 is random any gag
-;   14 is rubber suit, 15 is red suit, 16 is pony suit, 17 is harness
-;   21 nipple piercings, 22 vag/cock piercing, 23 both
-;   25 is CD Belt and plug, 26 is CD Belt and Harness, 27 is full CD chastity set, 28 is full gold or silver set, with plug (reward)
+;   14 is rubber suit, 15 is red suit, 16 is pony suit,
+;   21 nipple piercings, 22 vag/cock piercing, 23 random, 24 both
+;   30 is random unique collar
+;   31 is pet collar
+;   40 is random CDx items
+;   50 is random plug, 51 is random plug and more, 52 is random gem plug and more
+;   55 is random belt and more, 56 is random harness and more
 
-; there's another comment section like this in ItemScript
 int Property followerItemsCombination   Auto Conditional
 int Property followerItemsWhichOneFree  Auto Conditional
 

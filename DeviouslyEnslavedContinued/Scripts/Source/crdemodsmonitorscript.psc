@@ -444,12 +444,15 @@ Faction Property sltSlaveFaction Auto
 MagicEffect Property dawnguardLordForm Auto
 Quest Property dflowQuest Auto
 
+
 ; dd 4.0 soft dependency stuff for users who want to keep with 3.3 for now
 bool  property modLoadedDD4 Auto
 armor Property DD4HoodBlackEbonite Auto
 armor Property DD4HoodRubberHood Auto
 armor Property DD4YokeSteel Auto 
-armor Property DD4CatsuitCollarBlack Auto 
+armor Property DD4CatsuitBodyBlack Auto ;
+armor Property DD4CatsuitArmsBlack Auto ;
+armor Property DD4CatsuitCollarBlack Auto ;
 armor Property DD4CatsuitCollarRed Auto 
 armor Property DD4CatsuitCollarWhite Auto 
 armor Property DD4TransparentCatsuit Auto ;
@@ -460,7 +463,7 @@ armor Property DD4ElbowbinderWhite Auto ;
 armor Property DD4PonyGagBlackHarn Auto ;
 armor Property DD4PonyGagRedHarn Auto ;
 armor Property DD4PonyGagWhiteHarn Auto ;
-
+armor Property DD4PonyTailPlug Auto ;0602EA47 
 
 bool Property bRefreshModDetect Auto
 Perk Property crdeContainerPerk Auto
@@ -1052,10 +1055,12 @@ function updateForms()
   dfwFramework = Quest.GetQuest("_dfwDeviousFramework")
   modLoadedDD4 = libs.GetVersion() >= 8.0
   if modLoadedDD4
-    DD4HoodBlackEbonite = Game.GetFormFromFile(0x0603D2D7, "Devious Devices - Expansion.esm") as Armor
-    DD4HoodRubberHood   = Game.GetFormFromFile(0x0603D850, "Devious Devices - Expansion.esm") as armor
-    DD4YokeSteel        = Game.GetFormFromFile(0x0003d2e1, "Devious Devices - Expansion.esm") as armor
+    DD4HoodBlackEbonite   = Game.GetFormFromFile(0x0603D2D7, "Devious Devices - Expansion.esm") as Armor
+    DD4HoodRubberHood     = Game.GetFormFromFile(0x0603D850, "Devious Devices - Expansion.esm") as armor
+    DD4YokeSteel          = Game.GetFormFromFile(0x0003d2e1, "Devious Devices - Expansion.esm") as armor
     DD4CatsuitCollarBlack = Game.GetFormFromFile(0x0003d2ca, "Devious Devices - Expansion.esm") as armor
+    DD4CatsuitBodyBlack   = Game.GetFormFromFile(0x0603D2C4, "Devious Devices - Expansion.esm") as armor
+    DD4CatsuitArmsBlack   = Game.GetFormFromFile(0x0003d2d1, "Devious Devices - Expansion.esm") as armor
     DD4CatsuitCollarRed   = Game.GetFormFromFile(0x0003d456, "Devious Devices - Expansion.esm") as armor
     DD4CatsuitCollarWhite = Game.GetFormFromFile(0x0003d95c, "Devious Devices - Expansion.esm") as armor
     DD4TransparentCatsuit = Game.GetFormFromFile(0x0003d2db, "Devious Devices - Expansion.esm") as armor
@@ -1063,11 +1068,11 @@ function updateForms()
     DD4ElbowbinderBlack   = Game.GetFormFromFile(0x000415a3, "Devious Devices - Expansion.esm") as armor
     DD4ElbowbinderRed     = Game.GetFormFromFile(0x000415a5, "Devious Devices - Expansion.esm") as armor
     DD4ElbowbinderWhite   = Game.GetFormFromFile(0x000415a7, "Devious Devices - Expansion.esm") as armor
-    DD4PonyGagBlackHarn       = Game.GetFormFromFile(0x0703B229, "Devious Devices - Expansion.esm") as armor
-    DD4PonyGagRedHarn         = Game.GetFormFromFile(0x0703BD17, "Devious Devices - Expansion.esm") as armor
-    DD4PonyGagWhiteHarn       = Game.GetFormFromFile(0x0703BD1B, "Devious Devices - Expansion.esm") as armor
-
-    ;DD4BreastYoke       = Game.GetFormFromFile(0x, "Devious Devices - Expansion.esm") as armor
+    DD4PonyGagBlackHarn   = Game.GetFormFromFile(0x0703B229, "Devious Devices - Expansion.esm") as armor
+    DD4PonyGagRedHarn     = Game.GetFormFromFile(0x0703BD17, "Devious Devices - Expansion.esm") as armor
+    DD4PonyGagWhiteHarn   = Game.GetFormFromFile(0x0703BD1B, "Devious Devices - Expansion.esm") as armor
+    DD4PonyTailPlug       = Game.GetFormFromFile(0x0602EA47, "Devious Devices - Expansion.esm") as armor
+    ;DD4CatsuitArmsBlack       = Game.GetFormFromFile(0x, "Devious Devices - Expansion.esm") as armor
   endif
   
   ; this is temporary to fix update 13.11 -> 13.12
