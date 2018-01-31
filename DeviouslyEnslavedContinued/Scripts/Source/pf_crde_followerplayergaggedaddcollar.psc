@@ -12,7 +12,7 @@ Actor akSpeaker = akSpeakerRef as Actor
 ; equip collar
 ; add dom points to follower
   crdePlayerMonitorScript PlayerMon = GetOwningQuest() as crdePlayerMonitorScript
-  PlayerMon.ItemScript.equipRandomGag(Game.GetPlayer())
+  PlayerMon.ItemScript.equipRandomDDCollars(Game.GetPlayer())
   actor[] a = PlayerMon.NPCSearchScript.getNearbyActors(500)
   PlayerMon.adjustPerceptionPlayerSub(a, 3.0, 25)
   PlayerMon.modFollowerLikesDom(akSpeaker, 2.0)
