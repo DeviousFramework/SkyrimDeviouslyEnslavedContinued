@@ -231,13 +231,13 @@ event OnPageReset(string a_page)
     iWeightSingleNipplePiercingsOID  = AddSliderOption("Nipple Piercing", iWeightSingleNipplePiercings, "{0}")
 
     iWeightSingleGlovesBootsOID   = AddSliderOption("Gloves and Boots", iWeightSingleGlovesBoots, "{0}")
-    iWeightSingleAnkleChainsOID   = AddSliderOption("Ankle Chains", iWeightSingleAnkleChains, "{0}");(!Mods.iWeightSingleAnkleChains) as int)
+    iWeightSingleAnkleChainsOID   = AddSliderOption("Ankle Chains", iWeightSingleAnkleChains, "{0}")
     iWeightSingleBlindfoldOID     = AddSliderOption("Blindfold", iWeightSingleBlindfold, "{0}")
     iWeightSingleYokeOID          = AddSliderOption("Yoke", iWeightSingleYoke, "{0}")
-    ;iWeightSingleBootsOID         = AddSliderOption("Boots", iWeightSingleBoots, "{0}", 1);(!Mods.iWeightSingleBoots) as int)
-    iWeightSingleHoodOID          = AddSliderOption("Hoods", iWeightSingleHood, "{0}");(!Mods.iWeightSingleHood) as int)
-    iWeightHobleDressOID          = AddSliderOption("Bondage Dress", iWeightHobleDress, "{0}", (!(Mods.modLoadedCursedLoot || Mods.modLoadedDD4) ) as int)
-    iWeightStraitJacketOID        = AddSliderOption("StraitJacket", iWeightStraitJacket, "{0}", (!Mods.modLoadedDD4) as int)
+    ;iWeightSingleBootsOID         = AddSliderOption("Boots", iWeightSingleBoots, "{0}", 1)
+    iWeightSingleHoodOID          = AddSliderOption("Hoods", iWeightSingleHood, "{0}");
+    iWeightHobleDressOID          = AddSliderOption("Bondage Dress", iWeightHobleDress, "{0}", 1);(!(Mods.modLoadedCursedLoot || Mods.modLoadedDD4) ) as int)
+    iWeightStraitJacketOID        = AddSliderOption("StraitJacket", iWeightStraitJacket, "{0}", 1);(!Mods.modLoadedDD4) as int)
 
 
     

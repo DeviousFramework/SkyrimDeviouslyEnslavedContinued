@@ -121,6 +121,10 @@ Notes:
   
   () set SD limite removal to off, might be the cause of the stack dump
   
+  user wants haunted house compatibility to work again
+  update all wornhaskeyword with item get from slot and test item for keyword
+   this couldn't backfire horribly right?
+
   ;test suit is working
   got pony gag with 0 setting in MCM
   add MCM modifier for approach chance for when the player is alone with the attacker
