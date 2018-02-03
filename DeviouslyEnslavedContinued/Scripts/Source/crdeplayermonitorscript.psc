@@ -1676,6 +1676,7 @@ endFunction
 
 ; soft specifies if the sex can allow for softer sexual animations, like cuddling
 function doPlayerSexFull(actor actorRef, actor actorRef2, bool rape = false, bool soft = false, bool oral_only = false)
+  float startingTime = Utility.GetCurrentGameTime() 
   Debug.SendAnimationEvent(actorRef, "IdleNervous") ; should work well enough; no longer works...what
   clear_force_variables() ; handles forceGreetIncomplete = false
   Mods.dhlpResume()
@@ -1789,7 +1790,7 @@ function doPlayerSexFull(actor actorRef, actor actorRef2, bool rape = false, boo
   ; this whole slaw is here to help us find enough animations to throw into sexlab
   ; but should really be re-thought a bit..
   String newAnimationTags = threesomeTag + animationTags
-  bool DDi3 = libs.GetVersion() <= 6.0 ; probably break the game if you tried to use a function like that on the older DDI
+  bool DDi3 = ! Mods.modLoadedDD4 ; probably break the game if you tried to use a function like that on the older DDI
   sslBaseAnimation[] animations = new sslBaseAnimation[1] ; ignore this, this is just a declare for papyrus compiler
   if actorRef2 != None || DDi3
     animations = SexLab.GetAnimationsByTag(2 + ((actorRef2 != None) as int), newAnimationTags, TagSuppress = supressTags)
@@ -1825,15 +1826,17 @@ function doPlayerSexFull(actor actorRef, actor actorRef2, bool rape = false, boo
   endif
   
   ; just debug, printing what we got
-  int anim = 0
-  sslBaseAnimation tmp 
-  String total = ""
-  while anim < animations.length
-    tmp = animations[anim]
-    total += " >A: " + tmp.name + " tags:" + tmp.GetRawTags()
-    anim += 1
-  endwhile
-  debugmsg(total, 3) ; hurts logs less
+  if MCM.bDebugRollVis
+    int anim = 0
+    sslBaseAnimation tmp 
+    String total = "\n"
+    while anim < animations.length
+      tmp = animations[anim]
+      total += " > A: " + tmp.name + " tags:" + tmp.GetRawTags() + "\n"
+      anim += 1
+    endwhile
+    debugmsg(total, 3) ; thrashes the log less
+  endif
   
   ; if both player and attacker are female, we want the player to take the 'reciever' or 'female' position
   ;  why does sorting the actors do this? no fucking clue. this code was used in petcollar, maybe it's placebo who knows ¯\_(ツ)_/¯
@@ -1844,23 +1847,28 @@ function doPlayerSexFull(actor actorRef, actor actorRef2, bool rape = false, boo
   endif
   
   
+  ;this was removed in 13.13.9 because I'm tired of only having one animation that I can't change through sexlab
+  ;and we shouldn't need to get around the filter anymore since we now USE the filter
   ; attempting to get around DDi animation filter based on kimy's advice
-  sslBaseAnimation[]  single_animation = new sslBaseAnimation[1]
-  int l = animations.length - 1
-  single_animation[0] = animations[Utility.RandomInt(0,l)]
-  debugmsg("Animation chosen is: " + single_animation[0].name, 3)
+  ;sslBaseAnimation[]  single_animation = new sslBaseAnimation[1]
+  ;int l = animations.length - 1
+  ;single_animation[0] = animations[Utility.RandomInt(0,l)]
+  ;debugmsg("Animation chosen is: " + single_animation[0].name, 3)
   
   ; if player is male, and female attacker, don't use aggressive because we want cowgirl animations
   if rape == true && !(playerGender == 0 && actorGender == 1 ) 
     sexFromDEC = true
-    SexLab.StartSex(sexActors, single_animation, player);, None, false);
+    ;SexLab.StartSex(sexActors, single_animation, player);, None, false);
+    SexLab.StartSex(sexActors, animations, player);, None, false);
   else
     if soft
       sexFromDECWithoutAfterAttacks = true
     endif
     sexFromDEC = true
-    SexLab.StartSex(sexActors, single_animation);
+    ;SexLab.StartSex(sexActors, single_animation);
+    SexLab.StartSex(sexActors, animations);
   endif
+  debugmsg("doPlayerSex finshed, time: " + (Utility.GetCurrentGameTime() - startingTime), 1)
 endFunction
 
 ; this is the hook called after sexlab is finished

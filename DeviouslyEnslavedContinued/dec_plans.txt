@@ -121,12 +121,17 @@ Notes:
   
   () set SD limite removal to off, might be the cause of the stack dump
   
-  user wants haunted house compatibility to work again
-  update all wornhaskeyword with item get from slot and test item for keyword
-   this couldn't backfire horribly right?
+  follower sex approach seems broken, no dialogue but approach works (approach into regular dialogue)
+  ;can we pass multiple animations to sexlab? then animation cycle might work
+  ;we should run a time test on starting sexlab
+  "I can wear it underneath at least" should not be an option for gag/blindfold/yoke/armbinder, boots
+  check that our item is removed from player code isn't as fast as possible
+  we should consider speeding up the item detection by checking specific slots instead of WornHasKeyword
+  got pony gag with 0 setting in MCM
+
+  ;user wants haunted house compatibility to work again; nvm user was talking hypothetically
 
   ;test suit is working
-  got pony gag with 0 setting in MCM
   add MCM modifier for approach chance for when the player is alone with the attacker
    maybe remove some dialogue or add some too
 
