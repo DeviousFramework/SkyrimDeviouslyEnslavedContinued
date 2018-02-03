@@ -1195,15 +1195,15 @@ armor function getRandomGag()
     + ballgag + "/" + ringgag + "/" + panelgag + "/" + penisgag + "/" + ponygag\
     + ")roll/total:(" + roll + "/" + total + ")", 2)
   ; gags are ordered in the array by theme rather by type, ball -> panel -> ring, for black red white
-  if roll < ballgag
+  if roll <= ballgag
     gag = PlayerMon.randomDDgags[3 * Utility.RandomInt(0,2)]
-  elseif roll < ballgag + panelgag 
+  elseif roll <= ballgag + panelgag 
     gag = PlayerMon.randomDDgags[3 * Utility.RandomInt(0,2) + 1]
-  elseif roll < ballgag + panelgag + ringgag
+  elseif roll <= ballgag + panelgag + ringgag
     gag = PlayerMon.randomDDgags[3 * Utility.RandomInt(0,2) + 2]
-  elseif roll < ballgag + panelgag + ringgag + penisgag 
+  elseif roll <= ballgag + panelgag + ringgag + penisgag 
     gag = Mods.dcurHeavyGag
-  else;if roll < ballgag + panelgag + ringgag + penisgag + ponygag
+  else;if roll <= ballgag + panelgag + ringgag + penisgag + ponygag
     roll = Utility.RandomInt(0, 2)
     if roll == 0
       gag = Mods.DD4PonyGagBlackHarn
@@ -2123,18 +2123,16 @@ function equipFollowerAndPlayerItems(actor follower, bool forceBelt = false, boo
     endWhile
   endif
   if forceGag && ! player.WornHasKeyword(libs.zad_DeviousGag)
-    ;tmp = getRandomGag()
     items[itemsptr] = getRandomGag()
     itemsptr += 1  
   endif
   if forceArmbinder && ! player.WornHasKeyword(libs.zad_DeviousArmbinder)
-    ;armor temp ()
     items[itemsptr] = getRandomDDArmbinders()
     itemsptr += 1  
   endif
   if forceCollar && ! player.WornHasKeyword(libs.zad_DeviousCollar)
     items[itemsptr] = getRandomGag()
-    ;itemsptr += 1  
+    itemsptr += 1  
   endif
 
   int i = 0
