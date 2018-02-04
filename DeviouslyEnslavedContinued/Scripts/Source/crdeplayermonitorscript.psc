@@ -162,7 +162,7 @@ FormList property permanentFollowers Auto
 ;   0 is random single item, 1 is random collar
 ;-  2 is plug and extra, 3 is belt and extra                 DEPRECATED
 ;   4 is gloves and boots, 5 is other boots, 6 cuffs
-;   7 is blindfold, 8 is armbinder,  
+;   7 is blindfold, 8 is armbinder, 9 is yoke
 ;   10 is random ringgag, 11 is random ball gag, 12 is random panel gag, 13 is random any gag
 ;   14 is rubber suit, 15 is red suit, 16 is pony suit,
 ;   21 nipple piercings, 22 vag/cock piercing, 23 random, 24 both
@@ -1614,8 +1614,13 @@ endFunction
 ; return: 0 nothing, 1 gag, 2 belt, 3 both?
 ; for now, both doesn't work
 int function prepareForDoPlayerSex(actor actorRef, bool both = false, bool skip_oral = false)
-  knownGag = libs.GetWornDeviceFuzzyMatch(player, libs.zad_DeviousGag) ; should be redundant, but fails for some reason
+  float startingTime = Utility.GetCurrentRealTime()
+  ; HOLY SHIT THIS TAKES > 25 SECONDS, how the fuck
+  ;knownGag = libs.GetWornDeviceFuzzyMatch(player, libs.zad_DeviousGag) 
   ;debugmsg("gag we see: " + knownGag.GetName()) ; whoa! forget the none check did we?
+
+  ;debugmsg("prepare for sex, after worndevicefuzzymatch, time: " + (Utility.GetCurrentRealTime() - startingTime))
+
   
   ; if the attacker is belted, and they have their own key, they should remove their belt.
   if actorRef.WornHasKeyword(libs.zad_DeviousBelt) && actorRef.getItemCount(libs.chastityKey) > 0
@@ -1638,7 +1643,10 @@ int function prepareForDoPlayerSex(actor actorRef, bool both = false, bool skip_
       return 1; done, set var and leave?
     endif
   endif
-  
+
+  ;debugmsg("prepare for sex, after gag check, time: " + (Utility.GetCurrentRealTime() - startingTime))
+
+
   ; male attacker, check if they can unlock you
   ; skip oral was here, huh?
   if actorRef.GetActorBase().GetSex() == 0 && wearingBlockingVaginal \
@@ -1655,14 +1663,8 @@ int function prepareForDoPlayerSex(actor actorRef, bool both = false, bool skip_
       return 2; done, set var and leave?
     endif
   endif
-  ; still here? so they couldn't remove your belt... if female lets lock to oral at least
-  ;if actorRef.GetActorBase().GetSex() == 1
-    ;if Utility.RandomInt(1,100) > 50
-    ;  return 1
-    ;else
-    ;  return 2
-    ;endif
-  ;endif
+
+  ;debugmsg("prepare for sex exiting, after belt, result 0 time: " + (Utility.GetCurrentRealTime() - startingTime))
   
   return 0  
 EndFunction
@@ -1676,7 +1678,7 @@ endFunction
 
 ; soft specifies if the sex can allow for softer sexual animations, like cuddling
 function doPlayerSexFull(actor actorRef, actor actorRef2, bool rape = false, bool soft = false, bool oral_only = false)
-  float startingTime = Utility.GetCurrentGameTime() 
+  float startingTime = Utility.GetCurrentRealTime() 
   Debug.SendAnimationEvent(actorRef, "IdleNervous") ; should work well enough; no longer works...what
   clear_force_variables() ; handles forceGreetIncomplete = false
   Mods.dhlpResume()
@@ -1708,6 +1710,9 @@ function doPlayerSexFull(actor actorRef, actor actorRef2, bool rape = false, boo
   if PlayerScript.sittingInZaz ; if player is tied up in furniture, move the player to the attacker, so sex doesn't clip
     player.moveTo(actorRef)
   endif
+
+  debugmsg("doPlayerSex, before sexstart prepare function, time: " + (Utility.GetCurrentRealTime() - startingTime), 1)
+
   
   string animationTags = "";
   int preSex = prepareForDoPlayerSex(actorRef, skip_oral = oral_only)
@@ -1754,39 +1759,9 @@ function doPlayerSexFull(actor actorRef, actor actorRef2, bool rape = false, boo
   endif
   
   ; we can optimize this out with a variable, since we have to check this earlier when we start the dialogue anyway
-  ;if player.wornHasKeyword(libs.zad_DeviousBelt) 
-  ;  ; actor has a key, will use ;zzz key
-  ; 
-  ;  ; we know the player is belted, now check if their belt permits vag (are there even any?) and check for female attacker
-  ;  ;  problem we're trying to avoid: suppress tags are both ways, we can't suppress vag for just player
-  ;  ;  we don't want to block vag tag if the player can perform cunnilingus on female attacker though, so we can't block vag tag there or we block vag on both
-  ;  ; preSex != 1 for now we're including the possibility of the player using strapon against attacker who needs service
-  ;  if  (actorRef.WornHasKeyword(libs.zad_DeviousBelt) && !player.wornhaskeyword(libs.zad_PermitVaginal)) 
-  ;    supressTags += ",Vaginal,Pussy,Tribadism,BlowJob"
-  ;  elseif actorGender == 1
-  ;    ; if they too are a woman, keep pussy it shows up on licking animations
-  ;    supressTags += ",Vaginal"
-  ;  endif
-  ;  if !player.wornhaskeyword(libs.zad_PermitAnal) && actorGender == 0 || ( (actorRef.WornHasKeyword(libs.zad_DeviousBelt) && !actorRef.wornhaskeyword(libs.zad_PermitAnal)))
-  ;    supressTags += ",Anal"
-  ;  endif
-  ;elseif player.wornHasKeyword(Mods.zazKeywordWornBelt) && actorGender == 0 || ( actorRef.wornHasKeyword(Mods.zazKeywordWornBelt))
-  ;  supressTags += ",Vaginal,Anal"
-  ;endif
-  ;if (player.wornhaskeyword(libs.zad_DeviousGag) && !(player.wornhaskeyword(libs.zad_PermitOral) || player.wornhaskeyword(libs.zad_DeviousGagPanel) )) ||\
-  ;    (!player.wornhaskeyword(libs.zad_DeviousGag) && player.wornHasKeyword(Mods.zazKeywordWornGag) && !player.wornHasKeyword(Mods.zazKeywordPermitOral))
-  ;  if actorRef.wornhaskeyword(libs.zad_DeviousBra)
-  ;    supressTags += ",Breastfeeding"
-  ;  endif
-  ;  supressTags += ",Oral,Mouth"
-  ;  if actorGender == 0
-  ;    supressTags += ",Blowjob"
-  ;  endif
-  ;endif
-  ;if player.wornhaskeyword(libs.zad_DeviousBra) && actorGender == 0
-  ;  supressTags += ",Boobjob"
-  ;endif
   
+  debugmsg("doPlayerSex, before the animation search through DDi, time: " + (Utility.GetCurrentRealTime() - startingTime), 1)
+
   ; this whole slaw is here to help us find enough animations to throw into sexlab
   ; but should really be re-thought a bit..
   String newAnimationTags = threesomeTag + animationTags
@@ -1825,6 +1800,7 @@ function doPlayerSexFull(actor actorRef, actor actorRef2, bool rape = false, boo
     endif
   endif
   
+  debugmsg("doPlayerSex, before the animation print, time: " + (Utility.GetCurrentRealTime() - startingTime), 1)
   ; just debug, printing what we got
   if MCM.bDebugRollVis
     int anim = 0
@@ -1837,7 +1813,9 @@ function doPlayerSexFull(actor actorRef, actor actorRef2, bool rape = false, boo
     endwhile
     debugmsg(total, 3) ; thrashes the log less
   endif
-  
+
+  debugmsg("doPlayerSex, before sort actors, time: " + (Utility.GetCurrentRealTime() - startingTime), 1)
+
   ; if both player and attacker are female, we want the player to take the 'reciever' or 'female' position
   ;  why does sorting the actors do this? no fucking clue. this code was used in petcollar, maybe it's placebo who knows ¯\_(ツ)_/¯
   ;  unless oral was chosen, then we want the player to 'give' oral, rather than recieve
@@ -1868,7 +1846,7 @@ function doPlayerSexFull(actor actorRef, actor actorRef2, bool rape = false, boo
     ;SexLab.StartSex(sexActors, single_animation);
     SexLab.StartSex(sexActors, animations);
   endif
-  debugmsg("doPlayerSex finshed, time: " + (Utility.GetCurrentGameTime() - startingTime), 1)
+  debugmsg("doPlayerSex finshed, time: " + (Utility.GetCurrentRealTime() - startingTime), 1)
 endFunction
 
 ; this is the hook called after sexlab is finished

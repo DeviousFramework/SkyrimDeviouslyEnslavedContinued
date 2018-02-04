@@ -1906,7 +1906,7 @@ endFunction
 ;   0 is random single item, 1 is random collar
 ;-  2 is plug and extra, 3 is belt and extra                 DEPRECATED
 ;   4 is gloves and boots, 5 is other boots, 6 cuffs
-;   7 is blindfold, 8 is armbinder,  
+;   7 is blindfold, 8 is armbinder, 9 is yoke
 ;   10 is random ringgag, 11 is random ball gag, 12 is random panel gag, 13 is random any gag
 ;   14 is rubber suit, 15 is red suit, 16 is pony suit, 
 ;   21 nipple piercings, 22 vag/cock piercing, 23 random, 24 both

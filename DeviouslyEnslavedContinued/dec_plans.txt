@@ -42,7 +42,6 @@ Debug report form:
 #                                                 #
 ###################################################
  
-
   ---- switching to new dcur and ddi -----
   Need to swap DDzaZAPCArmBZaDS0* files for animations, were removed in ddi 4
   
@@ -98,6 +97,7 @@ Debug report form:
         check if piercing set to zero never makes it past stuff roll
         check if DFW leash game doesn't block DEC
         remove debug from playermonitor, or at least categorize the output of it
+        remove debug from doPlayerSexFull
         
   --- $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$ --- 
 
@@ -122,13 +122,22 @@ Notes:
   () set SD limite removal to off, might be the cause of the stack dump
   
   follower sex approach seems broken, no dialogue but approach works (approach into regular dialogue)
+    cannot reproduce in new save, will neen to inspect affected save
   ;can we pass multiple animations to sexlab? then animation cycle might work
   ;we should run a time test on starting sexlab
-  "I can wear it underneath at least" should not be an option for gag/blindfold/yoke/armbinder, boots
-  check that our item is removed from player code isn't as fast as possible
+    ;we always get really low values, doPlayerSex finshed, time: 0.005994
+    ;but we got muuuuch longer delay when the player was wearing DD stuff, so where is the delay coming from?
+    ;"could fuck you for hours" takes > 10 seconds to start
+    ;do not use libs.GetWornFuzzyMatchKeyword, it was what was causing over 25 seconds of downtime, holy shit
   we should consider speeding up the item detection by checking specific slots instead of WornHasKeyword
-  got pony gag with 0 setting in MCM
-
+    war has been declared on fuzzymatch
+  ;"I can wear it underneath at least" should not be an option for gag/blindfold/yoke/armbinder, boots
+  check that our item is removed from player code isn't as fast as possible
+  ;got pony gag with 0 setting in MCM
+  single item plugs chance
+  two gag rolls? got with "you should try on" -> hey! -> ?
+  follower appraoch doesn't ignore slaves that are armbound
+  
   ;user wants haunted house compatibility to work again; nvm user was talking hypothetically
 
   ;test suit is working
@@ -949,6 +958,8 @@ player is approached by friendly NPC, because NPC has noticed player likes it ((
     get the power to pull items from mods, set to string search
     set dcur settings, dd to easy, fame tutorial off, sexlab settings
     add gag, collar, armbinder, belt to player for testing. keys
+      arousing piercing and plugs for testing follower arousal
+      drip spell for faster arousal
     add an item to the nearest container for quick pull testing
     make sure sexlab slow approach bed is off
     make sure the player has a vulnerable item that doesn't block any sex or dialogue
