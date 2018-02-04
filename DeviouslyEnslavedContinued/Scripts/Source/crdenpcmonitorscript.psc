@@ -592,18 +592,18 @@ endFunction
 
 bool function isWearingSlaveXaz(actor actorRef)
   
-  return !MCM.bIgnoreZazOnNPC && ( actorRef.WornHasKeyword(Mods.zazKeywordWornGag) || actorRef.WornHasKeyword(Mods.zazKeywordWornBlindfold) ||\
-            actorRef.WornHasKeyword(Mods.zazKeywordWornBelt) || actorRef.WornHasKeyword(Mods.zazKeywordWornYoke) ||\
-            actorRef.WornHasKeyword(Mods.zazKeywordAnimWrists)) ||\
-         (actorRef.WornHasKeyword(Mods.zazKeywordWornCollar) && !(actorRef.GetWornForm(0x00000004) != None || MCM.bIgnoreZazOnNPC)) ; must also be naked for collar to work
+  return !MCM.bIgnoreZazOnNPC && ( actorRef.WornHasKeyword(Mods.zazKeywordWornGag) || actorRef.WornHasKeyword(Mods.zazKeywordWornBlindfold) \
+      || actorRef.WornHasKeyword(Mods.zazKeywordWornBelt) || actorRef.WornHasKeyword(Mods.zazKeywordWornYoke) \
+      || actorRef.WornHasKeyword(Mods.zazKeywordAnimWrists)) \
+      || (actorRef.WornHasKeyword(Mods.zazKeywordWornCollar) && !(actorRef.GetWornForm(0x00000004) != None || MCM.bIgnoreZazOnNPC)) ; must also be naked for collar to work
 endFunction
 
 bool function isWearingSlaveDD(actor actorRef)
   ; devicekeywords: armbinder, blindfold, collar, gag, everything else after that is zaz zbfgag
-  return actorRef.WornHasKeyword(PlayerMonScript.libs.zad_DeviousArmbinder) || actorRef.WornHasKeyword(PlayerMonScript.libs.zad_DeviousBlindfold) ||\
-          actorRef.WornHasKeyword(PlayerMonScript.libs.zad_DeviousGag) ||\
-          actorRef.WornHasKeyword(libs.zad_DeviousHarness) || actorRef.WornHasKeyword(libs.zad_DeviousHeavyBondage) || actorRef.WornHasKeyword(libs.zad_DeviousBelt)
-          (actorRef.WornHasKeyword(PlayerMonScript.libs.zad_DeviousCollar) && !(actorRef.GetWornForm(0x00000004) != None || MCM.bIgnoreZazOnNPC))
+  return actorRef.WornHasKeyword(libs.zad_DeviousArmbinder) || actorRef.WornHasKeyword(libs.zad_DeviousBlindfold) \
+      || actorRef.WornHasKeyword(libs.zad_DeviousGag) \
+      || actorRef.WornHasKeyword(libs.zad_DeviousHarness) || actorRef.WornHasKeyword(libs.zad_DeviousHeavyBondage) || actorRef.WornHasKeyword(libs.zad_DeviousBelt)\
+      || (actorRef.WornHasKeyword(libs.zad_DeviousCollar) && !(actorRef.GetWornForm(0x00000004) != None || MCM.bIgnoreZazOnNPC))
 endFunction
 
 ; there's one in playermon, do we need this one here?

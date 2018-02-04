@@ -1814,7 +1814,7 @@ function doPlayerSexFull(actor actorRef, actor actorRef2, bool rape = false, boo
   if MCM.bDebugRollVis
     int anim = 0
     sslBaseAnimation tmp 
-    String total = "\n"
+    String total = " Animations available: \n"
     while anim < animations.length
       tmp = animations[anim]
       total += " > A: " + tmp.name + " tags:" + tmp.GetRawTags() + "\n"
@@ -1823,7 +1823,7 @@ function doPlayerSexFull(actor actorRef, actor actorRef2, bool rape = false, boo
     debugmsg(total, 3) ; thrashes the log less
   endif
 
-  debugmsg("doPlayerSex, before sort actors, time: " + (Utility.GetCurrentRealTime() - startingTime), 1)
+  ;debugmsg("doPlayerSex, before sort actors, time: " + (Utility.GetCurrentRealTime() - startingTime), 1)
 
   ; if both player and attacker are female, we want the player to take the 'reciever' or 'female' position
   ;  why does sorting the actors do this? no fucking clue. this code was used in petcollar, maybe it's placebo who knows ¯\_(ツ)_/¯
@@ -1841,6 +1841,9 @@ function doPlayerSexFull(actor actorRef, actor actorRef2, bool rape = false, boo
   ;int l = animations.length - 1
   ;single_animation[0] = animations[Utility.RandomInt(0,l)]
   ;debugmsg("Animation chosen is: " + single_animation[0].name, 3)
+  
+  debugmsg("doPlayerSex, before starting sexlab, time: " + (Utility.GetCurrentRealTime() - startingTime), 1)
+
   
   ; if player is male, and female attacker, don't use aggressive because we want cowgirl animations
   if rape == true && !(playerGender == 0 && actorGender == 1 ) 

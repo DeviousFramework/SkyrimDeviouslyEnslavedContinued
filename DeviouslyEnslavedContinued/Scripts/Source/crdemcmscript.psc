@@ -167,7 +167,6 @@ event OnPageReset(string a_page)
   if a_page == Pages[1] ;Settings
 
     gCRDEEnableOID        = AddToggleOption("Mod Enabled", gCRDEEnable.GetValueInt() == 1)
-    ;bCRDEEnableOID        = AddToggleOption("Mod Enabled", bCRDEEnable)
     AddEmptyOption() ; spacer
     
     AddHeaderOption("Dialogue Chances")

@@ -88,9 +88,7 @@ Event OnObjectUnequipped(Form akBaseObject, ObjectReference akReference)
       weaponChanged     = true
     endif
   endif
-  ;PlayerMonitorScript.equipmentChanged = true
-  ;(PlayerMonitorScript).equipmentChanged = true
-  ;crdeInvChange.SetValue(1)
+  
 EndEvent
 
 Event OnSit(ObjectReference akFurniture)

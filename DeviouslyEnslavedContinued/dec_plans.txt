@@ -120,6 +120,9 @@ Notes:
    - at the least we need to allow harnesses with it
   
   () set SD limite removal to off, might be the cause of the stack dump
+
+  follower appraoch doesn't ignore slaves that are armbound
+    checking npcsearchmonitor
   
   follower sex approach seems broken, no dialogue but approach works (approach into regular dialogue)
     cannot reproduce in new save, will neen to inspect affected save
@@ -136,7 +139,7 @@ Notes:
   ;got pony gag with 0 setting in MCM
   single item plugs chance
   two gag rolls? got with "you should try on" -> hey! -> ?
-  follower appraoch doesn't ignore slaves that are armbound
+  if follower finds a petcollar, they don't always put it on themselves it seems
   
   ;user wants haunted house compatibility to work again; nvm user was talking hypothetically
 
