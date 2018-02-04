@@ -925,7 +925,8 @@ bool function attemptApproach()
   ; if player has followers
   if  MCM.bFollowerDialogueToggle.GetValueInt() == 1 \
     && followers[0] != None && timeoutFollowerNag < CurrentGameTime \
-    && (nearest.length <= 1 || player_loc && player_loc.haskeyword(LocTypePlayerHouse)) 
+    && (nearest[0] == None || player_loc && player_loc.haskeyword(LocTypePlayerHouse)) 
+    ; && (nearest.length <= 1 || player_loc && player_loc.haskeyword(LocTypePlayerHouse)) 
 
     return attemptFollowerApproach(followers)
     
