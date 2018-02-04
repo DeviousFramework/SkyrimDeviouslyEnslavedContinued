@@ -32,6 +32,7 @@ crdePlayerMonitorScript Property PlayerMonitorScript Auto
 crdeModsMonitorScript   Property Mods Auto
 
 ;GlobalVariable Property crdeInvChange auto ; ignore for now
+GlobalVariable Property crdeModEnabled auto ; ignore for now
 
 bool Property equipmentChanged Auto
 bool Property weaponChanged Auto
@@ -75,13 +76,17 @@ endEvent
 Event OnObjectUnequipped(Form akBaseObject, ObjectReference akReference)
   ; COULD put clause to check if player was already vulnerable first, you can't become vulnerable from not
   
-  if akBaseObject as Armor ; apparently eating/potions/herbs counts as equiping, also weapons
-    equipmentChanged = true
-    if akBaseObject != None && playersRemovedItems != None
-      playersRemovedItems.addForm(akBaseObject)
+  ; we should check if the mod is active and/or if the player is enslaved
+  if akBaseObject != None && crdeModEnabled.GetValueInt() == 1 && PlayerMonitorScript.enslavedLevel != 3
+    
+    if akBaseObject as Armor ; apparently eating/potions/herbs counts as equiping, also weapons
+      equipmentChanged = true
+      ;if playersRemovedItems != None ; for now, since we're not really using stuff anyway
+      ;  playersRemovedItems.addForm(akBaseObject)
+      ;endif
+    elseif akBaseObject as Weapon
+      weaponChanged     = true
     endif
-  elseif akBaseObject as Weapon
-    weaponChanged     = true
   endif
   ;PlayerMonitorScript.equipmentChanged = true
   ;(PlayerMonitorScript).equipmentChanged = true
