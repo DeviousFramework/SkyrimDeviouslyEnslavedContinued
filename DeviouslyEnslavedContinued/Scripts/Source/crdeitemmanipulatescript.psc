@@ -181,7 +181,7 @@ function removeDDbyArmor(actor actorRef, armor armorRef)
 endFunction
 
 function removeDDbyKWD(actor actorRef, keyword keywordRef)
-  armor dd    = libs.GetWornDeviceFuzzyMatch(actorRef, keywordRef)
+  armor dd    = libs.GetWornDevice(actorRef, keywordRef)
   armor rndrd = libs.GetRenderedDevice(dd)
   libs.removeDevice(actorRef, dd, rndrd, keywordRef)
   if dd != None && dd.haskeyword(libs.zad_DeviousBelt)
@@ -315,7 +315,7 @@ endFunction
 bool function removeCurrentCollar(actor actorRef)
   ; we use DeviousCollar and not zaz because we don't care about non-devious items, they unequip if we equip something else
   ;Armor collar  = player.GetWornForm( 0x00008000 ) as Armor ; maybe this doesn't always work?
-  armor collar   = libs.GetWornDeviceFuzzyMatch(actorRef, libs.zad_DeviousCollar)
+  armor collar   = libs.GetWornDevice(actorRef, libs.zad_DeviousCollar)
   if collar != None && actorRef.WornHasKeyword(libs.zad_DeviousCollar) && !collar.HasKeyword(libs.zad_BlockGeneric) 
     ;PlayerMon.debugmsg("Trying to remove: " + collar.GetName())
     ;removeDDbyKWD(libs.zad_DeviousCollar)
@@ -2172,7 +2172,7 @@ function swapFollowerFoundItems(actor actorRef)
   ; for all devices in our list
   while i < items.length && items[i] != NONE
     tmpkw = libs.GetDeviceKeyword(items[i])
-    dd    = libs.GetWornDeviceFuzzyMatch(actorRef, tmpkw)
+    dd    = libs.GetWornDevice(actorRef, tmpkw)
     if dd != None
       rndrd = libs.GetRenderedDevice(dd)
       if !dd.HasKeyword(libs.zad_BlockGeneric)

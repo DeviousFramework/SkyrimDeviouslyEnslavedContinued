@@ -106,6 +106,7 @@ bool Property wearingHarness         Auto Conditional
 bool Property wearingSlaveBoots      Auto
 bool Property wearingBukkake         Auto Conditional; visible, takes nudity into account
 bool Property wearingAnkleChains     Auto Conditional
+bool Property wearingBelt            Auto Conditional
 
 ; Keyword     Property SexlabAnalCum  Auto
 ; Keyword     Property SexlabVaginalCum Auto 
@@ -142,6 +143,7 @@ armor knownArmbinder
 armor knownBlindfold
 armor knownCollar
 armor knownGag
+armor knownBelt
 
 bool    Property forceGreetIncomplete   Auto Conditional
 int     Property forceGreetSlave        Auto Conditional
@@ -981,8 +983,10 @@ bool function attemptApproach()
     debugmsg("chastity:" + wearingBlockingFull + ": a:" + wearingBlockingAnal + " b:" + wearingBlockingBra + " g:" + wearingBlockingGag, 3)
     if wearingBlockingFull 
       ; all items
-      if (nearest[0].GetItemCount(libs.chastityKey) > 0 && !libs.GetWornDeviceFuzzyMatch(player, libs.zad_DeviousBelt).HasKeyword(libs.zad_BlockGeneric)) \
-      || (nearest[0].getItemCount(libs.restraintsKey) > 0 && !libs.GetWornDeviceFuzzyMatch(player, libs.zad_DeviousGag).HasKeyword(libs.zad_BlockGeneric))
+      if (nearest[0].GetItemCount(libs.chastityKey) > 0 && knownBelt != None && !knownBelt.HasKeyword(libs.zad_BlockGeneric)) \
+      || (nearest[0].getItemCount(libs.restraintsKey) > 0 && knownGag != None && !knownGag.HasKeyword(libs.zad_BlockGeneric))
+      ; if (nearest[0].GetItemCount(libs.chastityKey) > 0 && !libs.GetWornDeviceFuzzyMatch(player, libs.zad_DeviousBelt).HasKeyword(libs.zad_BlockGeneric)) \
+      ; || (nearest[0].getItemCount(libs.restraintsKey) > 0 && !libs.GetWornDeviceFuzzyMatch(player, libs.zad_DeviousGag).HasKeyword(libs.zad_BlockGeneric))
         rollSex     = rollSex     /  MCM.fChastityCompleteModifier
       else 
         rollSex     = 101         ; impossible, put the needed number out of reach
@@ -1195,7 +1199,7 @@ bool function attemptFollowerApproach(actor[] followers)
   follower_thinks_player_sub    = StorageUtil.GetFloatValue(follower, "crdeThinksPCEnjoysSub")
   if SexLab.HadPlayerSex(follower) || follower_thinks_player_sub >= 5
     keyword blocking_keyword      = libs.zad_BlockGeneric
-    armor belt                    = libs.GetWornDeviceFuzzyMatch(player, blocking_keyword)
+    
     int aroused_level             = follower.GetFactionRank(Mods.sexlabArousedFaction)
     goal                          = (Math.Pow(aroused_level, MCM.fFollowerSexApproachExp) * MCM.sexApproachParabolicModifier) + 10 * ((follower_thinks_player_sub >= 3) as int)
     int max = MCM.fFollowerSexApproachChanceMaxPercentage ; bad papyrus
@@ -1205,7 +1209,7 @@ bool function attemptFollowerApproach(actor[] followers)
     float roll                    = Utility.RandomFloat(100)
     debugmsg("follower aroused roll:" + roll + " need below " + goal, 3)
     ; moved this out so that we can detect it in the conversations even if not sex roll
-    follower_can_remove_belt      = belt != None && !belt.HasKeyword(blocking_keyword) && follower.getItemCount(libs.GetDeviceKey(belt)) > 0
+    follower_can_remove_belt      = knownBelt != None && !knownBelt.HasKeyword(blocking_keyword) && follower.getItemCount(libs.GetDeviceKey(knownBelt)) > 0
     if aroused_level >= MCM.gFollowerArousalMin.GetValueInt() && roll < goal && !Mods.isSlave(follower)
       if !(MCM.gForceGreetItemFind.GetValueInt() as bool)
         Debug.Notification( follower.GetDisplayName() + " looks aroused.")
@@ -1476,6 +1480,9 @@ function updateWornDD(bool collarOnly = false)
   if(wearingGag == true && collarOnly == false)
     knownGag = libs.GetWornDevice(player, libs.zad_DeviousGag)
   endif
+  if wearingBelt == true 
+    knownBelt = libs.GetWornDevice(player, libs.zad_DeviousBelt)
+  endif
 endFunction
 
 ; 0 is nothing, 1 is local, 2 is given, 3 is sold, 4 is slaverun (old version, and new when I can get detection working)
@@ -1650,7 +1657,8 @@ int function prepareForDoPlayerSex(actor actorRef, bool both = false, bool skip_
   ; male attacker, check if they can unlock you
   ; skip oral was here, huh?
   if actorRef.GetActorBase().GetSex() == 0 && wearingBlockingVaginal \
-    && !libs.GetWornDeviceFuzzyMatch(player, libs.zad_DeviousBelt).HasKeyword(libs.zad_BlockGeneric)
+    && knownBelt != None && knownBelt.HasKeyword(libs.zad_BlockGeneric)
+    ;&& !libs.GetWornDeviceFuzzyMatch(player, libs.zad_DeviousBelt).HasKeyword(libs.zad_BlockGeneric)
     if actorRef.getItemCount(libs.chastityKey) > 0
       Debug.Notification(actorRef.GetDisplayName() + " had a chastity key to unlock you!")
       ItemScript.removeDDbyKWD(player, libs.zad_DeviousBelt)
