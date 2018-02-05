@@ -44,13 +44,14 @@ FormList Property playersRemovedItems Auto
 
 ; needs detailed description
 Event OnPlayerLoadGame()
-  Startup.needsMaintenance = true
+  Startup.needsMaintenance = true     ; wait, we do this HERE?
   Startup.RegisterForSingleUpdate(2)
   equipmentChanged  = true
   weaponChanged     = true
-  if Mods.bRefreshModDetect
+  if Mods.bRefreshModDetect           ; WTF why is this HERE? ; 
     SendModEvent("crdemodsreset")
   endif
+  crdeModEnabled = PlayerMonitorScript.MCM.gCRDEEnable
 EndEvent
 
 ; we only need to test if the player is vulnerable when equipment changes
