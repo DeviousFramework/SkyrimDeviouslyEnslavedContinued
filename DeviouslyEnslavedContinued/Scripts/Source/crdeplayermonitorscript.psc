@@ -285,7 +285,6 @@ Event OnInit()
 EndEvent
 
 function Maintenance()
-  PlayerScript.equipmentChanged = true ; start out checking equipment regardless of what it could be
   ;cdGeneralFactionAlias = Mods.cdGeneralFaction as Alias
   RegisterForModEvent("HookAnimationStart", "crdeSexStartCatch")
   RegisterForModEvent("HookAnimationEnd", "crdeSexHook")
