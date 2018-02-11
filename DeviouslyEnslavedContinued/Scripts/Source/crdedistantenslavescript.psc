@@ -80,10 +80,10 @@ Event OnInit()
   if Mods == None
     Debug.Trace("[CRDE] distant:Mods is NONE!!! What the fuck")
   endif
-  while Mods.finishedCheckingMods == false
-    Debug.Trace("[CRDE] distant:mods not finished yet")
-    Utility.Wait(1)
-  endwhile
+  ;while Mods.finishedCheckingMods == false ;; removed from 13.13.10 because we didn't need it it seems, but it does lock down single cycle ModsMonitor
+  ;  Debug.Trace("[CRDE] distant:mods not finished yet")
+  ;  Utility.Wait(1)
+  ;endwhile
   RegisterForSingleUpdate(1)
 EndEvent
 

@@ -64,9 +64,9 @@ Function Maintenance()
 	if(Mods.isRunning() == false)
 		bool sOK = Mods.start()
 		Debug.Trace("[CRDE] startquest, ModsMon startup: " + sOK)
-		(Mods as crdeModsMonitorScript).Maintenance() ; don't need to update if we're starting the quest fresh, let init handle this
+		SendModEvent("crderesetmods")
   else
-		(Mods as crdeModsMonitorScript).Maintenance()
+		SendModEvent("crderesetmods")
 	endif
 
 	Utility.Wait(0.25)		

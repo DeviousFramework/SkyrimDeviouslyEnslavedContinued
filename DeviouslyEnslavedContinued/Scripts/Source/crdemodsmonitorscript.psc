@@ -510,7 +510,11 @@ Event Maintenance()
   Debug.Trace("[CRDE] Mods::Maintenance ...")
   ; think we have to wait for the other mods to load
   ;Utility.Wait(7) ; used to be 3, doesn't work with 2-1, returning to longer
-  
+
+  finishedCheckingMods = false
+  updateForms() ; needs to happen first, otherwise MCM is stuck waiting for Mods.
+  checkStatuses()
+
   ; for a few versions, we'll just reapply the perk every update
   ;  why? because the perk doesn't auto refresh when a newer version of code is installed
   ;  so the parameters don't get re-init
@@ -523,9 +527,6 @@ Event Maintenance()
     player.addPerk(crdeContainerPerk)
   endif
   Debug.Trace("[CRDE] Mods::Maintenance, starting updateForms, time: " + (Utility.GetCurrentRealTime() - time))
-  finishedCheckingMods = false
-  updateForms()
-  checkStatuses()
 EndEvent
 
 Event remoteResetCalled(string eventName, string strArg, float numArg, Form sender)
@@ -960,7 +961,7 @@ function updateForms()
     endif
     prisonoverhaulNewESP = true
   endif
-  PlayMonScript.isArrestable = modLoadedPrisonOverhaulPatch 
+  ;PlayMonScript.isArrestable = modLoadedPrisonOverhaulPatch  <- this needs to be moved to a safer location
   if previouslyLoaded && !(modLoadedPrisonOverhaul || modLoadedPrisonOverhaulPatch)
     Debug.Trace("[crde] Prison overhual was previously loaded but now isn't")
     Debug.Trace("[crde] attempting reload with esp lookup, slower ...")
@@ -1084,7 +1085,7 @@ function updateForms()
   ; this is temporary to fix update 13.11 -> 13.12
   ; reason: ItemScript::player was never used, and we were calling PlayerMon.player all the time
   ; so I switched to local player, but it alocates on init, which never happens for updating players
-  PlayMonScript.ItemScript.player = Game.GetPlayer()
+  ;PlayMonScript.ItemScript.player = Game.GetPlayer()
   
   Debug.Trace("[CRDE] ******** ignore any errors between these two messages FINISH ********", 1)
   finishedCheckingMods = true
