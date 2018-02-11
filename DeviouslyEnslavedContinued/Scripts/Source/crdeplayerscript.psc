@@ -42,13 +42,15 @@ bool Property isZazSexlabFurniture Auto
 
 FormList Property playersRemovedItems Auto
 
-; needs detailed description
+; this is HERE, in the player alias, because bethesda decided this event is ONLY valid for this object type
+; funnily, this gets called TWICE for some unknown reason
 Event OnPlayerLoadGame()
-  Startup.needsMaintenance = true     ; wait, we do this HERE?
+  Debug.Trace("CRDE: ONSAVELOADED run from playerscript")
+  Startup.needsMaintenance = true      
   Startup.RegisterForSingleUpdate(2)
-  equipmentChanged  = true
+  equipmentChanged  = true             ; just assume we should recheck anyway, not a big deal to do this once per save load
   weaponChanged     = true
-  if Mods.bRefreshModDetect           ; WTF why is this HERE? ; 
+  if Mods.bRefreshModDetect            ; we can call this from here on every save load
     SendModEvent("crdemodsreset")
   endif
   crdeModEnabled = PlayerMonitorScript.MCM.gCRDEEnable

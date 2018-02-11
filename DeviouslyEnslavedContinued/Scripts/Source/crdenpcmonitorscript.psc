@@ -51,7 +51,7 @@ Keyword Property ActorTypeNPC Auto ;: 00013794
 
 
 Actor          Property player Auto
-ReferenceAlias Property playerScriptAlias Auto 
+;ReferenceAlias Property playerScriptAlias Auto  ; this is deprecated because it causes save load detection to double, use the one in playermon
 
 ; might be a touch cheaper than GetRandomNearbyNPC
 
@@ -91,12 +91,11 @@ bool  masterIsSlaver    ; what was I going to do with this agaim?
 event OnInit()
   player = Game.GetPlayer()
   Utility.wait(7)
-  PlayerScript = (playerScriptAlias as crdePlayerScript) 
+  PlayerScript = (PlayerMonScript.playerScriptAlias as crdePlayerScript) 
   while Mods.finishedCheckingMods == false
     Debug.Trace("[crde]in npc:mods not finished yet", 1)
     Utility.wait(2) ; in seconds
   endWhile
-  ;PlayerScript = (playerScriptAlias as crdePlayerScript) ; hopefully, this will reduce papyrus load
 
 endEvent
 
@@ -479,7 +478,7 @@ endFunction
 bool function isActorRefIneligable(actor actorRef, bool includeSlaveTraders = false)
   ;debugmsg("invalid: ", 0)
   
-  if actorRef == None ; should be taken care of before this, but might as well play with save variables
+  if actorRef == None ;|| actorRef.GetDisplayName().getsize() == 0; should be taken care of before this, but might as well catch here
     return false
   endif
   

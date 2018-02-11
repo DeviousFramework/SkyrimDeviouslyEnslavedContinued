@@ -476,7 +476,8 @@ Event OnInit()
   RegisterForModEvent("dhlp-Resume", "OnResume")
   RegisterForModEvent("crderesetmods", "remoteResetCalled")
   
-  Maintenance() ; don't call here, playerstartquest is calling it
+  ;Maintenance() ; don't call here, playerstartquest is calling it
+  ; it seems to get called twice here, if I check which location is calling it, I get mods:oninit twice
 EndEvent
 
 Event onUpdate()
@@ -485,24 +486,28 @@ Event onUpdate()
   ;  Debug.Trace("[CRDE]Player Container Perk was missing, applying ...")
   ;  player.addPerk(crdeContainerPerk)
   ;endif
-  if bRefreshModDetect
-    ; if init called it already
-    Utility.Wait(2.0)
-    if lastUpdateGameTime != 0
-      Debug.Trace("CRDE: " + lastUpdateGameTime + "< " + Utility.GetCurrentGameTime() )
-      Maintenance() 
-    ;else
-    ;  Debug.Trace("[CRDE] Ignoring mods detection reset: not enough time has passed since last reset")
-    endif
-  endif
+  ;if bRefreshModDetect
+  ;  ; if init called it already
+  ;  Utility.Wait(2.0)
+  ;  if lastUpdateGameTime != 0
+  ;    Debug.Trace("CRDE: " + lastUpdateGameTime + "< " + Utility.GetCurrentGameTime() )
+  ;    Maintenance() 
+  ;  ;else
+  ;  ;  Debug.Trace("[CRDE] Ignoring mods detection reset: not enough time has passed since last reset")
+  ;  endif
+  ;endif
 endEvent
 ;Event onGameLoad()
 
 Event Maintenance()
+  ;actor dummy = None
+  ;Debug.Trace("CRDE: " + dummy.GetDisplayName())
+  float time = Utility.GetCurrentRealTime()
+  
   Debug.Trace("CRDE: " + lastUpdateGameTime + " < " + Utility.GetCurrentGameTime() )
   lastUpdateGameTime = Utility.GetCurrentGameTime() as float; reset clock
   ;RegisterForSingleUpdate(9)
-  Debug.Trace("[CRDE]Mods:Maintenance ...")
+  Debug.Trace("[CRDE] Mods::Maintenance ...")
   ; think we have to wait for the other mods to load
   ;Utility.Wait(7) ; used to be 3, doesn't work with 2-1, returning to longer
   
@@ -513,10 +518,11 @@ Event Maintenance()
   if player.HasPerk(crdeContainerPerk)
     player.removePerk(crdeContainerPerk)
   endif
+  Debug.Trace("[CRDE] Mods::Maintenance, after perk, time: " + (Utility.GetCurrentRealTime() - time))
   if  i == 1 ; we want the perk to be re-added
     player.addPerk(crdeContainerPerk)
   endif
-  Debug.Trace("[CRDE]Mods:Maintenance, starting updateForms ...")
+  Debug.Trace("[CRDE] Mods::Maintenance, starting updateForms, time: " + (Utility.GetCurrentRealTime() - time))
   finishedCheckingMods = false
   updateForms()
   checkStatuses()

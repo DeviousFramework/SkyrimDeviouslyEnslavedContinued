@@ -1169,7 +1169,7 @@ bool function attemptFollowerApproach(actor[] followers)
         ; while we're here lets update our current followers container counts, 
         ;  instead of making a completely separate loop
         StorageUtil.AdjustIntValue(tmp_follower, "crdeFollContainersSearched", playerContainerOpenCount)
-        debugmsg("follower chosen: " + tmp_follower.GetDisplayName() + " and:" + NPCMonitorScript.checkActorBoundInFurniture(tmp_follower))
+        ;debugmsg("follower chosen: " + tmp_follower.GetDisplayName() )
       endif
     endif
     i += 1
