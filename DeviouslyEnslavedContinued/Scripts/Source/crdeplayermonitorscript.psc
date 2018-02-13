@@ -1159,7 +1159,7 @@ bool function attemptFollowerApproach(actor[] followers)
     elseif tmp_follower.WornHasKeyword(libs.zad_DeviousHeavyBondage)
       debugmsg("follower " + tmp_follower.GetDisplayName() + " is bound in heavy bondage and cannot approach")
     elseif NPCMonitorScript.checkActorBoundInFurniture(tmp_follower)
-      debugmsg("follower " + tmp_follower.GetDisplayName() + " is bound in zaz furniture and cannot appraoch")
+      debugmsg("follower " + tmp_follower.GetDisplayName() + " is bound in zaz furniture and cannot approach")
     elseif SexLab.HadPlayerSex(tmp_follower) || StorageUtil.GetFloatValue(tmp_follower, "crdeThinksPCEnjoysSub") > 0 || follower_count == 0 
       valid_followers[follower_count] = tmp_follower
       follower_count += 1
@@ -1702,13 +1702,13 @@ int function prepareForDoPlayerSex(actor actorRef, bool both = false, bool skip_
 
   
   ; if the attacker is belted, and they have their own key, they should remove their belt.
-  if actorRef.WornHasKeyword(libs.zad_DeviousBelt) && actorRef.getItemCount(libs.chastityKey) > 0
+  if actorRef.GetWornForm(0x00080000).hasKeyword(libs.zad_DeviousBelt) && actorRef.getItemCount(libs.chastityKey) > 0
     ItemScript.removeDDbyKWD(actorRef, libs.zad_DeviousBelt)
   endif
   
   ; player is wearing gag
-  if !skip_oral && player.WornHasKeyword(libs.zad_DeviousGag) && !knownGag.HasKeyword(libs.zad_BlockGeneric) 
-    if player.WornHasKeyword(libs.zad_PermitOral) || player.WornHasKeyword(libs.zad_DeviousGagPanel)
+  if !skip_oral && wearingGag && !knownGag.HasKeyword(libs.zad_BlockGeneric) 
+    if knownGag.HasKeyword(libs.zad_PermitOral) || knownGag.HasKeyword(libs.zad_DeviousGagPanel)
       debugmsg("gag is panel or permiting",3)
     elseif actorRef.getItemCount(libs.restraintsKey) > 0
       Debug.Notification(actorRef.GetDisplayName() + " had a key to remove your gag!")
