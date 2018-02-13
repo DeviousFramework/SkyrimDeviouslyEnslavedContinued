@@ -124,7 +124,6 @@ Notes:
 
   ;follower appraoch doesn't ignore slaves that are armbound
   
-  why the fuck is DEC updating code in crdeplayerscript?!?
   follower sex approach seems broken, no dialogue but approach works (approach into regular dialogue)
     cannot reproduce in new save, will neen to inspect affected save
   ;can we pass multiple animations to sexlab? then animation cycle might work
@@ -135,7 +134,14 @@ Notes:
     ;do not use libs.GetWornFuzzyMatchKeyword, it was what was causing over 25 seconds of downtime, holy shit
   we should consider speeding up the item detection by checking specific slots instead of WornHasKeyword
     ;war has been declared on fuzzymatch
+    item detection on player:
+    old double function:
+      naked: old: 0.217995 new: 0.089005
+      3 items: old: 1.261993  new: 0.085999
+      almost everything: old: 5.864990  new: 0.145020
+      huge difference, and that's with debug spouting out of the second one
     this could be a huge benefit for NPC searching too
+    
   ;"I can wear it underneath at least" should not be an option for gag/blindfold/yoke/armbinder, boots
   check that our item is removed from player code isn't as fast as possible
   ;got pony gag with 0 setting in MCM
