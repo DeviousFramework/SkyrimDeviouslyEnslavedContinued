@@ -1154,9 +1154,9 @@ bool function attemptFollowerApproach(actor[] followers)
       
     elseif Mods.modLoadedCD && Mods.cdFollowerTiedUp.GetValueInt() == 1 && Mods.isTiedUpCDFollower(tmp_follower)
       debugmsg("follower " + tmp_follower.GetDisplayName() + " is tied up in CDx")
-    elseif tmp_follower.WornHasKeyword(libs.zad_DeviousGag)
+    elseif tmp_follower.GetWornForm(0x02000000).HasKeyword(libs.zad_DeviousGag)
       debugmsg("follower " + tmp_follower.GetDisplayName() + " is gagged and will not approach")
-    elseif tmp_follower.WornHasKeyword(libs.zad_DeviousHeavyBondage)
+    elseif tmp_follower.GetWornForm(0x00010000).HasKeyword(libs.zad_DeviousHeavyBondage)
       debugmsg("follower " + tmp_follower.GetDisplayName() + " is bound in heavy bondage and cannot approach")
     elseif NPCMonitorScript.checkActorBoundInFurniture(tmp_follower)
       debugmsg("follower " + tmp_follower.GetDisplayName() + " is bound in zaz furniture and cannot approach")
@@ -1220,6 +1220,7 @@ bool function attemptFollowerApproach(actor[] followers)
       endif
       forceGreetSex = 10
       forceGreetIncomplete = true
+      ItemScript.updateActorWearingDD(follower)
       busyGameTime = CurrentGameTime + ( MCM.iApproachDuration * (1.0/1400.0)) ; 24 * 60 minutes in a day
       reshuffleFollowerAliases(follower);
 
@@ -1341,14 +1342,15 @@ bool function attemptFollowerApproach(actor[] followers)
     endif
     
     if !(MCM.gForceGreetItemFind.GetValueInt() as bool)
-      ; force greet is off, we just want to notify player but not appraoch
+      ; force greet is off, we just want to notify player but not approach
       Debug.Notification( follower.GetDisplayName() + " wants to talk to you.")
     else 
       ; force greet is on, setup cancel timeout
       forceGreetIncomplete = true
       busyGameTime = CurrentGameTime + ( MCM.iApproachDuration * (1.0/1400.0)) ; 24 * 60 minutes in a day
     endif
-
+    
+    ItemScript.updateActorWearingDD(follower)
     forceGreetFollower = 1
     reshuffleFollowerAliases(follower)
     return true
@@ -1972,7 +1974,7 @@ Event crdeSexHook(int tid, bool HasPlayer);(string eventName, string argString, 
     Actor[] actorList = SexLab.HookActors(tid as string)
     actor victim = Thread.getVictim()
     
-    if Thread.ActorCount <= 1  && player.WornHasKeyword(libs.zad_DeviousBelt)  ; we know the player was involved to get this far, lets increase reputation and temporary vulnerability
+    if Thread.ActorCount <= 1  && wearingBelt  ; we know the player was involved to get this far, lets increase reputation and temporary vulnerability
       debugmsg("sexlabhook: masterbation detected while belted", 3)
       ; mod arousal for all nearby NPCs
       actor[] a = NPCSearchScript.getNearbyFollowers() ;getNearbyActors() 
@@ -2062,7 +2064,10 @@ function modifyNearbyNPCPerception(actor[] sexActors, bool playerIsVictim = fals
   ; get nearby NPCs, get first because this might be slowish, get them NOW before they run away
   actor[] a = NPCSearchScript.getNearbyFollowers() ;getNearbyActors() 
   keyword zazCollar = Mods.zazKeywordWornCollar
-  bool playerLooksLikeSlave = playerIsVictim || player.WornHasKeyword(zazCollar) || player.WornHasKeyword(libs.zad_InventoryDevice) ; ||  lets be lazy
+  bool playerLooksLikeSlave = playerIsVictim \
+      || wearingArmbinder || wearingBlindfold || wearingCollar || wearingBelt || wearingGag || wearingHarness || wearingAnkleChains \
+      || player.GetWornForm(0x00008000).HasKeyword(zazCollar) 
+      ;player.WornHasKeyword(libs.zad_InventoryDevice) <- slower
   bool allPartnersLookLikeSlaves = true
   actor testActor
   int i = 0
@@ -2155,42 +2160,38 @@ endFunction
 ; we don't check for visibility of items here, we do that up above in the vulnerability detection
 ; remember, blocking needs to be true if MCM is off, since we test here
 bool function isWearingChastity();actor actorRef)
-  wearingBlockingGag      = false 
+  ;wearingBlockingGag      = false 
   wearingBlockingAnal     = false 
   wearingBlockingVaginal  = false 
-  wearingBlockingBra      = false 
-  wearingBlockingFull     = false 
+  ;wearingBlockingBra      = false 
+  ;wearingBlockingFull     = false 
 
-  if player.wornHasKeyword(libs.zad_DeviousBelt) 
-    if !player.wornhaskeyword(libs.zad_PermitVaginal)
+  if wearingBelt
+    if !knownBelt.HasKeyword(libs.zad_PermitVaginal)
       wearingBlockingVaginal  = true
     endif
-    if !player.wornhaskeyword(libs.zad_PermitAnal)
+    if !knownBelt.HasKeyword(libs.zad_PermitAnal)
       wearingBlockingAnal     = true
     endif 
-  elseif player.wornHasKeyword(Mods.zazKeywordWornBelt) && MCM.bChastityZazBelt; make a MCM option for this one later
+  elseif knownBelt.HasKeyword(Mods.zazKeywordWornBelt) && MCM.bChastityZazBelt; make a MCM option for this one later
     wearingBlockingAnal       = true
     wearingBlockingVaginal    = true
   endif
   
-  if  !MCM.bChastityBra || (player.wornHasKeyword(libs.zad_DeviousBra)); && MCM.bChastityBra)  ; bra
-    wearingBlockingBra        = true
-  endif
+  wearingBlockingBra =  !MCM.bChastityBra || (player.getWornForm(0x02000000 ).HasKeyword(libs.zad_DeviousBra)); && MCM.bChastityBra)  ; bra
   
-  if   (MCM.bChastityGag && (player.wornhaskeyword( libs.zad_DeviousGag ) && !(player.wornhaskeyword( libs.zad_PermitOral ) || player.wornhaskeyword( libs.zad_DeviousGagPanel )))) || \ 
-     (MCM.bChastityZazGag && (player.wornHasKeyword( Mods.zazKeywordWornGag ) && !player.wornhaskeyword( libs.zad_DeviousGag ) && !player.wornHasKeyword( Mods.zazKeywordPermitOral ) ))
-      
-    wearingBlockingGag        = true
-  endif   
-  
+  wearingBlockingGag = MCM.bChastityGag && (knownGag.HasKeyword( libs.zad_DeviousGag ) && !(knownGag.HasKeyword( libs.zad_PermitOral ) || knownGag.HasKeyword( libs.zad_DeviousGagPanel ))) || \ 
+     (MCM.bChastityZazGag && (knownGag.HasKeyword( Mods.zazKeywordWornGag ) && !knownGag.HasKeyword( libs.zad_DeviousGag ) && !knownGag.HasKeyword( Mods.zazKeywordPermitOral ) ))
+        
   wearingBlockingFull = wearingBlockingAnal && wearingBlockingVaginal && wearingBlockingBra && wearingBlockingGag
-  return                wearingBlockingAnal || wearingBlockingVaginal || wearingBlockingBra || wearingBlockingGag ; why did you cut out wearingBlockingGag?
+  
+  return                wearingBlockingAnal || wearingBlockingVaginal || wearingBlockingBra || wearingBlockingGag 
 endfunction
 
-; we need to do more here bIsArmorNaked
+; we need to do more here 
 bool function isNude(actor actorRef)
   ; Chest piece first, nothing else matters
-  Form chest = player.GetWornForm(4)
+  Form chest = actorRef.GetWornForm(4)
   if   chest != None && (chest.HasKeyword(clothingKeywords[0]) || chest.HasKeyword(clothingKeywords[1])) \
     && StorageUtil.GetIntValue(chest, "SLAroused.IsNakedArmor", 0) == 0  ;32
     isNude = false
@@ -2211,9 +2212,9 @@ bool function isNude(actor actorRef)
   
   ; we need to make sure the armored curias thing isn't on a 3rd party armor from a different mod
   ; do this LAST, it's the slowest is why
-  if player.WornHasKeyword(clothingKeywords[0]) || player.WornHasKeyword(clothingKeywords[1]) ; assumed 0 is armored, double check
+  if actorRef.WornHasKeyword(clothingKeywords[0]) || actorRef.WornHasKeyword(clothingKeywords[1]) ; assumed 0 is armored, double check
     if MCM.bAltBodySlotSearchWorkaround == false
-      debugmsg("WARNING: Player has Non-nude chest keywords, but on a non-chest item! Ignoring: alt search is off", 4)
+      debugmsg("WARNING: actorRef has Non-nude chest keywords, but on a non-chest item! Ignoring: alt search is off", 4)
     else  
       ;Float exp = 0
       int exp = 1
@@ -2231,10 +2232,10 @@ bool function isNude(actor actorRef)
       ;                     0x10000000 , 0x20000000 , 0x40000000 ] 
       ;while exp < 32.0
       ;  ; if the form has the keyword, and doesn't have the aroused protection
-      ;  armor_form = player.getWornForm(pow(2.0,exp) as int)
+      ;  armor_form = actorRef.getWornForm(pow(2.0,exp) as int)
       ;  if armor_form != None
       while exp < 2147483648 
-        armor_form = player.getWornForm(exp)
+        armor_form = actorRef.getWornForm(exp)
         if armor_form != None 
           tmp_armor = armor_form as Armor
           if (tmp_armor.HasKeyword(clothingKeywords[0]) || tmp_armor.HasKeyword(clothingKeywords[1])) \
@@ -2980,12 +2981,8 @@ function testTestButton7()
   ;doPlayerSexFull(followerRefAlias02.GetActorRef(), followerRefAlias01.GetActorRef())
   float time = Utility.GetCurrentRealTime()
 
-  ;CheckDevices()
-  updateWornDD()
+  ItemScript.getRandomSingleDD(player)
   debugmsg("time1: " + (Utility.GetCurrentRealTime() - time))
-
-  
-  betterUpdateWornDD()
   
   Debug.Notification("Test has completed.")
   MCM.bTestButton7 = false
