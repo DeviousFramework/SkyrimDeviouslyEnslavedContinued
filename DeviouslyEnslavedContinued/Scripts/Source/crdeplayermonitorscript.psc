@@ -144,6 +144,9 @@ armor knownBlindfold
 armor knownCollar
 armor knownGag
 armor knownBelt
+armor knownHarness
+armor knownSlaveBoots
+armor knownAnkleChains
 
 bool    Property forceGreetIncomplete   Auto Conditional
 int     Property forceGreetSlave        Auto Conditional
@@ -562,7 +565,8 @@ endFunction
 function updateEquippedPlayerVulnerability(bool isSlaver = false)
   debugmsg("updating clothing vulnerability ...", 1) ; too often used, spam; not anymore, less used
   
-  CheckDevices()
+  ;CheckDevices()
+  updateWornDD()
       
       
   ; regular first, then non-naked sensitive
@@ -1466,24 +1470,92 @@ function equipRandomDD(actor actorRef, actor attacker = None, bool canEnslave = 
   ItemScript.equipRandomDD(actorRef, attacker, canEnslave)
 endFunction
 
+; upgraded in 13.13.10
 function updateWornDD(bool collarOnly = false)
 
-  if(wearingArmbinder == true && collarOnly == false)
-    knownArmbinder = libs.GetWornDevice(player, libs.zad_DeviousArmbinder)
-  endif
-  if(wearingBlindfold == true && collarOnly == false)
-    knownBlindfold = libs.GetWornDevice(player, libs.zad_DeviousBlindfold)
-  endif
-  if(wearingCollar == true)  
-    knownCollar = libs.GetWornDevice(player, libs.zad_DeviousCollar)
-  endif
-  if(wearingGag == true && collarOnly == false)
-    knownGag = libs.GetWornDevice(player, libs.zad_DeviousGag)
-  endif
-  if wearingBelt == true 
-    knownBelt = libs.GetWornDevice(player, libs.zad_DeviousBelt)
-  endif
+  knownArmbinder = player.GetWornForm(0x00010000) as armor ; 46
+  wearingArmbinder = knownArmbinder != None && collarOnly == false && knownArmbinder.HasKeyword(libs.zad_DeviousArmbinder)
+  
+  knownBlindfold = player.GetWornForm(0x02000000) as armor ; 55
+  wearingBlindfold = knownBlindfold != None && collarOnly == false && knownBlindfold.HasKeyword(libs.zad_DeviousBlindfold)
+  
+  knownCollar = player.GetWornForm(0x00008000) as armor ; 45
+  wearingCollar = knownCollar != None && collarOnly == false && knownCollar.HasKeyword(libs.zad_DeviousCollar)
+  
+  knownGag = player.GetWornForm(0x00004000) as armor ; 44
+  wearingGag = knownGag != None && collarOnly == false && knownGag.HasKeyword(libs.zad_DeviousGag)
+  
+  knownBelt = player.GetWornForm(0x00080000) as armor ; 49
+  wearingBelt = knownBelt != None && knownBelt.HasKeyword(libs.zad_DeviousBelt)
+  
+  armor tmp  = player.GetWornForm(0x00100000) as armor ; 50 nipple
+  armor tmp2 = player.GetWornForm(0x00200000 ) as armor ; 51 vag
+  wearingPiercings = (tmp != None && tmp.HasKeyword(libs.zad_DeviousPiercingsNipple)) || (tmp2 != None &&tmp2.HasKeyword(libs.zad_DeviousPiercingsVaginal))
+  
+  knownHarness = player.GetWornForm(0x10000000 ) as armor ; 58
+  wearingHarness = knownHarness != None && knownHarness.HasKeyword(libs.zad_DeviousHarness)
+  
+  knownSlaveBoots = player.GetWornForm(0x00000080) as armor ; 37
+  wearingSlaveBoots = knownSlaveBoots != None && knownSlaveBoots.HasKeyword(libs.zad_DeviousBoots)
+
+  knownAnkleChains = player.GetWornForm(0x00000080) as armor ; 53
+  wearingAnkleChains = knownAnkleChains != None && knownAnkleChains.HasKeyword(libs.zad_DeviousAnkleShackles)
+  
+  PlayerScript.equipmentChanged = false
+
+  
 endFunction
+
+; double speed when naked, > 16 times faster when fully clothed (jeez)
+function betterUpdateWornDD(bool collarOnly = false)
+  float time = Utility.GetCurrentRealTime()
+  
+  ; works but slower and bigger
+  ; knownArmbinder = player.GetWornForm(0x00010000) as armor ; 46
+  ; if tmp != None && collarOnly == false && tmp.HasKeyword(libs.zad_DeviousArmbinder)
+    ; debugmsg(" player has armbinder")
+    ; wearingArmbinder = true
+  ; else
+    ; wearingArmbinder = false
+  ; endif
+
+  ; should be faster if property getting was a slow down, but our time check shows exactly the same time
+  ; armor tmp = player.GetWornForm(0x00010000) as armor ; 46
+  ; wearingArmbinder = tmp != None && collarOnly == false && tmp.HasKeyword(libs.zad_DeviousArmbinder)
+  ; knownArmbinder = tmp
+  
+  knownArmbinder = player.GetWornForm(0x00010000) as armor ; 46
+  wearingArmbinder = knownArmbinder != None && collarOnly == false && knownArmbinder.HasKeyword(libs.zad_DeviousArmbinder)
+  
+  knownBlindfold = player.GetWornForm(0x02000000) as armor ; 55
+  wearingBlindfold = knownBlindfold != None && collarOnly == false && knownBlindfold.HasKeyword(libs.zad_DeviousBlindfold)
+  
+  knownCollar = player.GetWornForm(0x00008000) as armor ; 45
+  wearingCollar = knownCollar != None && collarOnly == false && knownCollar.HasKeyword(libs.zad_DeviousCollar)
+  
+  knownGag = player.GetWornForm(0x00004000) as armor ; 44
+  wearingGag = knownGag != None && collarOnly == false && knownGag.HasKeyword(libs.zad_DeviousGag)
+  
+  knownBelt = player.GetWornForm(0x00080000) as armor ; 49
+  wearingBelt = knownBelt != None && knownBelt.HasKeyword(libs.zad_DeviousBelt)
+  
+  armor tmp  = player.GetWornForm(0x00100000) as armor ; 50 nipple
+  armor tmp2 = player.GetWornForm(0x00200000 ) as armor ; 51 vag
+  wearingPiercings = (tmp != None && tmp.HasKeyword(libs.zad_DeviousPiercingsNipple)) || (tmp2 != None &&tmp2.HasKeyword(libs.zad_DeviousPiercingsVaginal))
+  
+  knownHarness = player.GetWornForm(0x10000000 ) as armor ; 58
+  wearingHarness = knownHarness != None && knownHarness.HasKeyword(libs.zad_DeviousHarness)
+  
+  knownSlaveBoots = player.GetWornForm(0x00000080) as armor ; 37
+  wearingSlaveBoots = knownSlaveBoots != None && knownSlaveBoots.HasKeyword(libs.zad_DeviousBoots)
+
+  knownAnkleChains = player.GetWornForm(0x00000080) as armor ; 53
+  wearingAnkleChains = knownAnkleChains != None && knownAnkleChains.HasKeyword(libs.zad_DeviousAnkleShackles)
+  
+  
+  debugmsg("time local: " + (Utility.GetCurrentRealTime() - time))
+endFunction
+
 
 ; 0 is nothing, 1 is local, 2 is given, 3 is sold, 4 is slaverun (old version, and new when I can get detection working)
 ; this is where we decide, before conversation, what kind of enslavement we get, so we can control the randomness of the dialogue to match the weights
@@ -2905,8 +2977,15 @@ function testTestButton7()
   ; endif
 
   ;ItemScript.equipArousingPlugAndBelt(player)
-  doPlayerSexFull(followerRefAlias02.GetActorRef(), followerRefAlias01.GetActorRef())
+  ;doPlayerSexFull(followerRefAlias02.GetActorRef(), followerRefAlias01.GetActorRef())
+  float time = Utility.GetCurrentRealTime()
 
+  ;CheckDevices()
+  updateWornDD()
+  debugmsg("time1: " + (Utility.GetCurrentRealTime() - time))
+
+  
+  betterUpdateWornDD()
   
   Debug.Notification("Test has completed.")
   MCM.bTestButton7 = false

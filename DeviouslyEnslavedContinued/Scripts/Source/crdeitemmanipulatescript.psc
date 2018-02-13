@@ -49,8 +49,6 @@ Armor Property previousGag Auto ; for reapplication
 Outfit Property BallandChainRedOutfit Auto
 Outfit Property BlackPonyMixedOutfit Auto
 
-crdeVars Property Vars Auto ; still not sure what this thing was for
-
 ; one day I will be lubed enough to move this shit over here to this class
 ;Armor[] Property randomDDxCuffs  Auto  
 ;Armor[] Property randomDDxRGlovesBoots  Auto 
@@ -353,7 +351,8 @@ endFunction
 ; this function doesn't get abstracted because getRandomMultipleDD uses outfits and events, which makes it all much harder
 bool function equipRandomDD(actor actorRef, actor attacker = None, bool canEnslave = false)
   PlayerMon.clear_force_variables() ; we reach this spot through the dialogue 
-  PlayerMon.CheckDevices()
+  ;PlayerMon.CheckDevices()
+  PlayerMon.updateWornDD()
   Armor collar          = actorRef.GetWornForm( 0x00008000 ) as Armor 
   bool collarBlocked    = collar != None && actorRef.WornHasKeyword(libs.zad_DeviousCollar) && collar.HasKeyword(libs.zad_BlockGeneric) ;PlayerMon.knownCollar != None && PlayerMon.knownCollar.HasKeyword(libs.zad_BlockGeneric)
   bool isCollarable     = !(actorRef.WornHasKeyword(Mods.zazKeywordWornYoke) || collarBlocked || Mods.iEnslavedLevel > 0)
@@ -384,7 +383,8 @@ endFunction
 armor[] function getRandomDD(actor actorRef, actor attacker = None, bool canEnslave = false)
   ;PlayerMon.debugmsg("Resetting approach at start of equiprandomDD",1)
   PlayerMon.clear_force_variables() ; we reach this spot through the dialogue 
-  PlayerMon.CheckDevices()
+  ;PlayerMon.CheckDevices()
+  PlayerMon.updateWornDD()
   Armor collar          = actorRef.GetWornForm( 0x00008000 ) as Armor 
   bool collarBlocked    = collar != None && actorRef.WornHasKeyword(libs.zad_DeviousCollar) && collar.HasKeyword(libs.zad_BlockGeneric) ;PlayerMon.knownCollar != None && PlayerMon.knownCollar.HasKeyword(libs.zad_BlockGeneric)
   bool isCollarable     = !(actorRef.WornHasKeyword(Mods.zazKeywordWornYoke) || collarBlocked || Mods.iEnslavedLevel > 0)
