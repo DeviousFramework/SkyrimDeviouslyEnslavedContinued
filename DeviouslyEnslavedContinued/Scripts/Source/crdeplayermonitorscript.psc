@@ -1146,33 +1146,40 @@ bool function attemptFollowerApproach(actor[] followers)
   ; TODO flesh this out so that follower can have partner preference with slaves
   i = 0
   int current_count = 0
+  form tmp_armor = NONE
   while i < followers.length
     tmp_follower = followers[i]
-    ; if follower is tied up at CDx
     if tmp_follower == None ; TODO if we can't remove the main follower showing up twice, remove them here
       ; do nothing, we can avoid
+    else
+      tmp_armor = tmp_follower.GetWornForm(0x02000000)
+      bool followerGagged = tmp_armor && tmp_armor.HasKeyword(libs.zad_DeviousGag)
+      tmp_armor = tmp_follower.GetWornForm(0x00010000)
+      bool followerBound  = tmp_armor && tmp_armor.HasKeyword(libs.zad_DeviousHeavyBondage)
       
-    elseif Mods.modLoadedCD && Mods.cdFollowerTiedUp.GetValueInt() == 1 && Mods.isTiedUpCDFollower(tmp_follower)
-      debugmsg("follower " + tmp_follower.GetDisplayName() + " is tied up in CDx")
-    elseif tmp_follower.GetWornForm(0x02000000).HasKeyword(libs.zad_DeviousGag)
-      debugmsg("follower " + tmp_follower.GetDisplayName() + " is gagged and will not approach")
-    elseif tmp_follower.GetWornForm(0x00010000).HasKeyword(libs.zad_DeviousHeavyBondage)
-      debugmsg("follower " + tmp_follower.GetDisplayName() + " is bound in heavy bondage and cannot approach")
-    elseif NPCMonitorScript.checkActorBoundInFurniture(tmp_follower)
-      debugmsg("follower " + tmp_follower.GetDisplayName() + " is bound in zaz furniture and cannot approach")
-    elseif SexLab.HadPlayerSex(tmp_follower) || StorageUtil.GetFloatValue(tmp_follower, "crdeThinksPCEnjoysSub") > 0 || follower_count == 0 
-      valid_followers[follower_count] = tmp_follower
-      follower_count += 1
-      if tmp_follower.IsInFaction(CurrentFollowerFaction) \
-       || tmp_follower.IsInFaction(crdeFormerFollowerFaction) \
-       || tmp_follower.IsInFaction(Mods.paradiseFollowingFaction) 
-       
-        current_followers[current_count] = tmp_follower
-        current_count += 1
-        ; while we're here lets update our current followers container counts, 
-        ;  instead of making a completely separate loop
-        StorageUtil.AdjustIntValue(tmp_follower, "crdeFollContainersSearched", playerContainerOpenCount)
-        ;debugmsg("follower chosen: " + tmp_follower.GetDisplayName() )
+      ; if follower is tied up at CDx
+      if Mods.modLoadedCD && Mods.cdFollowerTiedUp.GetValueInt() == 1 && Mods.isTiedUpCDFollower(tmp_follower)
+        debugmsg("follower " + tmp_follower.GetDisplayName() + " is tied up in CDx")
+      elseif followerGagged
+        debugmsg("follower " + tmp_follower.GetDisplayName() + " is gagged and will not approach")
+      elseif followerBound
+        debugmsg("follower " + tmp_follower.GetDisplayName() + " is bound in heavy bondage and cannot approach")
+      elseif NPCMonitorScript.checkActorBoundInFurniture(tmp_follower)
+        debugmsg("follower " + tmp_follower.GetDisplayName() + " is bound in zaz furniture and cannot approach")
+      elseif SexLab.HadPlayerSex(tmp_follower) || StorageUtil.GetFloatValue(tmp_follower, "crdeThinksPCEnjoysSub") > 0 || follower_count == 0 
+        valid_followers[follower_count] = tmp_follower
+        follower_count += 1
+        if tmp_follower.IsInFaction(CurrentFollowerFaction) \
+         || tmp_follower.IsInFaction(crdeFormerFollowerFaction) \
+         || tmp_follower.IsInFaction(Mods.paradiseFollowingFaction) 
+         
+          current_followers[current_count] = tmp_follower
+          current_count += 1
+          ; while we're here lets update our current followers container counts, 
+          ;  instead of making a completely separate loop
+          StorageUtil.AdjustIntValue(tmp_follower, "crdeFollContainersSearched", playerContainerOpenCount)
+          ;debugmsg("follower chosen: " + tmp_follower.GetDisplayName() )
+        endif
       endif
     endif
     i += 1
@@ -1704,7 +1711,8 @@ int function prepareForDoPlayerSex(actor actorRef, bool both = false, bool skip_
 
   
   ; if the attacker is belted, and they have their own key, they should remove their belt.
-  if actorRef.GetWornForm(0x00080000).hasKeyword(libs.zad_DeviousBelt) && actorRef.getItemCount(libs.chastityKey) > 0
+  form belt = actorRef.GetWornForm(0x00080000)
+  if belt && belt.hasKeyword(libs.zad_DeviousBelt) && actorRef.getItemCount(libs.chastityKey) > 0
     ItemScript.removeDDbyKWD(actorRef, libs.zad_DeviousBelt)
   endif
   

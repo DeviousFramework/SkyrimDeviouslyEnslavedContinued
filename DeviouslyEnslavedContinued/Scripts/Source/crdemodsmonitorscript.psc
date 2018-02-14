@@ -951,35 +951,34 @@ function updateForms()
   
   bool previouslyLoaded              = modLoadedPrisonOverhaul || modLoadedPrisonOverhaulPatch
   prisonoverhaulNewESP = false
-  xazMain                            = Game.GetFormFromFile(0x3E0012C7 , "xazPrisonOverhaul.esp") as Quest
-  xazPrisonerFaction                  = Game.GetFormFromFile(0x0400FA9F , "xazPrisonOverhaul.esp") as Faction
-  ;modLoadedPrisonOverhaul            = xazMain != None
-  modLoadedPrisonOverhaul             = xazPrisonerFaction != None
-  xazPOPatchQuest                     = Game.GetFormFromFile(0x0500EFF7 , "xazPrisonOverhaul - Patch.esp") as Quest
-  modLoadedPrisonOverhaulPatch        = xazPOPatchQuest    != None
-  if !modLoadedPrisonOverhaulPatch
-    xazPOPatchQuest = Game.GetFormFromFile(0x0500EFF7  , "xazPrisonOverhaulPatched.esp") as Quest
-    if xazPOPatchQuest != None
-      Debug.Trace("[crde] Prison overhual newer esp discovered")
+  xazMain                               = Quest.GetQuest("xpoMain")
+  xazPOPatchQuest                       = Quest.GetQuest("xpoPatch")
+
+  if xazMain || xazPOPatchQuest
+    xazPrisonerFaction                  = Game.GetFormFromFile(0x0400FA9F , "xazPrisonOverhaul.esp") as Faction
+    ;modLoadedPrisonOverhaul            = xazMain != None
+    modLoadedPrisonOverhaul             = xazPrisonerFaction != None
+    xazPOPatchQuest                     = Game.GetFormFromFile(0x0500EFF7 , "xazPrisonOverhaul - Patch.esp") as Quest
+    modLoadedPrisonOverhaulPatch        = xazPOPatchQuest    != None
+    
+    if  isModActive("xazPrisonOverhaulPatched.esp")
+      prisonoverhaulNewESP = true
     endif
-    prisonoverhaulNewESP = true
-  endif
-  ;PlayMonScript.isArrestable = modLoadedPrisonOverhaulPatch  <- this needs to be moved to a safer location
-  if previouslyLoaded && !(modLoadedPrisonOverhaul || modLoadedPrisonOverhaulPatch)
-    Debug.Trace("[crde] Prison overhual was previously loaded but now isn't")
-    Debug.Trace("[crde] attempting reload with esp lookup, slower ...")
-    modLoadedPrisonOverhaul         = isModActive("xazPrisonOverhaul.esp")
-    modLoadedPrisonOverhaulPatch    = isModActive("xazPrisonOverhaul - Patch.esp")
-    if !(modLoadedPrisonOverhaul || modLoadedPrisonOverhaulPatch)
-      Debug.Trace("[crde] PrisonOverhual loaded successfully! (wtf) " + modLoadedPrisonOverhaul + " " + modLoadedPrisonOverhaulPatch)
-    else
-      modLoadedPrisonOverhaulPatch    = isModActive("xazPrisonOverhaulPatched.esp")
-      if modLoadedPrisonOverhaulPatch
-        Debug.Trace("[crde] PrisonOverhual loaded successfully! (wtf) " + modLoadedPrisonOverhaul + " " + modLoadedPrisonOverhaulPatch)
-      else
-      Debug.Trace("[crde] Prison overhual did not load with esp lookup")
-      endif
-    endif
+    ;if previouslyLoaded && !(modLoadedPrisonOverhaul || modLoadedPrisonOverhaulPatch)
+    ; Debug.Trace("[crde] Prison overhual was previously loaded but now isn't")
+    ; Debug.Trace("[crde] attempting reload with esp lookup, slower ...")
+    ; modLoadedPrisonOverhaul         = isModActive("xazPrisonOverhaul.esp")
+    ; modLoadedPrisonOverhaulPatch    = isModActive("xazPrisonOverhaul - Patch.esp")
+    ; if !(modLoadedPrisonOverhaul || modLoadedPrisonOverhaulPatch)
+      ; Debug.Trace("[crde] PrisonOverhual loaded successfully! (wtf) " + modLoadedPrisonOverhaul + " " + modLoadedPrisonOverhaulPatch)
+    ; else
+      ; modLoadedPrisonOverhaulPatch    = isModActive("xazPrisonOverhaulPatched.esp")
+      ; if modLoadedPrisonOverhaulPatch
+        ; Debug.Trace("[crde] PrisonOverhual loaded successfully! (wtf) " + modLoadedPrisonOverhaul + " " + modLoadedPrisonOverhaulPatch)
+      ; else
+      ; Debug.Trace("[crde] Prison overhual did not load with esp lookup")
+      ; endif
+    ; endif
   endif
 
   modLoadedSLUTS              = Quest.GetQuest("sluts_kicker") != None
@@ -1008,15 +1007,19 @@ function updateForms()
     
   modLoadedSlaveTats                = Quest.GetQuest("SlaveTatsMenu") != None ; just detection is enough for now
     
-  temptressVixenRace                = Game.GetFormFromFile(0x02000D62, "TemptressVixen.esp") as Race
+  if isModActive("TemptressVixen.esp")
+    temptressVixenRace                = Game.GetFormFromFile(0x02000D62, "TemptressVixen.esp") as Race
+  endif
   
-  workingGirlClientFaction          = Game.GetFormFromFile(0xA602A990, "SexLabWorkingGirl.esp") as Faction
-  modLoadedWorkingGirl              = workingGirlClientFaction != None
+  modLoadedWorkingGirl              = Quest.GetQuest("_SLWG_WorkingGirl") != None
   if modLoadedWorkingGirl
+    workingGirlClientFaction          = Game.GetFormFromFile(0xA602A990, "SexLabWorkingGirl.esp") as Faction
     workingGirlJobToken               = Game.GetFormFromFile(0x00012575, "SexLabWorkingGirl.esp") as MiscObject
   endif
   
-  immersiveWenchGeneralFaction      = Game.GetFormFromFile(0x0701716E, "Immersive Wenches.esp") as Faction
+  if Quest.GetQuest("lalawench_IWMCM") != None
+    immersiveWenchGeneralFaction      = Game.GetFormFromFile(0x0701716E, "Immersive Wenches.esp") as Faction
+  endif
     
   deviousPunishEquipmentBannnedCollar               = Game.GetFormFromFile(0x08000802, "Devious Punishment Equipment.esp") as Armor
   modLoadeddeviousPunishEquipment                   = deviousPunishEquipmentBannnedCollar != None
