@@ -1789,8 +1789,8 @@ bool function checkFollowerFoundItems(actor actorRef, armor[] armorArray, object
     if armorArray[i] == NONE
       last = i
       i = 100
-      ;PlayerMon.debugmsg("Leaving check items at [" + i + "] because we have reached NONE(end)")
-      ;return false
+      PlayerMon.debugmsg("Leaving check items at [" + i + "] because we have reached NONE(end)")
+      return false
     endif 
     tmp = libs.GetRenderedDevice(armorArray[i]) ; the rendered one has the type keywords, the inventory item only has the inventory item
     itemDDKeyword = libs.GetDeviceKeyword(armorArray[i])
