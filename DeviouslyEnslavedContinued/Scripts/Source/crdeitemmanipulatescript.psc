@@ -75,6 +75,27 @@ Keyword[] Property deviceKeywords  Auto
 ; for when we already know what we want to equip at dialogue time
 Armor[] Property followerFoundArmorBuffer Auto
 
+bool  actorWearingArmbinder        
+bool  actorWearingBlindfold       
+bool  actorWearingCollar           
+bool  actorWearingGag              
+bool  actorWearingPiercings        
+bool  actorWearingHarness          
+bool  actorWearingSlaveBoots      
+bool  actorWearingAnkleChains      
+bool  actorWearingBelt             
+
+armor actorKnownArmbinder
+armor actorKnownBlindfold
+armor actorKnownCollar
+armor actorKnownGag
+armor actorKnownBelt
+armor actorKnownHarness
+armor actorKnownSlaveBoots
+armor actorKnownAnkleChains
+
+
+
 Event OnInit()
   player = Game.GetPlayer()
   followerFoundArmorBuffer = new Armor[10]
@@ -188,18 +209,14 @@ function removeDDbyKWD(actor actorRef, keyword keywordRef)
 endFunction
 
 function removeDDArmbinder(actor actorRef)
-  ;removeDDbyKWD(Mods.zazKeywordAnimWrists) ; if this works this should take care of all hands locking items
-  ;removeDDbyKWD(libs.zad_DeviousYoke)      ; maybe this was a touch reckless, we have the item from earlier
-  ;removeDDbyKWD(libs.zad_DeviousArmbinder)
-  if actorRef.Wornhaskeyword(libs.zad_DeviousArmbinder) ;&& actorRef.knownArmbinder != None
-    removeDDbyKWD(actorRef, libs.zad_DeviousArmbinder)
-  elseif actorRef.Wornhaskeyword(libs.zad_DeviousArmbinder)
-    if actorRef.WornHasKeyword(libs.zad_DeviousYoke)
-      removeDDbyKWD(actorRef, libs.zad_DeviousYoke)      ; maybe this was a touch reckless, we have the item from earlier
-    elseif actorRef.WornHasKeyword(libs.zad_DeviousArmbinder)
+  form armbinder = actorRef.GetWornForm(0x00010000) 
+  if armbinder != NONE && armbinder.HasKeyword(libs.zad_DeviousHeavyBondage)
+    if armbinder.HasKeyword(libs.zad_DeviousYoke)
+      removeDDbyKWD(actorRef, libs.zad_DeviousYoke)
+    elseif armbinder.HasKeyword(libs.zad_DeviousArmbinder)
       removeDDbyKWD(actorRef, libs.zad_DeviousArmbinder)
     else
-      PlayerMon.debugmsg("removeDDArmbinder: wearingArmbinder is true but armor unPlayerMon.known: " + actorRef.GetWornForm(0x2E));(46)
+      removeDDbyKWD(actorRef, libs.zad_DeviousArmbinderElbow)
     endif
   endif
 endFunction
@@ -354,8 +371,9 @@ bool function equipRandomDD(actor actorRef, actor attacker = None, bool canEnsla
   ;PlayerMon.CheckDevices()
   PlayerMon.updateWornDD()
   Armor collar          = actorRef.GetWornForm( 0x00008000 ) as Armor 
-  bool collarBlocked    = collar != None && actorRef.WornHasKeyword(libs.zad_DeviousCollar) && collar.HasKeyword(libs.zad_BlockGeneric) ;PlayerMon.knownCollar != None && PlayerMon.knownCollar.HasKeyword(libs.zad_BlockGeneric)
-  bool isCollarable     = !(actorRef.WornHasKeyword(Mods.zazKeywordWornYoke) || collarBlocked || Mods.iEnslavedLevel > 0)
+  armor yoke            = actorRef.GetWornForm( 0x00010000 ) as Armor ;46
+  bool collarBlocked    = collar != None && collar.HasKeyword(libs.zad_DeviousCollar) && collar.HasKeyword(libs.zad_BlockGeneric) ;PlayerMon.knownCollar != None && PlayerMon.knownCollar.HasKeyword(libs.zad_BlockGeneric)
+  bool isCollarable     = !(( yoke != None && yoke.HasKeyword(Mods.zazKeywordWornYoke)) || collarBlocked || Mods.iEnslavedLevel > 0)
   int uniqueChance      = MCM.iWeightUniqueCollars * (isCollarable as int)
   int total = MCM.iWeightSingleDD + MCM.iWeightMultiDD + uniqueChance
   int roll = Utility.RandomInt(1,total)
@@ -427,6 +445,7 @@ endFunction
 armor[] function getRandomSingleDD(actor actorRef)
 
   ; TODO check if player is already blocked, return with false
+  ; TODO optimize all of these wornhaskeywords away, this is waaay too slow
   int glovesbootsChance   = MCM.iWeightSingleGlovesBoots * ((!actorRef.wornHasKeyword(libs.zad_DeviousGloves) && !actorRef.wornHasKeyword(libs.zad_DeviousBoots)) as int)
   int armbinderChance     = MCM.iWeightSingleArmbinder * ((!actorRef.wornHasKeyword(libs.zad_DeviousArmbinder) && !actorRef.wornHasKeyword(libs.zad_DeviousYoke)) as int)
   int collarChance        = MCM.iWeightSingleCollar * ((!actorRef.wornHasKeyword(libs.zad_DeviousCollar)) as int) ; could do harness too
@@ -2309,12 +2328,6 @@ armor[] function shuffleArmor(armor[] providedArmor, objectReference[] container
   int randomPick = 0
   armor tmpArm
   objectReference tmpRef
-  ;armor[] newArray = providedArmor ;new armor[len]
-  ; while i < len
-  
-    ; i += 1
-  ; endWhile
-  ; i = 0
   while i < len
     randomPick = Utility.RandomInt(0,len - 1)
     tmpArm = providedArmor[i]
@@ -2338,16 +2351,41 @@ bool function itemStillInContainer(form f, objectReference c)
   if containerComplement > 0 
     int remaining = c.GetItemCount(f)
     return remaining >= 1
-    ; worried that this is slower
-    ;int i = 0
-    ;form tmp
-    ;While i < containerComplement
-    ;  tmp = c.GetNthForm(i)
-    ;  if tmp == f
-    ;    return true
-    ;  endif
-    ;  i += 1
-    ;endWhile
   endif
   return false
+endFunction
+
+; my war to remove WornHasKeyword for specific item keywords
+; at least call this to preempt the big rolling functions
+function updateActorWearingDD(actor actorRef)
+  PlayerMon.debugmsg("checking follower items ...",3)
+  actorKnownArmbinder = actorRef.GetWornForm(0x00010000) as armor ; 46
+  actorWearingArmbinder = actorKnownArmbinder != None &&  actorKnownArmbinder.HasKeyword(libs.zad_DeviousArmbinder)
+  
+  actorKnownBlindfold = actorRef.GetWornForm(0x02000000) as armor ; 55
+  actorWearingBlindfold = actorKnownBlindfold != None &&  actorKnownBlindfold.HasKeyword(libs.zad_DeviousBlindfold)
+  
+  actorKnownCollar = actorRef.GetWornForm(0x00008000) as armor ; 45
+  actorWearingCollar = actorKnownCollar != None && actorKnownCollar.HasKeyword(libs.zad_DeviousCollar)
+  
+  actorKnownGag = actorRef.GetWornForm(0x00004000) as armor ; 44
+  actorWearingGag = actorKnownGag != None && actorKnownGag.HasKeyword(libs.zad_DeviousGag)
+  
+  actorKnownBelt = actorRef.GetWornForm(0x00080000) as armor ; 49
+  actorWearingBelt = actorKnownBelt != None && actorKnownBelt.HasKeyword(libs.zad_DeviousBelt)
+  
+  armor tmp  = actorRef.GetWornForm(0x00100000) as armor ; 50 nipple
+  armor tmp2 = actorRef.GetWornForm(0x00200000 ) as armor ; 51 vag
+  actorWearingPiercings = (tmp != None && tmp.HasKeyword(libs.zad_DeviousPiercingsNipple)) || (tmp2 != None &&tmp2.HasKeyword(libs.zad_DeviousPiercingsVaginal))
+  
+  actorKnownHarness = actorRef.GetWornForm(0x10000000 ) as armor ; 58
+  actorWearingHarness = actorKnownHarness != None && actorKnownHarness.HasKeyword(libs.zad_DeviousHarness)
+  
+  actorKnownSlaveBoots = actorRef.GetWornForm(0x00000080) as armor ; 37
+  actorWearingSlaveBoots = actorKnownSlaveBoots != None && actorKnownSlaveBoots.HasKeyword(libs.zad_DeviousBoots)
+
+  actorKnownAnkleChains = actorRef.GetWornForm(0x00000080) as armor ; 53
+  actorWearingAnkleChains = actorKnownAnkleChains
+
+
 endFunction

@@ -129,9 +129,9 @@ bool function checkActorBoundInFurniture(actor actorRef)
   elseif Mods.zazKeywordFurniture != None && actorRef.HasKeyword(Mods.zazKeywordFurniture) ; sitting in furniture and tied up
     debugmsg("debug: " + actorRef.GetDisplayName() + " has zbf furniture keyword", 0)
     return true
-  elseif Mods.zazKeywordFurniture != None && actorRef.WornHasKeyword(Mods.zazKeywordFurniture) ; sitting in furniture and tied up
-    debugmsg("debug: " + actorRef.GetDisplayName() + " has zbf furniture keyword", 0)
-    return true
+  ; elseif Mods.zazKeywordFurniture != None && actorRef.WornHasKeyword(Mods.zazKeywordFurniture) ; sitting in furniture and tied up
+    ; debugmsg("debug: " + actorRef.GetDisplayName() + " has zbf furniture keyword", 0)
+    ; return true
   endif
   return false
   ; other keywords http://www.loverslab.com/topic/17062-zaz-animation-pack-2015-02-10/?p=1123366
@@ -590,19 +590,38 @@ bool function isActorRefIneligable(actor actorRef, bool includeSlaveTraders = fa
 endFunction
 
 bool function isWearingSlaveXaz(actor actorRef)
-  
-  return !MCM.bIgnoreZazOnNPC && ( actorRef.WornHasKeyword(Mods.zazKeywordWornGag) || actorRef.WornHasKeyword(Mods.zazKeywordWornBlindfold) \
-      || actorRef.WornHasKeyword(Mods.zazKeywordWornBelt) || actorRef.WornHasKeyword(Mods.zazKeywordWornYoke) \
-      || actorRef.WornHasKeyword(Mods.zazKeywordAnimWrists)) \
-      || (actorRef.WornHasKeyword(Mods.zazKeywordWornCollar) && !(actorRef.GetWornForm(0x00000004) != None || MCM.bIgnoreZazOnNPC)) ; must also be naked for collar to work
+  form yoke         = actorRef.GetWornForm(0x00010000)
+  form blindfold    = actorRef.GetWornForm(0x02000000)
+  form gag          = actorRef.GetWornForm(0x00004000)
+  ;form belt         = actorRef.GetWornForm(0x00080000)
+  form collar       = actorRef.GetWornForm(0x00008000)
+
+  return !MCM.bIgnoreZazOnNPC \
+    && (yoke && yoke.HasKeyword(Mods.zazKeywordWornYoke)) \
+    || actorRef.WornHasKeyword(Mods.zazKeywordAnimWrists) \
+    || (blindfold && blindfold.HasKeyword(Mods.zazKeywordWornBlindfold)) \
+    || (gag && gag.HasKeyword(Mods.zazKeywordWornGag)) \
+    || (collar && collar.HasKeyword(Mods.zazKeywordWornCollar) && !(actorRef.GetWornForm(0x00000004) != None || MCM.bIgnoreZazOnNPC))
+
+    ;    || (belt && belt.HasKeyword(Mods.zadKeywordWornBelt))\
+
 endFunction
 
 bool function isWearingSlaveDD(actor actorRef)
-  ; devicekeywords: armbinder, blindfold, collar, gag, everything else after that is zaz zbfgag
-  return actorRef.WornHasKeyword(libs.zad_DeviousArmbinder) || actorRef.WornHasKeyword(libs.zad_DeviousBlindfold) \
-      || actorRef.WornHasKeyword(libs.zad_DeviousGag) \
-      || actorRef.WornHasKeyword(libs.zad_DeviousHarness) || actorRef.WornHasKeyword(libs.zad_DeviousHeavyBondage) || actorRef.WornHasKeyword(libs.zad_DeviousBelt)\
-      || (actorRef.WornHasKeyword(libs.zad_DeviousCollar) && !(actorRef.GetWornForm(0x00000004) != None || MCM.bIgnoreZazOnNPC))
+  form heavybondage = actorRef.GetWornForm(0x00010000)
+  form blindfold    = actorRef.GetWornForm(0x02000000)
+  form gag          = actorRef.GetWornForm(0x00004000)
+  form harness      = actorRef.GetWornForm(0x10000000)
+  form belt         = actorRef.GetWornForm(0x00080000)
+  form collar       = actorRef.GetWornForm(0x00008000)
+  
+  
+  return (heavybondage.HasKeyword(libs.zad_DeviousHeavyBondage))\
+    || (blindfold && blindfold.HasKeyword(libs.zad_DeviousBlindfold)) \
+    || (gag && gag.HasKeyword(libs.zad_DeviousGag)) \
+    || (harness && harness.HasKeyword(libs.zad_DeviousHarness)) \
+    || (belt && belt.HasKeyword(libs.zad_DeviousBelt))\
+    || (collar && collar.HasKeyword(libs.zad_DeviousCollar) )
 endFunction
 
 ; there's one in playermon, do we need this one here?

@@ -149,7 +149,7 @@ Function checkNameForKeywords(string section, string tattoo_name, bool face)
   ;if mcm slave option is set,
   if section == "Grooovus"
     ; special case, tattoo that is blocked by chastity belt, so we can't see if it player isn't naked anyway
-    if tattoo_name == "DD Belt belly" && !player.wornHasKeyword(Mods.zazKeywordWornBelt) ;!PlayerMon.wearingBlockingVaginal
+    if tattoo_name == "DD Belt belly" && !player.GetWornForm(0x00080000).HasKeyword(Mods.zazKeywordWornBelt) ;!PlayerMon.wearingBlockingVaginal
       wearingSlaveTattoo = true 
     elseif tattoo_name == "Captured Dreams Property (belly)"
       wearingOwnedTattoo = true
@@ -170,7 +170,7 @@ Function checkNameForKeywords(string section, string tattoo_name, bool face)
   ;if mcm slave option is set,
   if section == "BDoD"
     ; special case, tattoo that is blocked by chastity belt, so we can't see if it player isn't naked anyway
-    if !(face && !player.wornHasKeyword(ClothingCirclet) && (tattoo_name == "SlaveF (forehead)" || tattoo_name == "SlaveM (forehead)"))
+    if !(face && !player.GetWornForm(0x00000001).HasKeyword(ClothingCirclet) && (tattoo_name == "SlaveF (forehead)" || tattoo_name == "SlaveM (forehead)"))
       wearingSlaveTattoo = true 
       wearingSlaveTattooFace = face && wearingSlaveTattoo
     ;elseif tattoo_name == "Unknown"

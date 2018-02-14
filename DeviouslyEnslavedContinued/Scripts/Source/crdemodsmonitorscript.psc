@@ -533,7 +533,9 @@ Event remoteResetCalled(string eventName, string strArg, float numArg, Form send
 ;Event remoteResetCalled()
   Maintenance()
   PreviousFollowers.revert()
-  Debug.Notification("CRDE: Refreshing mod detection finished.")
+  if Utility.GetCurrentRealTime() > 120 ; don't fire if this happens at the start of the game on save load, after 120 seconds
+    Debug.Notification("CRDE: Refreshing mod detection finished. " + Utility.GetCurrentRealTime())
+  endif
   Debug.Trace("CRDE: Refreshing mod detection finished.")
 endEvent
 
@@ -844,8 +846,9 @@ function updateForms()
     ; might get the quest too, since I can use it to say the player is non-usable slave 
   endIf
   
-  defeatCalmEffect       = Game.GetFormFromFile(0x0004274f, "SexLabDefeat.esp") as MagicEffect
-  modLoadedDefeat         = (defeatCalmEffect != None)
+  
+  
+  modLoadedDefeat         = (Quest.GetQuest("DefeatPlayerQST") != None)
   if(modLoadedDefeat)
     defeatCalmEffect       = Game.GetFormFromFile(0x0004274f, "SexLabDefeat.esp") as MagicEffect
     defeatCalmAltEffect    = Game.GetFormFromFile(0x000ca2f6, "SexLabDefeat.esp") as MagicEffect

@@ -29,7 +29,7 @@ Scriptname crdeAttackerScript extends ReferenceAlias
 
 crdePlayerMonitorScript Property PlayerMonitorScript Auto
 
-MagicEffect Property InfluenceAggDownFFAimed Auto
+MagicEffect Property InfluenceAggDownFFAimed Auto      ; calm spells
 MagicEffect Property InfluenceAggDownFFAimedArea Auto
 
 ;Event OnInit()
