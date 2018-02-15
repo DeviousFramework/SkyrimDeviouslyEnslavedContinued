@@ -2301,7 +2301,6 @@ function giveFollowerFoundItems(actor actorRef)
 endFunction
 
 
-
 ; detects what theme of items the player is already PlayerMon.wearing
 ; use bit masks, 32 should be waaaay more than enough for all themes
 ; reg(s/w/r) ebonite(e/w/r) cd(g/s)
@@ -2357,7 +2356,9 @@ endFunction
 
 ; my war to remove WornHasKeyword for specific item keywords
 ; at least call this to preempt the big rolling functions
+;   this will take a lot of overhaul I think to implement, hold off until I'm in a better mood
 function updateActorWearingDD(actor actorRef)
+
   PlayerMon.debugmsg("checking follower items ...",3)
   actorKnownArmbinder = actorRef.GetWornForm(0x00010000) as armor ; 46
   actorWearingArmbinder = actorKnownArmbinder != None &&  actorKnownArmbinder.HasKeyword(libs.zad_DeviousArmbinder)

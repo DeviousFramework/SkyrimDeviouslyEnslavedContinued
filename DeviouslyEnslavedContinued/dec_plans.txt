@@ -126,9 +126,12 @@ Notes:
     does it work for after sex?
     follower sex approach?
   
-  ;follower appraoch doesn't ignore slaves that are armbound
   detect cuffs for vulnerable?
+  fix your struggle animations
+    can we get gag detection working for PAHE dialogue? ; you mean override his dialogue with our own? we can't make a tree that big
+    home: "you stop, sex with me" ignores belt
 
+  
   ;mods refresh is now notifying player all the time, should only happen when user specifies, and ignored the rest of the time
   shout on follower doesn't work apparently
   ;follower sex approach seems broken, no dialogue but approach works (approach into regular dialogue)
@@ -158,18 +161,12 @@ Notes:
     this could be a huge benefit for NPC searching too
     oh no, we do looooots of wornhaskeyword in item rolling
     
-  ;"I can wear it underneath at least" should not be an option for gag/blindfold/yoke/armbinder, boots
-  ;check that our item is removed from player code isn't as fast as possible
-    ; it wasn't item removed from inventory, it was unequipped, and it is pretty slim
-  ;got pony gag with 0 setting in MCM
   single item plugs chance
   two gag rolls? got with "you should try on" -> hey! -> ?
   if follower finds a petcollar, they don't always put it on themselves it seems
     make sure pet collar is working
   
-  ;user wants haunted house compatibility to work again; nvm user was talking hypothetically
 
-  ;test suit is working
   add MCM modifier for approach chance for when the player is alone with the attacker
    maybe remove some dialogue or add some too
   if sleeping NPCs can attack player, we need to fix this but leave sleeping NPC can attack player as option
@@ -180,12 +177,7 @@ Notes:
   also add unique collars to post sex, meaning single item detection
   user thinks "Oh right, you are still tied up... oh well, only one end needs to be open, right" leads to no belt re-adding, which 
   user wants new pony suit finished 
-  ;"soulgem from a necromancer" -> rubber inflateable insert?
-    new system, needs testing to see if we can actually reach it
   fix bug where follower forgets item if they get interupted
-  fix your struggle animations
-    can we get gag detection working for PAHE dialogue? ; you mean override his dialogue with our own? we can't make a tree that big
-    home: "you stop, sex with me" ignores belt
   
   change follower found items so that special collars cannot be equipped through glib follower comments, only through experimental
   player asking to be tied up should increase reputation
