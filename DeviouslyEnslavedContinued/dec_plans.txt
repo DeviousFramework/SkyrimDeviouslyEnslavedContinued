@@ -1,4 +1,4 @@
-; verstort 1/2018
+; verstort 2/2018
 ; this is more notes at this point than just plans
 
 
@@ -47,7 +47,6 @@ Debug report form:
   
   -^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v-
     Changes to esp scheduled once it's available:
-    alter the "come to think of it why do plugs not come flanged" dialogue for only if the player is belted, they are belted, or the item was a belt
 
   
   -^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v-
@@ -122,10 +121,26 @@ Notes:
   
   () set SD limite removal to off, might be the cause of the stack dump
 
-  ;follower appraoch doesn't ignore slaves that are armbound
+  check all basic aspects of mod for broken functionality:
+    does it find NPCs fine?
+    does it work for after sex?
+    follower sex approach?
   
-  follower sex approach seems broken, no dialogue but approach works (approach into regular dialogue)
+  ;follower appraoch doesn't ignore slaves that are armbound
+  detect cuffs for vulnerable?
+
+  ;mods refresh is now notifying player all the time, should only happen when user specifies, and ignored the rest of the time
+  shout on follower doesn't work apparently
+  ;follower sex approach seems broken, no dialogue but approach works (approach into regular dialogue)
     cannot reproduce in new save, will neen to inspect affected save
+      check dialogue conditions in the esp
+      was broken only with serana, and the reason was because her character isn't lvl 3 ally as a follower for some reason
+  ; "after that last dungeon" should only happen wtih active followers
+  ; "fucking in the wild" now has a location outside keyword
+  ; "what are the chances of finding something that fits me" after getting a gag and "How does it feel?"
+  ; "come to think of it why do plugs not come flanged" dialogue for only if the player is belted, they are belted, or the item was a belt
+  ;user thinks SRR alpha might be incompatible pls check, could not reproduce
+  
   ;can we pass multiple animations to sexlab? then animation cycle might work
   ;we should run a time test on starting sexlab
     ;we always get really low values, doPlayerSex finshed, time: 0.005994
@@ -138,12 +153,14 @@ Notes:
     old double function:
       naked: old: 0.217995 new: 0.089005
       3 items: old: 1.261993  new: 0.085999
-      almost everything: old: 5.864990  new: 0.145020
+      almost everything: old: 16.864990  new: 0.145020
       huge difference, and that's with debug spouting out of the second one
     this could be a huge benefit for NPC searching too
+    oh no, we do looooots of wornhaskeyword in item rolling
     
   ;"I can wear it underneath at least" should not be an option for gag/blindfold/yoke/armbinder, boots
-  check that our item is removed from player code isn't as fast as possible
+  ;check that our item is removed from player code isn't as fast as possible
+    ; it wasn't item removed from inventory, it was unequipped, and it is pretty slim
   ;got pony gag with 0 setting in MCM
   single item plugs chance
   two gag rolls? got with "you should try on" -> hey! -> ?
@@ -155,8 +172,8 @@ Notes:
   ;test suit is working
   add MCM modifier for approach chance for when the player is alone with the attacker
    maybe remove some dialogue or add some too
-
-  detect cuffs for vulnerable?
+  if sleeping NPCs can attack player, we need to fix this but leave sleeping NPC can attack player as option
+  
   need to tell the difference between the follower having added items and the player getting items otherwise
   users think we shouldn't get belt with plugs always
     could have sworn I had belt OR harness setup, but guess not?  

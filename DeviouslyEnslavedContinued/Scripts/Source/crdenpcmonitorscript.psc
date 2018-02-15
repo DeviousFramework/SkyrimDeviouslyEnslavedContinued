@@ -168,6 +168,7 @@ endFunction
 
 ; searches through the the quest ReferenceAlias' for a match
 ; should be faster than above since we can let the engine run some of these basic checks for us
+; in reality though, actor selection seems to lag behind the game
 actor[] function getClosestRefActor(actor actorRef)
   Actor closest = None
   Actor[] valid = new Actor[10]
@@ -180,7 +181,6 @@ actor[] function getClosestRefActor(actor actorRef)
   ;I don't like having so much redundant code, but I know of no other way to index through a series of references. Moving the minor code to a funciton would just thrash the stack since no inlining
   closest = ValidAttacker1.GetActorRef()
   if closest == None ; no need to check the rest if the first one is none, since they all load sequentially
-    ;PlayerMonScript.debugmsg("No nearby NPC, nothing to do here",1)
     return new Actor[1] ; 
   elseif !isActorRefIneligable(closest, false)
     valid[index] = closest
@@ -191,7 +191,6 @@ actor[] function getClosestRefActor(actor actorRef)
   if closest == None 
     return valid
   elseif !isActorRefIneligable(closest, false)
-    ;return closest
     valid[index] = closest
     ValidAttacker2.Clear()
     index += 1
@@ -200,7 +199,6 @@ actor[] function getClosestRefActor(actor actorRef)
   if closest == None 
     return valid
   elseif !isActorRefIneligable(closest, false) 
-    ;return closest
     valid[index] = closest
     ValidAttacker3.Clear()
     index += 1
@@ -209,7 +207,6 @@ actor[] function getClosestRefActor(actor actorRef)
   if closest == None 
     return valid
   elseif !isActorRefIneligable(closest, false) 
-    ;return closest
     valid[index] = closest
     ValidAttacker4.Clear()
     index += 1
@@ -218,7 +215,6 @@ actor[] function getClosestRefActor(actor actorRef)
   if closest == None 
     return valid
   elseif !isActorRefIneligable(closest, false)
-    ;return closest
     valid[index] = closest
     ValidAttacker5.Clear()
     index += 1
@@ -227,7 +223,6 @@ actor[] function getClosestRefActor(actor actorRef)
   if closest == None 
     return valid
   elseif !isActorRefIneligable(closest, false) 
-    ;return closest
     valid[index] = closest
     ValidAttacker6.Clear()
     index += 1
@@ -236,7 +231,6 @@ actor[] function getClosestRefActor(actor actorRef)
   if closest == None
     return valid
   elseif !isActorRefIneligable(closest, false) 
-    ;return closest
     valid[index] = closest
     ValidAttacker7.Clear()
     index += 1
@@ -245,7 +239,6 @@ actor[] function getClosestRefActor(actor actorRef)
   if closest == None
     return valid
   elseif !isActorRefIneligable(closest, false) 
-    ;return closest
     valid[index] = closest
     ValidAttacker8.Clear()
     index += 1
@@ -254,7 +247,6 @@ actor[] function getClosestRefActor(actor actorRef)
   if closest == None
     return valid
   elseif !isActorRefIneligable(closest, false) 
-    ;return closest
     valid[index] = closest
     ValidAttacker9.Clear()
     index += 1
@@ -476,7 +468,6 @@ endFunction
 
 
 bool function isActorRefIneligable(actor actorRef, bool includeSlaveTraders = false)
-  ;debugmsg("invalid: ", 0)
   
   if actorRef == None ;|| actorRef.GetDisplayName().getsize() == 0; should be taken care of before this, but might as well catch here
     return false
@@ -602,9 +593,6 @@ bool function isWearingSlaveXaz(actor actorRef)
     || (blindfold && blindfold.HasKeyword(Mods.zazKeywordWornBlindfold)) \
     || (gag && gag.HasKeyword(Mods.zazKeywordWornGag)) \
     || (collar && collar.HasKeyword(Mods.zazKeywordWornCollar) && !(actorRef.GetWornForm(0x00000004) != None || MCM.bIgnoreZazOnNPC))
-
-    ;    || (belt && belt.HasKeyword(Mods.zadKeywordWornBelt))\
-
 endFunction
 
 bool function isWearingSlaveDD(actor actorRef)
@@ -615,7 +603,6 @@ bool function isWearingSlaveDD(actor actorRef)
   form belt         = actorRef.GetWornForm(0x00080000)
   form collar       = actorRef.GetWornForm(0x00008000)
   
-  
   return (heavybondage && heavybondage.HasKeyword(libs.zad_DeviousHeavyBondage))\
     || (blindfold && blindfold.HasKeyword(libs.zad_DeviousBlindfold)) \
     || (gag && gag.HasKeyword(libs.zad_DeviousGag)) \
@@ -623,22 +610,6 @@ bool function isWearingSlaveDD(actor actorRef)
     || (belt && belt.HasKeyword(libs.zad_DeviousBelt))\
     || (collar && collar.HasKeyword(libs.zad_DeviousCollar) )
 endFunction
-
-; there's one in playermon, do we need this one here?
-; markedfordelete
-;bool function isNude(actor actorRef)
-;  int index = 0
-;  ;bool nude = true
-;  While (index < PlayerMonScript.clothingKeywords.length)
-;    if(actorRef.wornHasKeyword(PlayerMonScript.clothingKeywords[index]))
-;      PlayerMonScript.isNude = false
-;      return false
-;    endif
-;    index += 1
-;  EndWhile
-;  PlayerMonScript.isNude = true
-;  return true
-;endFunction
 
 function printNearbyValidActors()
 
@@ -699,20 +670,7 @@ function resetActors()
   
 endFunction
 
-; check if the followers are already in the list, if so
 function addFollower(actor actorRef)
-  ; int i = 0
-  ; int j = 0
-  ; int PreviousFollowersLength = .lPreviousFollowersength ; gets used too often, save it because papcompiler is stupid
-  ; while i < actorRefs.length
-    ; while j < PreviousFollowers.length
-    
-      ; if PreviousFollowers[PreviousFollowersIndex + j % PreviousFollowersLength] 
-      ; if actorRefs[i] == 
-      ; j += 1
-     ; endWhile
-    ; i += 1
-  ; endWhile
 
   Mods.PreviousFollowers.AddForm(actorRef)
   
@@ -854,8 +812,6 @@ function timeTestActorTraits(actor actorRef)
   throwaway = (PlayerMonScript.enslavedLevel > 1 || Mods.enslavedSD) && actorRef.IsInFaction(Mods.immersiveWenchGeneralFaction)
   timeTaken = Utility.GetCurrentRealTime() - timeTaken 
   str += " immersive wench: " + timeTaken
-
-
 
   Debug.Trace(str)
   Debug.MessageBox(str)  
