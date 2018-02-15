@@ -504,7 +504,7 @@ Event Maintenance()
   ;Debug.Trace("CRDE: " + dummy.GetDisplayName())
   float time = Utility.GetCurrentRealTime()
   
-  Debug.Trace("CRDE: " + lastUpdateGameTime + " < " + Utility.GetCurrentGameTime() )
+  ;Debug.Trace("CRDE: " + lastUpdateGameTime + " < " + Utility.GetCurrentGameTime() )
   lastUpdateGameTime = Utility.GetCurrentGameTime() as float; reset clock
   ;RegisterForSingleUpdate(9)
   Debug.Trace("[CRDE] Mods::Maintenance ...")
@@ -927,9 +927,9 @@ function updateForms()
     darkwindSlaveFaction        = Game.GetFormFromFile(0x860043BC , "Darkwind.esp") as Faction
   endif
   
-  forswornStorySlaveFaction       = Game.GetFormFromFile(0x00035751 , "ZaForswornStory.esp") as Faction
-  modLoadedForswornStory          = (forswornStorySlaveFaction  != None)
-  if forswornStorySlaveFaction
+  modLoadedForswornStory          = isModActive("ZaForswornStory.esp")
+  if modLoadedForswornStory
+    forswornStorySlaveFaction       = Game.GetFormFromFile(0x00035751 , "ZaForswornStory.esp") as Faction
     forswornStoryEnslavedFaction  = Game.GetFormFromFile(0x00034BE5 , "ZaForswornStory.esp") as Faction
     forswornStoryWhoreFaction     = Game.GetFormFromFile(0x0002C318 , "ZaForswornStory.esp") as Faction
   endif
@@ -949,16 +949,15 @@ function updateForms()
   tamslavesTattooEffect           = Game.GetFormFromFile(0x00000D62, "DeviousSurrender.esp") as MagicEffect
   modLoadedDeviousSurrender       = (tamslavesMainQuest != None)
   
-  bool previouslyLoaded              = modLoadedPrisonOverhaul || modLoadedPrisonOverhaulPatch
+  ;bool previouslyLoaded              = modLoadedPrisonOverhaul || modLoadedPrisonOverhaulPatch
   prisonoverhaulNewESP = false
   xazMain                               = Quest.GetQuest("xpoMain")
   xazPOPatchQuest                       = Quest.GetQuest("xpoPatch")
 
   if xazMain || xazPOPatchQuest
-    xazPrisonerFaction                  = Game.GetFormFromFile(0x0400FA9F , "xazPrisonOverhaul.esp") as Faction
-    ;modLoadedPrisonOverhaul            = xazMain != None
-    modLoadedPrisonOverhaul             = xazPrisonerFaction != None
-    xazPOPatchQuest                     = Game.GetFormFromFile(0x0500EFF7 , "xazPrisonOverhaul - Patch.esp") as Quest
+    xazPrisonerFaction                  = Game.GetFormFromFile(0x0400FA9F , "xazPrisonOverhaulPatched.esp") as Faction
+    ;modLoadedPrisonOverhaul             = xazPrisonerFaction != None
+    xazPOPatchQuest                     = Game.GetFormFromFile(0x0500EFF7 , "xazPrisonOverhaulPatched.esp") as Quest
     modLoadedPrisonOverhaulPatch        = xazPOPatchQuest    != None
     
     if  isModActive("xazPrisonOverhaulPatched.esp")

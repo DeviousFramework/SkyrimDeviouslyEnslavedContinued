@@ -616,7 +616,7 @@ bool function isWearingSlaveDD(actor actorRef)
   form collar       = actorRef.GetWornForm(0x00008000)
   
   
-  return (heavybondage.HasKeyword(libs.zad_DeviousHeavyBondage))\
+  return (heavybondage && heavybondage.HasKeyword(libs.zad_DeviousHeavyBondage))\
     || (blindfold && blindfold.HasKeyword(libs.zad_DeviousBlindfold)) \
     || (gag && gag.HasKeyword(libs.zad_DeviousGag)) \
     || (harness && harness.HasKeyword(libs.zad_DeviousHarness)) \
