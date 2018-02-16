@@ -43,7 +43,7 @@ crdeMCMScript             Property MCM Auto
 ;crdeSlaverunScript        Property SlaverunScript Auto
 crdeModsMonitorScript     Property Mods Auto
 ;crdeDistantEnslaveScript  Property DistanceEnslave Auto
-crdePlayerScript          Property PlayerScript Auto; initialized in init from playerScriptAlias
+;crdePlayerScript          Property PlayerScript Auto; initialized in init from playerScriptAlias
 ;crdeSlaveTatsScript       Property SlavetatsScript Auto
 ;import crdeSlaveTatsScript
 
@@ -90,12 +90,12 @@ bool  masterIsSlaver    ; what was I going to do with this agaim?
 
 event OnInit()
   player = Game.GetPlayer()
-  Utility.wait(7)
-  PlayerScript = (PlayerMonScript.playerScriptAlias as crdePlayerScript) 
-  while Mods.finishedCheckingMods == false
-    Debug.Trace("[crde]in npc:mods not finished yet", 1)
-    Utility.wait(2) ; in seconds
-  endWhile
+  ;Utility.wait(7)
+  ;PlayerScript = (PlayerMonScript.playerScriptAlias as crdePlayerScript) 
+  ;while Mods.finishedCheckingMods == false
+  ;  Debug.Trace("[crde]in npc:mods not finished yet", 1)
+  ;  Utility.wait(2) ; in seconds
+  ;endWhile
 
 endEvent
 
@@ -116,15 +116,15 @@ bool function checkActorBoundInFurniture(actor actorRef)
     debugmsg("debug: " + actorRef.GetDisplayName() + " has zbf refresh keyword", 3)
     return true
   ;elseif (actorRef.WornHasKeyword(Keyword.GetKeyword("zbfFurniture")) ) ; sitting in furniture and tied up
-  elseif Mods.zazKeywordFurniture != None && actorRef == player && PlayerScript.sittingInZaz ; player only
+  elseif Mods.zazKeywordFurniture != None && actorRef == player && PlayerMonScript.checkPlayerSittingInZaz() ; player only
     int sitting = player.GetSitState()
     
-    if (sitting >= 1 || sitting <= 3) && !PlayerScript.releasedFromZaz; still sitting
+    if (sitting >= 1 || sitting <= 3) && !PlayerMonScript.checkPlayerReleasedFromZaz(); still sitting
       debugmsg("debug: player is sitting in furniture with zazFurniture keyword, sitting lvl:" + sitting, 3)
       return true
     else
       debugmsg("debug: furniture no longer valid, canceling", 3)
-      PlayerScript.sittingInZaz = false
+      PlayerMonScript.releasePlayerSittingStatus()
     endif
   elseif Mods.zazKeywordFurniture != None && actorRef.HasKeyword(Mods.zazKeywordFurniture) ; sitting in furniture and tied up
     debugmsg("debug: " + actorRef.GetDisplayName() + " has zbf furniture keyword", 0)

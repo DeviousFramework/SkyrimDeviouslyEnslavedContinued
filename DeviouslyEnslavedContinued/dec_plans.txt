@@ -4,8 +4,6 @@
 
 known bugs:
   player's inventory is not checked at the start of a fresh load
-  partial chastity is always on because you set chastity bra to always true if the toggle is off
-    I think we fixed this?  
     
   Containers searched keeps going up regardless of if you have a follower
     Doesn't reset on new followers either
@@ -18,6 +16,7 @@ known bugs:
     Maybe put chest on again after commenting armor can go on top of it
   Milk pump for MME isn't being detected correctly  
   NPC is walking away after attack, again, instead of animating... why?
+    bad animation in dd4, we need to update this
 
 
 Debug report form:
@@ -29,13 +28,21 @@ Debug report form:
   Memory patch?  
   Can you hand me the save in addition to the log? save could have interesting information
   
+  Mods to test compatibility with:
+    > naked dungeons > rape quest detection maybe?
+    sexy bandit captives
+    lich evilynn
+    > devious followers
+    kidnapped and pitfall
+  
+  
  legend (start of the line):
  ; <- fixed, leave for a version before removing
  * <- high priority 
  + <- new feature
  - <- needs to be optimized out
  ? <- unsure if this is still a problem
-
+ > <- focus was on this when I left
 ###################################################
 #                                                 #
 #   Don't forget to change the version number!    #
@@ -103,11 +110,22 @@ Debug report form:
 
 Notes:
   
-    - follower dialogue for asking for unlock
+  - follower dialogue for asking for unlock
       does the unlock dialogue work and make sense for most items, with context being either they put them on the player or they did not
       
       missing dialogue for already gagged, ask for sex get belt?
       missing variety for gagged talking to follower
+    > maybe remove all but the collar if follower likes being dom?  
+    ;can we alter the dialogue to work ONTOP of the DDi dailogue? the DDi dialogue is shit
+    ; need to make follower master alias for this to work
+      ;GREAT, massive bug, playermon and npcmon getting stuck
+      ; I THINK this is caused by NPCmon resetting, init gets called every time
+      ;   and init looks up playermon for the property
+      ;    but player mon is waiting for NPC mon to finish resetting so it can do stuff
+      ;    what a fucking mess
+      ; NPC mon gets stuck in init waiting for playermon
+      ; playermon gets stuck 
+      
   
   can we detect what items the player is wearing that the follower put on them?
    - outcomes:
@@ -126,11 +144,14 @@ Notes:
     does it work for after sex?
     follower sex approach?
   
+  ; remove master alias requirement for player presenting to followers for sex
+  single item plugs chance
   detect cuffs for vulnerable?
+    need single levels for both
   fix your struggle animations
     can we get gag detection working for PAHE dialogue? ; you mean override his dialogue with our own? we can't make a tree that big
     home: "you stop, sex with me" ignores belt
-
+    we also need new animaitons for NPC approaches player for sex, although the animation is now FAR less important because we don't have that ~20 seconds of downtime
   
   ;mods refresh is now notifying player all the time, should only happen when user specifies, and ignored the rest of the time
   shout on follower doesn't work apparently
@@ -161,11 +182,10 @@ Notes:
     this could be a huge benefit for NPC searching too
     oh no, we do looooots of wornhaskeyword in item rolling
     
-  single item plugs chance
   two gag rolls? got with "you should try on" -> hey! -> ?
   if follower finds a petcollar, they don't always put it on themselves it seems
     make sure pet collar is working
-  
+  lets add the sexy bandit keyword to keywords to look for to idenfify slaves including player
 
   add MCM modifier for approach chance for when the player is alone with the attacker
    maybe remove some dialogue or add some too
@@ -649,12 +669,6 @@ add gagged attack? (gagged slaves can still aproach you, new dialogue)
    mcm: use Devious framework for vulnerability testing
    _qFramework = IsPlayerBound(), SetMaster(None, "", _qFramework.MD_CLOSE, True) GetVulnerability()
           
-  Mods to test compatibility with:
-    > naked dungeons > rape quest detection maybe?
-    sexy bandit captives
-    lich evilynn
-    > devious followers
-    kidnapped and pitfall
   
   always: new followers system needs to be tested more
   = Speed testing:

@@ -181,6 +181,7 @@ int Property followerItemsCombination   Auto Conditional
 int Property followerItemsWhichOneFree  Auto Conditional
 
 Float           CurrentGameTime         = 0.0
+float           onupdatetimeteststart   = 0.0
 Float Property  timeoutGameTime         = 0.0 Auto  ; used if we need a temporary time out
 Float Property  busyGameTime            = 0.0 Auto  ; used to timeout dhlp suspend in the event something happens
 Float Property  timeoutEnslaveGameTime  = 0.0 auto
@@ -223,7 +224,7 @@ Event OnUpdate()
       endif
       
     else ; not a combat situation
-      float onupdatetimeteststart = Utility.GetCurrentRealTime()
+      onupdatetimeteststart       = Utility.GetCurrentRealTime()
       CurrentGameTime             = Utility.GetCurrentGameTime() ; use gametime, since realtime gets reset per game session, cannot work through game saves
       ; approach is already active, test for reset
       if forceGreetIncomplete    
@@ -570,7 +571,7 @@ function updateEquippedPlayerVulnerability(bool isSlaver = false)
       
       
   ; regular first, then non-naked sensitive
-  int[] vulnerableValues = new int[16] ; depends on how many we have
+  int[] vulnerableValues = new int[32] ; depends on how many we have
   vulnerableValues[0] = MCM.iVulnerableNaked * ((isNude || isSlaver) as int) 
   vulnerableValues[1] = MCM.iVulnerableCollar * (wearingCollar as int)          
   vulnerableValues[2] = MCM.iNakedReqCollar * (wearingCollar && (isNude || isSlaver)) as int
@@ -913,6 +914,7 @@ bool function attemptApproach()
     ;CheckGuardApproachable()
   endif
   
+  debugmsg("time before NPC search: " + (Utility.GetCurrentRealTime() - onupdatetimeteststart)) 
   ; moved this later, since it takes a long time
   actor[] nearest
   if MCM.bAlternateNPCSearch
@@ -923,6 +925,8 @@ bool function attemptApproach()
     nearest = NPCMonitorScript.getClosestRefActor(player)
   endif
   actor[] followers = NPCSearchScript.getNearbyFollowers()
+  debugmsg("time after NPC search: " + (Utility.GetCurrentRealTime() - onupdatetimeteststart)) 
+
   
   location player_loc = player.GetCurrentLocation()
   ; if player has followers
@@ -974,6 +978,7 @@ bool function attemptApproach()
     rollSex       = (rollSex          / MCM.fModifierSlaverChances)
   endif
   
+  debugmsg("time before vulnerability checking: " + (Utility.GetCurrentRealTime() - onupdatetimeteststart)) 
   updatePlayerVulnerability(isSlaver)
 
   ; if wearingPartialChasity
@@ -1020,8 +1025,7 @@ bool function attemptApproach()
     return false
   endif
   
-  ;     (weaponProtected == false || (weaponProtected && MCM.iWeaponHoldingProtectionLevel < playerVulnerability)) && \
-  ;   (isWeaponProtected()) && \
+  debugmsg("time after vulnerability checking: " + (Utility.GetCurrentRealTime() - onupdatetimeteststart)) 
 
   if enslavedLevel != 3 && (playerVulnerability > 0 || enslavedLevel == 1) && \
      forceGreetIncomplete == false 
@@ -1220,7 +1224,7 @@ bool function attemptFollowerApproach(actor[] followers)
     float roll                    = Utility.RandomFloat(100)
     debugmsg("follower aroused roll:" + roll + " need below " + goal, 3)
     ; moved this out so that we can detect it in the conversations even if not sex roll
-    follower_can_remove_belt      = knownBelt != None && !knownBelt.HasKeyword(blocking_keyword) && follower.getItemCount(libs.GetDeviceKey(knownBelt)) > 0
+    follower_can_remove_belt      = wearingBelt && !knownBelt.HasKeyword(blocking_keyword) && follower.getItemCount(libs.GetDeviceKey(knownBelt)) > 0
     if aroused_level >= MCM.gFollowerArousalMin.GetValueInt() && roll < goal && !Mods.isSlave(follower)
       if !(MCM.gForceGreetItemFind.GetValueInt() as bool)
         Debug.Notification( follower.GetDisplayName() + " looks aroused.")
@@ -1403,9 +1407,28 @@ function updateMaster()
 endFunction
 
 function setMaster(actor masterRef)
+
+  debugmsg("Setting new master: " + masterRef)
   master = masterRef
   masterRefAlias.forceRefto(master)
   masterIsSlaver = Mods.isSlaveTrader(master); was this ever used?
+  
+endFunction
+
+; this exists as a separate function to clear the reference alias requirement from NPCmods, which was deadlocking when reset under certain cases
+bool function checkPlayerSittingInZaz()
+  return PlayerScript.sittingInZaz
+endFunction
+
+bool function checkPlayerReleasedFromZaz()
+  return PlayerScript.releasedFromZaz
+endFunction
+
+; created in 13.13.11, might no longer be required
+bool function releasePlayerSittingStatus()
+  PlayerScript.sittingInZaz = false
+  PlayerScript.releasedFromZaz = true
+
 endFunction
 
 ; if I had known these 5 functions would all be the same I would have just made one with a string parameter to differentiate them, but now I'm fat and lazy

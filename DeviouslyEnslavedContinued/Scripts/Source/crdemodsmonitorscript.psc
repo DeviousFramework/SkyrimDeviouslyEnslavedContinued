@@ -468,6 +468,8 @@ armor Property DD4PonyTailPlug Auto ;0602EA47
 bool Property bRefreshModDetect Auto
 Perk Property crdeContainerPerk Auto
 
+keyword property sexybanditGearKeyword auto ;07027A60
+
 Event OnInit()
   Debug.Trace("[CRDE] Mods::init() ...")
   dhlpSuspendStatus = false
@@ -1085,6 +1087,10 @@ function updateForms()
     DD4PonyGagWhiteHarn   = Game.GetFormFromFile(0x0703BD1B, "Devious Devices - Expansion.esm") as armor
     DD4PonyTailPlug       = Game.GetFormFromFile(0x0602EA47, "Devious Devices - Expansion.esm") as armor
     ;DD4CatsuitArmsBlack       = Game.GetFormFromFile(0x, "Devious Devices - Expansion.esm") as armor
+  endif
+
+  if isModActive("SexyBanditCaptives.esp")
+    sexybanditGearKeyword = Game.GetFormFromFile(0x07027A60, "Devious Devices - Expansion.esm") as keyword
   endif
   
   ; this is temporary to fix update 13.11 -> 13.12

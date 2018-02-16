@@ -127,9 +127,12 @@ function removeDDs(actor targetActor = none, bool hasChastityKey = true, bool ha
     ; removeDDbyKWD(player, libs.zad_DeviousBlindFold)
     ;;removeDDbyArmor(PlayerMon.knownBlindfold)
   ; endif
-  ; if targetActor == none
-    ; targetActor = player
-  ; endif
+  ; because papyrus is too stupid to accept a generic argument to a property
+  PlayerMon.debugmsg("starting removedds")
+  
+  if targetActor == none
+    targetActor = player
+  endif
   
   ; borrowed from kimy, modified
   Armor id    ; inventory device, physical device that exists in the inventory
@@ -273,6 +276,8 @@ endFunction
 function unequipAllNonImportantSlow()
   ; at first, we ignore gag, armbinder, DD items
   
+  PlayerMon.debugmsg("starting unequipAllNonImportantSlow")
+  
   ; first we remove head, shoes, and gloves
   player.UnEquipItemSlot(30) ; head
   player.UnEquipItemSlot(37) ; feet
@@ -296,6 +301,13 @@ function unequipAllNonImportantSlow()
   ;DON'T ASSUME DD IS UP TO DATE, we can get enslaved through proxy sex now
   ;lazy, will write later
   
+
+  if player.WornHasKeyword(libs.zad_DeviousHeavyBondage) ; armbinder
+    removeDDbyKWD(player, libs.zad_DeviousHeavyBondage) ; 37
+    Utility.Wait(1)
+  endif
+
+  
   ;then we remove Arm and leg cuffs, 
   if player.WornHasKeyword(libs.zad_DeviousArmCuffs) ; ARM CUFFS
     removeDDbyKWD(player, libs.zad_DeviousArmCuffs)
@@ -315,7 +327,23 @@ function unequipAllNonImportantSlow()
     removeDDbyKWD(player, libs.zad_DeviousBoots) ; 37
     Utility.Wait(1)
   endif
-    
+  
+  if player.WornHasKeyword(libs.zad_DeviousBelt) ; belt
+    removeDDbyKWD(player, libs.zad_DeviousBelt) ; 37
+    Utility.Wait(1)
+  endif
+
+  if player.WornHasKeyword(libs.zad_DeviousGag) ; gag
+    removeDDbyKWD(player, libs.zad_DeviousGag) ; 37
+    Utility.Wait(1)
+  endif
+
+  if player.WornHasKeyword(libs.zad_DeviousBlindFold) ; gag
+    removeDDbyKWD(player, libs.zad_DeviousBlindFold) ; 37
+    Utility.Wait(1)
+  endif
+
+  
   ;Utility.Wait(1)
   ; followed by collar, hood
   ;Utility.Wait(0.5)
@@ -2318,6 +2346,20 @@ endFunction
 ; for now, might as well use this
 function stripPlayer()
     unequipAllNonImportantSlow()  
+endFunction
+
+function squeezePumpPlugs(actor actorRef)
+  armor vagplug  = actorRef.GetWornForm( 0x08000000  ) as armor ;57
+  armor analplug = actorRef.GetWornForm( 0x00040000  ) as armor ;48
+  bool anal = analplug && analplug.HasKeyword(libs.zad_kw_InflatablePlugAnal)
+  bool vaginal = vagplug && vagplug.HasKeyword(libs.zad_kw_InflatablePlugVaginal)
+  if anal && vaginal
+    libs.InflateRandomPlug(actorRef)
+  elseif vaginal
+    libs.InflateVaginalPlug(actorRef)
+  else
+    libs.InflateAnalPlug(actorRef)
+  endif
 endFunction
 
 ; length is passed because the passed array is oversized, and papyrus doesn't allow for subarray passing
