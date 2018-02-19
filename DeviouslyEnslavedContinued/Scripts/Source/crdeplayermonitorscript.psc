@@ -1224,7 +1224,8 @@ bool function attemptFollowerApproach(actor[] followers)
     float roll                    = Utility.RandomFloat(100)
     debugmsg("follower aroused roll:" + roll + " need below " + goal, 3)
     ; moved this out so that we can detect it in the conversations even if not sex roll
-    follower_can_remove_belt      = wearingBelt && !knownBelt.HasKeyword(blocking_keyword) && follower.getItemCount(libs.GetDeviceKey(knownBelt)) > 0
+    follower_can_remove_belt      = wearingBelt && knownBelt.HasKeyword(libs.zad_DeviousBelt) \
+                                  && !knownBelt.HasKeyword(blocking_keyword) && (follower.getItemCount(libs.GetDeviceKey(knownBelt)) > 0)
     if aroused_level >= MCM.gFollowerArousalMin.GetValueInt() && roll < goal && !Mods.isSlave(follower)
       if !(MCM.gForceGreetItemFind.GetValueInt() as bool)
         Debug.Notification( follower.GetDisplayName() + " looks aroused.")
