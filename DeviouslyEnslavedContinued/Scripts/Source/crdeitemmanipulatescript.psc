@@ -175,7 +175,8 @@ function removeDDs(actor targetActor = none, bool hasChastityKey = true, bool ha
             ; for now, lets see what happens if we leave this out
             ; Elseif rd.HasKeyWord(dcur_kw_QuestItem)
               ; ;That's a quest item. Needs to be taken off with the proper routine
-              ; libs.RemoveQuestDevice(targetActor, id, rd, kw, dcur_kw_QuestItem, destroyDevice = destroyDevices, skipMutex = true)
+              ; libs.RemoveQuestDevice(targetActor, id, rd, kw, dcur_kw_QuestItem, \
+                                       ;destroyDevice = destroyDevices, skipMutex = true)
             Else
               libs.removeDevice(targetActor, id, rd, kw, false, skipevents = false, skipmutex = true)      
               Utility.Wait(0.5)
@@ -400,12 +401,14 @@ bool function equipRandomDD(actor actorRef, actor attacker = None, bool canEnsla
   PlayerMon.updateWornDD()
   Armor collar          = actorRef.GetWornForm( 0x00008000 ) as Armor 
   armor yoke            = actorRef.GetWornForm( 0x00010000 ) as Armor ;46
-  bool collarBlocked    = collar != None && collar.HasKeyword(libs.zad_DeviousCollar) && collar.HasKeyword(libs.zad_BlockGeneric) ;PlayerMon.knownCollar != None && PlayerMon.knownCollar.HasKeyword(libs.zad_BlockGeneric)
+  bool collarBlocked    = collar != None && collar.HasKeyword(libs.zad_DeviousCollar) && collar.HasKeyword(libs.zad_BlockGeneric) 
+   ;PlayerMon.knownCollar != None && PlayerMon.knownCollar.HasKeyword(libs.zad_BlockGeneric)
   bool isCollarable     = !(( yoke != None && yoke.HasKeyword(Mods.zazKeywordWornYoke)) || collarBlocked || Mods.iEnslavedLevel > 0)
   int uniqueChance      = MCM.iWeightUniqueCollars * (isCollarable as int)
   int total = MCM.iWeightSingleDD + MCM.iWeightMultiDD + uniqueChance
   int roll = Utility.RandomInt(1,total)
-  PlayerMon.debugmsg("single/multi/uniqueCol(" + MCM.iWeightSingleDD + "/" + MCM.iWeightMultiDD + "/" + uniqueChance + ")roll/total:(" + roll + "/" + total + ")", 2)
+  PlayerMon.debugmsg("single/multi/uniqueCol(" + MCM.iWeightSingleDD + "/" + MCM.iWeightMultiDD + "/" + uniqueChance \
+                                               + ")roll/total:(" + roll + "/" + total + ")", 2)
   armor[] items = new armor[10]
   if total == 0
     PlayerMon.debugmsg("All item weights are zero, no items to be added")
@@ -432,12 +435,15 @@ armor[] function getRandomDD(actor actorRef, actor attacker = None, bool canEnsl
   ;PlayerMon.CheckDevices()
   PlayerMon.updateWornDD()
   Armor collar          = actorRef.GetWornForm( 0x00008000 ) as Armor 
-  bool collarBlocked    = collar != None && actorRef.WornHasKeyword(libs.zad_DeviousCollar) && collar.HasKeyword(libs.zad_BlockGeneric) ;PlayerMon.knownCollar != None && PlayerMon.knownCollar.HasKeyword(libs.zad_BlockGeneric)
+  bool collarBlocked    = collar != None \
+                        && actorRef.WornHasKeyword(libs.zad_DeviousCollar) && collar.HasKeyword(libs.zad_BlockGeneric) 
+  ;PlayerMon.knownCollar != None && PlayerMon.knownCollar.HasKeyword(libs.zad_BlockGeneric)
   bool isCollarable     = !(actorRef.WornHasKeyword(Mods.zazKeywordWornYoke) || collarBlocked || Mods.iEnslavedLevel > 0)
   int uniqueChance      = MCM.iWeightUniqueCollars * (isCollarable as int)
   int total = MCM.iWeightSingleDD + uniqueChance ;+ MCM.iWeightMultiDD 
   int roll = Utility.RandomInt(1,total)
-  PlayerMon.debugmsg("single/multi/uniqueCol(" + MCM.iWeightSingleDD + "/" + MCM.iWeightMultiDD + "/" + uniqueChance + ")roll/total:(" + roll + "/" + total + ")", 2)
+  PlayerMon.debugmsg("single/multi/uniqueCol(" + MCM.iWeightSingleDD + "/" + MCM.iWeightMultiDD + "/" + uniqueChance\
+                                               + ")roll/total:(" + roll + "/" + total + ")", 2)
   armor[] items = new armor[10]
   if total == 0
     PlayerMon.debugmsg("All item weights are zero, no items to be added")
@@ -474,15 +480,18 @@ armor[] function getRandomSingleDD(actor actorRef)
 
   ; TODO check if player is already blocked, return with false
   ; TODO optimize all of these wornhaskeywords away, this is waaay too slow
-  int glovesbootsChance   = MCM.iWeightSingleGlovesBoots * ((!actorRef.wornHasKeyword(libs.zad_DeviousGloves) && !actorRef.wornHasKeyword(libs.zad_DeviousBoots)) as int)
-  int armbinderChance     = MCM.iWeightSingleArmbinder * ((!actorRef.wornHasKeyword(libs.zad_DeviousArmbinder) && !actorRef.wornHasKeyword(libs.zad_DeviousYoke)) as int)
+  int glovesbootsChance   = MCM.iWeightSingleGlovesBoots \
+                          * ((!actorRef.wornHasKeyword(libs.zad_DeviousGloves) && !actorRef.wornHasKeyword(libs.zad_DeviousBoots)) as int)
+  int armbinderChance     = MCM.iWeightSingleArmbinder \
+                          * ((!actorRef.wornHasKeyword(libs.zad_DeviousArmbinder) && !actorRef.wornHasKeyword(libs.zad_DeviousYoke)) as int)
   int collarChance        = MCM.iWeightSingleCollar * ((!actorRef.wornHasKeyword(libs.zad_DeviousCollar)) as int) ; could do harness too
   int gagChance           = MCM.iWeightSingleGag * ((!actorRef.wornHasKeyword(libs.zad_DeviousGag)) as int)
-  int harnessChance       = MCM.iWeightSingleHarness * ((!actorRef.wornHasKeyword(libs.zad_DeviousHarness) && !actorRef.wornHasKeyword(libs.zad_DeviousBelt)) as int) ; do I not need the keyword for corset
+  int harnessChance       = MCM.iWeightSingleHarness \
+                          * ((!actorRef.wornHasKeyword(libs.zad_DeviousHarness) && !actorRef.wornHasKeyword(libs.zad_DeviousBelt)) as int) 
   int beltChance          = MCM.iWeightSingleBelt * ((!actorRef.wornHasKeyword(libs.zad_DeviousBelt)) as int) 
-  int cuffsChance         = MCM.iWeightSingleCuffs * ((!actorRef.wornHasKeyword(libs.zad_DeviousLegCuffs) && !actorRef.wornHasKeyword(libs.zad_DeviousArmCuffs)) as int)
-  int ankleChance         = MCM.iWeightSingleAnkleChains * ((!actorRef.wornHasKeyword(Mods.zazKeywordWornAnkles)) as int)
-  
+  int cuffsChance         = MCM.iWeightSingleCuffs \
+                          * ((!actorRef.wornHasKeyword(libs.zad_DeviousLegCuffs) && !actorRef.wornHasKeyword(libs.zad_DeviousArmCuffs)) as int)
+  int ankleChance         = MCM.iWeightSingleAnkleChains * ((!actorRef.wornHasKeyword(libs.zad_DeviousAnkleShackles)) as int)
   int yokeChance          = MCM.iWeightSingleYoke * ((!actorRef.wornHasKeyword(libs.zad_DeviousHeavyBondage)) as int)
   int hoodChance          = MCM.iWeightSingleHood * ((!actorRef.wornHasKeyword(libs.zad_DeviousHood)) as int)
   int blindfoldChance     = MCM.iWeightSingleBlindFold * ((!actorRef.wornHasKeyword(libs.zad_DeviousBlindFold)) as int)
@@ -490,6 +499,7 @@ armor[] function getRandomSingleDD(actor actorRef)
   
   int total = armbinderChance + glovesbootsChance + collarChance + gagChance + harnessChance + beltChance \
             + cuffsChance + ankleChance + yokeChance + hoodChance + blindfoldChance + elbowbinderChance
+  int firstSix = glovesbootsChance + armbinderChance + collarChance + gagChance + harnessChance + beltChance
             
   if total == 0
     PlayerMon.debugmsg("single: total is zero, no more items left to put on?")
@@ -538,36 +548,38 @@ armor[] function getRandomSingleDD(actor actorRef)
       ; Debug.Notification(actorRef.GetDisplayName() + " locks a harness on you before leaving!")
     ; endif
     return getRandomHarnessAndStuff(actorRef)
-  elseif roll <= glovesbootsChance + armbinderChance + collarChance + gagChance + harnessChance + beltChance; belt and plug
+  elseif roll <= firstSix; belt and plug
     PlayerMon.debugmsg("attempting belt ...")
     ; if actorRef != None && actorRef == player
       ; Debug.Notification(actorRef.GetDisplayName() + " locks a tight chastity belt on you before leaving!")
     ; endif ;ankleChance
-    return getRandomBeltAndStuff(actorRef, Utility.RandomInt(1, (MCM.iWeightBeltPunishment + MCM.iWeightBeltRegular)) <= MCM.iWeightBeltPunishment)
-  elseif roll <= glovesbootsChance + armbinderChance + collarChance + gagChance + harnessChance + beltChance + cuffsChance; legs and arm cuffs
+    return getRandomBeltAndStuff(actorRef,\
+                                 Utility.RandomInt(1, \
+                                (MCM.iWeightBeltPunishment + MCM.iWeightBeltRegular)) <= MCM.iWeightBeltPunishment)
+  elseif roll <= firstSix + cuffsChance; legs and arm cuffs
     ; if actorRef != None && actorRef == player
       ; Debug.Notification(actorRef.GetDisplayName() + " locks arm and leg cuffs to you before leaving!")
     ; endif
     return getRandomDDCuffs()
-  elseif roll <= glovesbootsChance + armbinderChance + collarChance + gagChance + harnessChance + beltChance + cuffsChance + ankleChance; legs and arm cuffs
+  elseif roll <= firstSix + cuffsChance + ankleChance; legs and arm cuffs
     ; if actorRef != None && actorRef == player
       ; Debug.Notification(actorRef.GetDisplayName() + " locks ankle chains on you before leaving!")
     ; endif
     items[0] = getRandomAnkleChains()
     return items
-  elseif roll <= glovesbootsChance + armbinderChance + collarChance + gagChance + harnessChance + beltChance + cuffsChance + ankleChance + yokeChance
+  elseif roll <= firstSix + cuffsChance + ankleChance + yokeChance
     ; if actorRef != None && actorRef == player
       ; Debug.Notification(actorRef.GetDisplayName() + " locks a yoke on you!")
     ; endif
     items[0] = getRandomDDYoke(actorRef)
     return items
-  elseif roll <= glovesbootsChance + armbinderChance + collarChance + gagChance + harnessChance + beltChance + cuffsChance + ankleChance + yokeChance + hoodChance
+  elseif roll <= firstSix + cuffsChance + ankleChance + yokeChance + hoodChance
     items[0] = getRandomHood(actorRef)
     return items
-  elseif roll <= glovesbootsChance + armbinderChance + collarChance + gagChance + harnessChance + beltChance + cuffsChance + ankleChance + yokeChance + hoodChance + blindfoldChance
+  elseif roll <= firstSix + cuffsChance + ankleChance + yokeChance + hoodChance + blindfoldChance
     items[0] = getRandomDDBlindfolds()
     return items
-  else;if roll <= glovesbootsChance + armbinderChance + collarChance + gagChance + harnessChance + beltChance + cuffsChance + ankleChance + yokeChance + hoodChance + blindfoldChance + elbowbinderChance
+  else;if roll <= firstSix + cuffsChance + ankleChance + yokeChance + hoodChance + blindfoldChance + elbowbinderChance
     items[0] = getRandomDDElbowbinder()
     return items
   endif  
@@ -580,10 +592,10 @@ function equipRandomMultipleDD(actor actorRef)
   ; fade to black or straight to black
 
   int ponyChance          = MCM.iWeightMultiPony * ((!actorRef.wornHasKeyword(libs.zad_DeviousHarness)) as int)
-  int ballandchainChance  = MCM.iWeightMultiRedBNC ;* ((!actorRef.wornHasKeyword(libs.zad_DeviousArmbinder) && !actorRef.wornHasKeyword(libs.zad_DeviousYoke)) as int)
+  int ballandchainChance  = MCM.iWeightMultiRedBNC 
   int transparentChance   = MCM.iWeightMultiTransparent  *  ((!actorRef.wornHasKeyword(libs.zad_DeviousSuit)) as int)
   int rubberChance        = MCM.iWeightMultiRubber  * ((!actorRef.wornHasKeyword(libs.zad_DeviousSuit)) as int)
-  int multiChance         = MCM.iWeightMultiSeveral  * ((!actorRef.wornHasKeyword(libs.zad_DeviousHarness)) as int) ; do I not need the keyword for corset
+  int multiChance         = MCM.iWeightMultiSeveral  * ((!actorRef.wornHasKeyword(libs.zad_DeviousHarness)) as int) 
   int total = ponyChance + ballandchainChance + transparentChance + rubberChance + multiChance
   if total == 0
     PlayerMon.debugmsg("single: total is zero, no more items left to put on?")
@@ -682,10 +694,10 @@ function getRandomMultipleDD(actor actorRef)
   ; fade to black or straight to black
 
   int ponyChance          = MCM.iWeightMultiPony * ((!actorRef.wornHasKeyword(libs.zad_DeviousHarness)) as int)
-  int ballandchainChance  = MCM.iWeightMultiRedBNC ;* ((!actorRef.wornHasKeyword(libs.zad_DeviousArmbinder) && !actorRef.wornHasKeyword(libs.zad_DeviousYoke)) as int)
+  int ballandchainChance  = MCM.iWeightMultiRedBNC 
   int transparentChance   = MCM.iWeightMultiTransparent  *  ((!actorRef.wornHasKeyword(libs.zad_DeviousSuit)) as int)
   int rubberChance        = MCM.iWeightMultiRubber  * ((!actorRef.wornHasKeyword(libs.zad_DeviousSuit)) as int)
-  int multiChance         = MCM.iWeightMultiSeveral  * ((!actorRef.wornHasKeyword(libs.zad_DeviousHarness)) as int) ; do I not need the keyword for corset
+  int multiChance         = MCM.iWeightMultiSeveral  * ((!actorRef.wornHasKeyword(libs.zad_DeviousHarness)) as int) 
   int total = ponyChance + ballandchainChance + transparentChance + rubberChance + multiChance
   if total == 0
     PlayerMon.debugmsg("single: total is zero, no suits available?")
@@ -739,21 +751,28 @@ armor function getRandomUniqueCollar(actor actorRef)
   ; we shouldn't need collarable anymore, since we can't do anything here without it anymore
   bool isPlayer = actorRef == player
   int weightPetCollar             = MCM.iWeightPetcollar * ( Mods.modLoadedPetCollar ) as int
-  int weightDCURCursedCollar      = MCM.iWeightCursedCollar * ( Mods.modLoadedCursedLoot && (actorRef == player) && isPlayer) as int
+  int weightDCURCursedCollar      = MCM.iWeightCursedCollar * ( Mods.modLoadedCursedLoot \ 
+                                  && (actorRef == player) && isPlayer) as int
   int weightDCURSlave             = MCM.iWeightSlaveCollar * ( Mods.modLoadedCursedLoot && isPlayer) as int
   int weightDCURSlut              = MCM.iWeightSlutCollar * (Mods.modLoadedCursedLoot&& isPlayer ) as int
-  int weightDCURRubberDollCollar  = MCM.iWeightRubberDollCollar * (  Mods.modLoadedCursedLoot && (actorRef == player) && isPlayer) as int
-  int weightFBanned               = MCM.iWeightdeviousPunishEquipmentBannnedCollar * (  Mods.deviousPunishEquipmentBannnedCollar != None ) as int
-  int weightFProstituted          = MCM.iWeightdeviousPunishEquipmentProstitutedCollar * (  Mods.deviousPunishEquipmentProstitutedCollar != None ) as int
-  int weightFNaked                = MCM.iWeightdeviousPunishEquipmentNakedCollar * (  Mods.deviousPunishEquipmentNakedCollar != None ) as int
+  int weightDCURRubberDollCollar  = MCM.iWeightRubberDollCollar * (  Mods.modLoadedCursedLoot \
+                                  && (actorRef == player) && isPlayer) as int
+  int weightFBanned               = MCM.iWeightdeviousPunishEquipmentBannnedCollar \
+                                  * ( Mods.deviousPunishEquipmentBannnedCollar != None ) as int
+  int weightFProstituted          = MCM.iWeightdeviousPunishEquipmentProstitutedCollar \
+                                  * (Mods.deviousPunishEquipmentProstitutedCollar != None ) as int
+  int weightFNaked                = MCM.iWeightdeviousPunishEquipmentNakedCollar \
+                                  * (Mods.deviousPunishEquipmentNakedCollar != None ) as int
   int weightStripTease            = mcm.iWeightStripCollar * (Mods.modLoadedCursedLoot ) as int
   int weightDCURHeavyCollar       = MCM.iWeightHeavyCollar * (Mods.modLoadedCursedLoot ) as int
-  int weightCatSuitCollar          = MCM.iWeightCatSuitCollar * (Mods.modLoadedCursedLoot || Mods.modLoadedDD4) as int
+  int weightCatSuitCollar         = MCM.iWeightCatSuitCollar * (Mods.modLoadedCursedLoot || Mods.modLoadedDD4) as int
   
   ;int suits       = MCM.iWeightMultiDD * 
   int weightTotal = weightPetCollar + weightDCURCursedCollar + weightDCURSlave + weightDCURSlut \
-                  + weightDCURRubberDollCollar + weightFBanned + weightFProstituted + weightFNaked + weightStripTease\
-                  + weightDCURHeavyCollar + weightCatSuitCollar
+                  + weightDCURRubberDollCollar + weightFBanned + weightFProstituted + weightFNaked\
+                 + weightStripTease + weightDCURHeavyCollar + weightCatSuitCollar
+  ; to reduce horizontal length of code
+  int firstFive = weightPetCollar + weightDCURCursedCollar + weightDCURSlave + weightDCURSlut + weightDCURRubberDollCollar
   if weightTotal == 0
     PlayerMon.debugmsg("equipPlayerMon.randomDD: weight is zero, equipping nothing", 4)
   endif  
@@ -761,9 +780,10 @@ armor function getRandomUniqueCollar(actor actorRef)
   bool  removed = false
   ;PlayerMon.debugmsg("equipPlayerMon.randomDD: rolled " + roll, 2)
   PlayerMon.debugmsg("pet/cursed/slave/slut/rubberdoll/banned/prostituted/naked/stripTease/heavy/rubber(" \
-                     + weightPetCollar + "/" + weightDCURCursedCollar + "/" + weightDCURSlave + "/" + weightDCURSlut + "/"\
-                     + weightDCURRubberDollCollar + "/" + weightFBanned + "/" + weightFProstituted + "/" \
-                     + weightFNaked + "/" + weightStripTease + "/" + weightDCURHeavyCollar + "/" + weightCatSuitCollar \
+                     + weightPetCollar + "/" + weightDCURCursedCollar + "/" + weightDCURSlave \
+                     + "/" + weightDCURSlut + "/" + weightDCURRubberDollCollar + "/" + weightFBanned \
+                     + "/" + weightFProstituted + "/"  + weightFNaked + "/" + weightStripTease \
+                     + "/" + weightDCURHeavyCollar + "/" + weightCatSuitCollar \
                      +") roll/total:(" + roll + "/" + weightTotal + ")", 2)
 
   armor collar
@@ -802,35 +822,35 @@ armor function getRandomUniqueCollar(actor actorRef)
       Debug.Notification("The slut has earned a collar")
     endif
     return Mods.dcurSlutCollar
-  elseif roll <= weightPetCollar + weightDCURCursedCollar + weightDCURSlave + weightDCURSlut + weightDCURRubberDollCollar
+  elseif roll <= firstFive
     if actorRef != None && actorRef == player
       Debug.Notification(actorRef.GetDisplayName() + " locks a rubbery collar around your neck!")
     else
       Debug.Notification("The rubbery collar locks around your neck")
     endif
     return Mods.dcurRubberCollar
-  elseif roll <= weightPetCollar + weightDCURCursedCollar + weightDCURSlave + weightDCURSlut + weightDCURRubberDollCollar + weightFBanned 
+  elseif roll <= firstFive + weightFBanned 
     if actorRef != None && actorRef == player
       Debug.Notification(actorRef.GetDisplayName() + " locks a weird collar around your neck!")
     else
       Debug.Notification("The slut has earned a collar")
     endif
     return Mods.deviousPunishEquipmentBannnedCollar 
-  elseif roll <= weightPetCollar + weightDCURCursedCollar + weightDCURSlave + weightDCURSlut + weightDCURRubberDollCollar + weightFBanned + weightFProstituted 
+  elseif roll <= firstFive + weightFBanned + weightFProstituted 
     if actorRef != None && actorRef == player
       Debug.Notification(actorRef.GetDisplayName() + " locks a weird collar around your neck!")
     else
       Debug.Notification("The prositute has earned a collar")
     endif
     return Mods.deviousPunishEquipmentProstitutedCollar 
-  elseif roll <= weightPetCollar + weightDCURCursedCollar + weightDCURSlave + weightDCURSlut + weightDCURRubberDollCollar + weightFBanned + weightFProstituted + weightFNaked   
+  elseif roll <= firstFive + weightFBanned + weightFProstituted + weightFNaked   
     if actorRef != None && actorRef == player
       Debug.Notification(actorRef.GetDisplayName() + " locks a weird collar around your neck!")
     else
       Debug.Notification("The exhibitionist has earned a new collar")
     endif
     return Mods.deviousPunishEquipmentNakedCollar 
-  elseif roll <= weightPetCollar + weightDCURCursedCollar + weightDCURSlave + weightDCURSlut + weightDCURRubberDollCollar + weightFBanned + weightFProstituted + weightFNaked + weightStripTease
+  elseif roll <= firstFive + weightFBanned + weightFProstituted + weightFNaked + weightStripTease
       if actorRef != None && actorRef == player
       Debug.Notification(actorRef.GetDisplayName() + " locks a StripTease collar around your neck!")
     else
@@ -838,7 +858,7 @@ armor function getRandomUniqueCollar(actor actorRef)
     endif
     return Mods.dcurStripTeaseCollar 
 
-  elseif roll <= weightPetCollar + weightDCURCursedCollar + weightDCURSlave + weightDCURSlut + weightDCURRubberDollCollar + weightFBanned + weightFProstituted + weightFNaked + weightStripTease + weightDCURHeavyCollar
+  elseif roll <= firstFive + weightFBanned + weightFProstituted + weightFNaked + weightStripTease + weightDCURHeavyCollar
     if actorRef != None && actorRef == player
       Debug.Notification(actorRef.GetDisplayName() + " locks a Heavy collar around your neck!")
     else
@@ -846,7 +866,7 @@ armor function getRandomUniqueCollar(actor actorRef)
     endif
     return Mods.dcurHeavyCollar 
     
-  else;if roll <= weightPetCollar + weightDCURCursedCollar + weightDCURSlave + weightDCURSlut + weightDCURRubberDollCollar + weightFBanned + weightFProstituted + weightFNaked + weightStripTease + weightDCURHeavyCollar + weightCatSuitCollar
+  else;if roll <= firstFive + weightFBanned + weightFProstituted + weightFNaked + weightStripTease + weightDCURHeavyCollar + weightCatSuitCollar
     if actorRef != None && actorRef == player
       Debug.Notification(actorRef.GetDisplayName() + " locks a rubber collar around your neck!")
     else
@@ -959,7 +979,8 @@ function equipRandomStuff(actor actorRef, Armor belt, bool punishment = false, b
 endFunction
 
 ; where "stuff" in this context is plug and piercing under a belt
-armor[] function getRandomBeltStuff(actor actorRef, Armor belt, bool punishment = false, bool force = false, bool forceGem = false)
+armor[] function getRandomBeltStuff(actor actorRef, Armor belt,\
+                                    bool punishment = false, bool force = false, bool forceGem = false)
   bool has_plug     = actorRef.WornHasKeyword(libs.zad_DeviousPlug) ;TODO extend to other plugs
   bool has_piercing = actorRef.WornHasKeyword(libs.zad_DeviousPiercingsVaginal)
   armor[] stuff = new armor[4] ; enough space for two plugs and a piercing, and the belt one level up
@@ -1976,14 +1997,14 @@ function rollFollowerFoundItems(actor actorRef)
   
   
   ;int random          = 1 ;MCM.iWeightBeltPadded  * (player.WornHasKeyword(libs.zad_Devious) as int)
-  int collar          = MCM.iWeightSingleCollar       * ((checkItemAddingAvailability(actorRef, libs.zad_DeviousCollar)     > 0) as int)  
-  int randomPlug      = MCM.iWeightPlugs              * ((checkItemAddingAvailability(actorRef, libs.zad_DeviousPlug)       > 0) as int) ; (( ! player.WornHasKeyword(libs.zad_DeviousBelt)) as int)
-  int belt            = MCM.iWeightSingleBelt         * ((checkItemAddingAvailability(actorRef, libs.zad_DeviousBelt)       > 0) as int) ; (( ! player.WornHasKeyword(libs.zad_DeviousBelt)) as int)
-  int glovesandboots  = MCM.iWeightSingleGlovesBoots  * ((checkItemAddingAvailability(actorRef, libs.zad_DeviousBoots)      > 0) as int) ; (( ! player.WornHasKeyword(libs.zad_DeviousBoots)) as int)
-  int cuffs           = MCM.iWeightSingleCuffs        * ((checkItemAddingAvailability(actorRef, libs.zad_DeviousArmCuffs)   > 0) as int) ; (( ! player.WornHasKeyword(libs.zad_DeviousArmCuffs)) as int)
-  int randomGag       = MCM.iWeightSingleGag          * ((checkItemAddingAvailability(actorRef, libs.zad_DeviousGag)        > 0) as int) ; (( ! player.WornHasKeyword(libs.zad_DeviousGag)) as int)
-  int harness         = MCM.iWeightSingleHarness      * ((checkItemAddingAvailability(actorRef, libs.zad_DeviousHarness)    > 0) as int) ; (( ! player.WornHasKeyword(libs.zad_DeviousHarness)) as int)
-  int armbinder       = MCM.iWeightSingleArmbinder    * ((checkItemAddingAvailability(actorRef, libs.zad_DeviousArmbinder)  > 0) as int)
+  int collar          = MCM.iWeightSingleCollar       * ((checkItemAddingAvailability(actorRef, libs.zad_DeviousCollar) > 0) as int)  
+  int randomPlug      = MCM.iWeightPlugs              * ((checkItemAddingAvailability(actorRef, libs.zad_DeviousPlug) > 0) as int) 
+  int belt            = MCM.iWeightSingleBelt         * ((checkItemAddingAvailability(actorRef, libs.zad_DeviousBelt) > 0) as int) 
+  int glovesandboots  = MCM.iWeightSingleGlovesBoots  * ((checkItemAddingAvailability(actorRef, libs.zad_DeviousBoots) > 0) as int) 
+  int cuffs           = MCM.iWeightSingleCuffs        * ((checkItemAddingAvailability(actorRef, libs.zad_DeviousArmCuffs) > 0) as int) 
+  int randomGag       = MCM.iWeightSingleGag          * ((checkItemAddingAvailability(actorRef, libs.zad_DeviousGag) > 0) as int) 
+  int harness         = MCM.iWeightSingleHarness      * ((checkItemAddingAvailability(actorRef, libs.zad_DeviousHarness) > 0) as int) 
+  int armbinder       = MCM.iWeightSingleArmbinder    * ((checkItemAddingAvailability(actorRef, libs.zad_DeviousArmbinder) > 0) as int)
   int randomCD        = MCM.iWeightRandomCD           * ( Mods.modLoadedCD ) as int
   int nipplePiercings = MCM.iWeightSingleNipplePiercings * ((checkItemAddingAvailability(actorRef, libs.zad_DeviousPiercingsNipple)  > 0) as int)
   int petCollar       = MCM.iWeightPetcollar          * ((checkItemAddingAvailability(actorRef, libs.zad_DeviousCollar)     > 0) as int)  
@@ -1991,13 +2012,16 @@ function rollFollowerFoundItems(actor actorRef)
   
   int elbowbinder     = MCM.iWeightSingleElbowbinder  * ((checkItemAddingAvailability(actorRef, libs.zad_DeviousArmbinder)  > 0 && Mods.modLoadedDD4) as int)
   int hobbledress     = MCM.iWeightSingleElbowbinder  * ((checkItemAddingAvailability(actorRef, libs.zad_DeviousSuit)  > 0 && Mods.modLoadedDD4) as int)
-  ;int gemplugandmore  = gemPlugAvailable * MCM.iWeightPlugs * ((checkItemAddingAvailability(actorRef, libs.zad_DeviousPlug)  > 0) as int) / 2
+  ;int gemplugandmore  = gemPlugAvailable * MCM.iWeightPlugs \
+                       ;* ((checkItemAddingAvailability(actorRef, libs.zad_DeviousPlug)  > 0) as int) / 2
   
-  ;int rubberSuit      = MCM.iWeightSingleBelt   * (( ! player.WornHasKeyword(libs.zad_DeviousSuit)) as int) ; not here, lets do this as tier 2 items adding
+  ;int rubberSuit      = MCM.iWeightSingleBelt   * (( ! player.WornHasKeyword(libs.zad_DeviousSuit)) as int) 
   
   int total       = collar + randomPlug + belt + glovesandboots + cuffs + randomGag + harness + armbinder \
                   + randomCD + nipplePiercings + petCollar + uniqueCollar + elbowbinder ;+ gemplugandmore
   
+  int firstEight = collar + randomPlug + belt + glovesandboots + cuffs + randomGag + harness + armbinder 
+
   int roll = Utility.RandomInt(1,total)
   keyword armorKeyword = None
   
@@ -2031,25 +2055,25 @@ function rollFollowerFoundItems(actor actorRef)
   elseif roll < collar + randomPlug + belt + glovesandboots + cuffs + randomGag + harness 
     PlayerMon.followerItemsCombination = 56
     armorKeyword = libs.zad_DeviousHarness
-  elseif roll < collar + randomPlug + belt + glovesandboots + cuffs + randomGag + harness + armbinder 
+  elseif roll < firstEight
     PlayerMon.followerItemsCombination = 8
     armorKeyword = libs.zad_DeviousArmbinder
-  elseif roll < collar + randomPlug + belt + glovesandboots + cuffs + randomGag + harness + armbinder + randomCD 
+  elseif roll < firstEight + randomCD 
     PlayerMon.followerItemsCombination = 40
     armorKeyword = libs.zad_DeviousBelt ; TODO this should be changed
-  elseif roll < collar + randomPlug + belt + glovesandboots + cuffs + randomGag + harness + armbinder + randomCD + nipplePiercings
+  elseif roll < firstEight + randomCD + nipplePiercings
     PlayerMon.followerItemsCombination = 21
     armorKeyword = libs.zad_DeviousPiercingsNipple
-  elseif roll < collar + randomPlug + belt + glovesandboots + cuffs + randomGag + harness + armbinder + randomCD + nipplePiercings + petCollar
+  elseif roll < firstEight + randomCD + nipplePiercings + petCollar
     PlayerMon.followerItemsCombination = 31
     armorKeyword = libs.zad_DeviousCollar
-  elseif roll < collar + randomPlug + belt + glovesandboots + cuffs + randomGag + harness + armbinder + randomCD + nipplePiercings + petCollar + uniqueCollar 
+  elseif roll < firstEight + randomCD + nipplePiercings + petCollar + uniqueCollar 
     PlayerMon.followerItemsCombination = 30
     armorKeyword = libs.zad_DeviousCollar
-  elseif roll < collar + randomPlug + belt + glovesandboots + cuffs + randomGag + harness + armbinder + randomCD + nipplePiercings + petCollar + uniqueCollar + elbowbinder
+  elseif roll < firstEight + randomCD + nipplePiercings + petCollar + uniqueCollar + elbowbinder
     PlayerMon.followerItemsCombination = 8
     armorKeyword = libs.zad_DeviousArmbinder 
-  ;else;if roll < collar + randomPlug + belt + glovesandboots + cuffs + randomGag + harness + armbinder + randomCD + nipplePiercings + petCollar + uniqueCollar + elbowbinder + gemplugandmore
+  ;else;if roll < firstEight + randomCD + nipplePiercings + petCollar + uniqueCollar + elbowbinder + gemplugandmore
   ;  PlayerMon.followerItemsCombination = 52
   ;  armorKeyword = libs.zad_DeviousPlug 
   endif     
@@ -2057,12 +2081,15 @@ function rollFollowerFoundItems(actor actorRef)
   if armorKeyword
     PlayerMon.followerItemsWhichOneFree = checkItemAddingAvailability(actorRef, armorKeyword)
     ;PlayerMon.debugmsg("for keyword: " + armorKeyword + " availability is " + PlayerMon.followerItemsWhichOneFree)
-    PlayerMon.debugmsg("collar/randomPlug/belt/glovesandboots/cuffs/randomGag/harness/armbinder/randomCD/nipplePiercings/petcollar/uniqueCollar/elbowbinder/gemplug(" \
+    PlayerMon.debugmsg("collar/randomPlug/belt/glovesandboots/cuffs/randomGag/harness/armbinder/randomCD/nipplePiercings/petcollar/uniqueCollar/elbowbinder/gemplug("  \
                       + collar + "/" + randomPlug + "/" + belt + "/" + glovesandboots + "/" + cuffs + "/" \
                       + randomGag + "/"  + harness + "/"  + armbinder + "/"  + randomCD + "/" + nipplePiercings \
                       + "/" + petCollar + "/" + uniqueCollar + "/" + elbowbinder \
                       +  ")")
-    PlayerMon.debugmsg("roll/total/avail/ic/kw:(" + roll + "/" + total + "/" + PlayerMon.followerItemsWhichOneFree + "/" + PlayerMon.followerItemsCombination + "/ " + armorKeyword + ")", 2)
+    PlayerMon.debugmsg("roll/total/avail/ic/kw:("\
+                     + roll + "/" + total + "/" \
+                     + PlayerMon.followerItemsWhichOneFree + "/" + PlayerMon.followerItemsCombination + "/ " \
+                     + armorKeyword + ")", 2)
                         
   else
     PlayerMon.debugmsg("ERR: no armor keyword")
@@ -2075,7 +2102,7 @@ function equipFollowerFoundItems(actor actorRef)
 
   armor[] items = getFollowerFoundItems(actorRef)
     
-  int ic = PlayerMon.followerItemsCombination ; shorter, also avoiding the compiler asking PlayerMon for the property over and over again
+  int ic = PlayerMon.followerItemsCombination 
   if ic == 1 || ic == 5 || ic == 7 || ic == 13 || ic == 30
     ; don't need to remove chest, can just put on player
   else
@@ -2104,7 +2131,10 @@ function equipFollowerFoundItems(actor actorRef)
 endFunction
 
 ; this is to apply follower items, and from player if they exist, onto the player from the follower context
-function equipFollowerAndPlayerItems(actor follower, bool forceBelt = false, bool forceGag = false, bool forceCollar = false, bool forceArmbinder = false, bool forceHarness = false)
+function equipFollowerAndPlayerItems(actor follower, \
+         bool forceBelt = false, bool forceGag = false, \
+         bool forceCollar = false, bool forceArmbinder = false, \
+         bool forceHarness = false)
   ; for now, the "and player items if they have it" isn't implemented, instead pulling items out of thin air
   
   ; at least 3: armbinder/blindfold/gag/belt/naked with collar
@@ -2121,8 +2151,9 @@ function equipFollowerAndPlayerItems(actor follower, bool forceBelt = false, boo
   ; this is equal chance, which leans toward 4 too heavily when we don't need 4
   ; TODO swap to a system that swings heavier toward the other direction
   PlayerMon.debugmsg("minimum items: " + requiredMin + ", count roll: " + icount)
-  
-  armor[] items = new armor[6] ; assuming 3 for belt, 1 collar, 1 armbinder, 1 gag, 2 for cuffs, 5 should be enough but lets do 6
+
+   ; assuming 3 for belt, 1 collar, 1 armbinder, 1 gag, 2 for cuffs, 5 should be enough but lets do 6 
+  armor[] items = new armor[6] 
   int itemsptr = 0
   armor[] tmp = new armor[1] ; just declaring, ignore the size
   
@@ -2204,7 +2235,7 @@ endFunction
 function swapFollowerFoundItems(actor actorRef)
 
   armor[] items = getFollowerFoundItems(actorRef)
-  int ic = PlayerMon.followerItemsCombination ; shorter, also avoiding the compiler asking PlayerMon for the property over and over again
+  int ic = PlayerMon.followerItemsCombination 
   if ic == 1 || ic == 5 || ic == 7 || ic == 13 || ic == 30
     ; don't need to remove chest, can just put on player
   else
@@ -2264,7 +2295,7 @@ armor[] Function getFollowerFoundItems(actor actorRef)
     items[2] = followerFoundArmorBuffer[2]
     PlayerMon.debugmsg("items: " + items)
   else
-    int ic = PlayerMon.followerItemsCombination ; shorter, also avoiding the compiler asking PlayerMon for the property over and over again
+    int ic = PlayerMon.followerItemsCombination 
     if ic     == 0
       items = getRandomSingleDD(actorRef)
     elseif ic == 1
@@ -2419,7 +2450,8 @@ function updateActorWearingDD(actor actorRef)
   
   armor tmp  = actorRef.GetWornForm(0x00100000) as armor ; 50 nipple
   armor tmp2 = actorRef.GetWornForm(0x00200000 ) as armor ; 51 vag
-  actorWearingPiercings = (tmp != None && tmp.HasKeyword(libs.zad_DeviousPiercingsNipple)) || (tmp2 != None &&tmp2.HasKeyword(libs.zad_DeviousPiercingsVaginal))
+  actorWearingPiercings = (tmp != None && tmp.HasKeyword(libs.zad_DeviousPiercingsNipple)) \
+                        || (tmp2 != None &&tmp2.HasKeyword(libs.zad_DeviousPiercingsVaginal))
   
   actorKnownHarness = actorRef.GetWornForm(0x10000000 ) as armor ; 58
   actorWearingHarness = actorKnownHarness != None && actorKnownHarness.HasKeyword(libs.zad_DeviousHarness)

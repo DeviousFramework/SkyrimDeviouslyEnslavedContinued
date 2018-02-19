@@ -8,13 +8,9 @@ known bugs:
   Containers searched keeps going up regardless of if you have a follower
     Doesn't reset on new followers either
   Containers resets if the forcegreet starts, but if it cancels the containers doesn't revert
-  player is dom not really considered, and not adding correctly
   special followers aren't considered, dom/sub are always zero for starters
     Minor thing, setting defaults for all followers can get hairy if the users want to set them
-  follower puts their chest back on immediately after putting on an item
-    Maybe swap how it happens? Naked after items added?
-    Maybe put chest on again after commenting armor can go on top of it
-  Milk pump for MME isn't being detected correctly  
+
   NPC is walking away after attack, again, instead of animating... why?
     bad animation in dd4, we need to update this
 
@@ -139,13 +135,21 @@ Notes:
   
   () set SD limite removal to off, might be the cause of the stack dump
 
-  check all basic aspects of mod for broken functionality:
-    does it find NPCs fine?
-    does it work for after sex?
-    follower sex approach?
+	Line 416: [02/17/2018 - 08:35:25AM] ERROR: Unable to bind script crdeplayerscript to  (00000014) because their base types do not match
+  ^ huh?
   
+four more:
+[02/17/2018 - 06:47:08AM] ERROR: File "hydra_slavegirls.esp" does not exist or is not currently loaded.
+[02/17/2018 - 06:47:08AM] ERROR: File "sextoys-calyps-2.esp" does not exist or is not currently loaded.
+[02/17/2018 - 06:47:08AM] ERROR: File "DeviousSurrender.esp" does not exist or is not currently loaded.
+[02/17/2018 - 06:47:08AM] ERROR: File "Devious Punishment Equipment.esp" does not exist or is not currently loaded.
+
+  make sure the "protect your butt" dialogue can detect belted PC, just got it twice in a row
+  
+  can we detect if the player is overencombered in dialogue? if we can, we can add that as a dilogue
   ; remove master alias requirement for player presenting to followers for sex
   single item plugs chance
+
   detect cuffs for vulnerable?
     need single levels for both
   fix your struggle animations
