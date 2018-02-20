@@ -9,11 +9,12 @@ Actor akSpeaker = akSpeakerRef as Actor
 ; player gagged asking for release
 ; can you untie me now
 ; you need a belt to look more like a slave
+  Debug.Notification("Your follower pulls a metal belt out their bag, and locks it to your hips securely.")
   crdePlayerMonitorScript PlayerMon = GetOwningQuest() as crdePlayerMonitorScript
-  PlayerMon.ItemScript.equipRandomBeltAndStuff(Game.GetPlayer(), force_stuff = true)
+  PlayerMon.ItemScript.equipRandomBeltAndStuff(Game.GetPlayer())
   actor[] a = PlayerMon.NPCSearchScript.getNearbyActors(500)
-  PlayerMon.adjustPerceptionPlayerSub(a, 3.0, 25)
-  PlayerMon.modFollowerLikesDom(akSpeaker, 2.0)
+  PlayerMon.adjustPerceptionPlayerSub(a, 3.0, 30)
+  PlayerMon.modFollowerLikesDom(akSpeaker, 1.0)
 
 ;END CODE
 EndFunction

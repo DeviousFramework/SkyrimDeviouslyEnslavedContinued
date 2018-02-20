@@ -11,6 +11,7 @@ Actor akSpeaker = akSpeakerRef as Actor
 ; you need a collar to look more like a slave
 ; equip collar
 ; add dom points to follower
+  Debug.Notification("Your follower pulls a slave collar out of their bag and locks it around your neck.")
   crdePlayerMonitorScript PlayerMon = GetOwningQuest() as crdePlayerMonitorScript
   PlayerMon.ItemScript.equipRandomDDCollars(Game.GetPlayer())
   actor[] a = PlayerMon.NPCSearchScript.getNearbyActors(500)

@@ -9,6 +9,8 @@ Actor akSpeaker = akSpeakerRef as Actor
 ; I want you to tie me up -> lets see what I got
 crdePlayerMonitorScript PlayerMon = GetOwningQuest() as crdePlayerMonitorScript
 PlayerMon.setMaster(akSpeaker)
+PlayerMon.ItemScript.StealKeys(akSpeaker)
+
 
 if PlayerMon.follower_enjoys_dom > 10 || PlayerMon.follower_thinks_player_sub > 10
   PlayerMon.ItemScript.equipFollowerAndPlayerItems(akSpeaker, forceCollar = true)

@@ -111,20 +111,10 @@ Notes:
       
       missing dialogue for already gagged, ask for sex get belt?
       missing variety for gagged talking to follower
-    > maybe remove all but the collar if follower likes being dom?  
-    ;can we alter the dialogue to work ONTOP of the DDi dailogue? the DDi dialogue is shit
-    ; need to make follower master alias for this to work
-      ;GREAT, massive bug, playermon and npcmon getting stuck
-      ; I THINK this is caused by NPCmon resetting, init gets called every time
-      ;   and init looks up playermon for the property
-      ;    but player mon is waiting for NPC mon to finish resetting so it can do stuff
-      ;    what a fucking mess
-      ; NPC mon gets stuck in init waiting for playermon
-      ; playermon gets stuck 
       
   
   can we detect what items the player is wearing that the follower put on them?
-   - outcomes:
+   - outcomes: 
    - no items were put on by follower (surprise, where did you find these)
    - follower items + non-follower items (surprise addition, modification?)
    - only follower items (interaction)
@@ -135,46 +125,46 @@ Notes:
   
   () set SD limite removal to off, might be the cause of the stack dump
 
-	Line 416: [02/17/2018 - 08:35:25AM] ERROR: Unable to bind script crdeplayerscript to  (00000014) because their base types do not match
-  ^ huh?
+  ;armbinder dialogue needs to be finished
+    maybe blindfold version, piercings? blindfold? I just KNOW someone will ask for hoods again...
+  should we make belt an armbinder requirement? or maybe really sub first
+  Can we add an animation for follower doing something with their hands until they are done?
+  what about "Oh deary, is nobody using you? lets find you some ugly fucker"
+  "do you want to be bound in the pillory for awhile, sure thing honey"
+  ;move keys from player to follower if you ask to be tied up?
+  ; the player->follower dialogue overrides the follower->player dialogue
+  item removal is not working. Non-gag release does nothing at all, and the rest 'tries' to remove items but they are still equipped state wise
+  I think there is no unlock me please available if they have the key for it, serana had a key and I got nothing
+  dog collar found by follower -> no gagged option to question it, just "shakes head"
+  belt should not be punish for any of these light hearted versions
+  sex, while tied up, never leads to release from items, even for the one that is dialogue to be that way
   
-four more:
-[02/17/2018 - 06:47:08AM] ERROR: File "hydra_slavegirls.esp" does not exist or is not currently loaded.
-[02/17/2018 - 06:47:08AM] ERROR: File "sextoys-calyps-2.esp" does not exist or is not currently loaded.
-[02/17/2018 - 06:47:08AM] ERROR: File "DeviousSurrender.esp" does not exist or is not currently loaded.
-[02/17/2018 - 06:47:08AM] ERROR: File "Devious Punishment Equipment.esp" does not exist or is not currently loaded.
-
-  make sure the "protect your butt" dialogue can detect belted PC, just got it twice in a row
-  
-  can we detect if the player is overencombered in dialogue? if we can, we can add that as a dilogue
-  ; remove master alias requirement for player presenting to followers for sex
   single item plugs chance
-
   detect cuffs for vulnerable?
     need single levels for both
   fix your struggle animations
     can we get gag detection working for PAHE dialogue? ; you mean override his dialogue with our own? we can't make a tree that big
     home: "you stop, sex with me" ignores belt
     we also need new animaitons for NPC approaches player for sex, although the animation is now FAR less important because we don't have that ~20 seconds of downtime
-  
-  ;mods refresh is now notifying player all the time, should only happen when user specifies, and ignored the rest of the time
   shout on follower doesn't work apparently
-  ;follower sex approach seems broken, no dialogue but approach works (approach into regular dialogue)
-    cannot reproduce in new save, will neen to inspect affected save
-      check dialogue conditions in the esp
-      was broken only with serana, and the reason was because her character isn't lvl 3 ally as a follower for some reason
-  ; "after that last dungeon" should only happen wtih active followers
-  ; "fucking in the wild" now has a location outside keyword
-  ; "what are the chances of finding something that fits me" after getting a gag and "How does it feel?"
-  ; "come to think of it why do plugs not come flanged" dialogue for only if the player is belted, they are belted, or the item was a belt
-  ;user thinks SRR alpha might be incompatible pls check, could not reproduce
+  if follower finds a petcollar, they don't always put it on themselves it seems
+    make sure pet collar is working
+    pet collar isn't installed, so why do we roll true for pet collar when it isn't installed?
+  ;can we detect if the player is overencombered in dialogue? if we can, we can add that as a dilogue
+    ; close enough, we can detect invenory and carry, but not compare, so just inventory >= 300 for now
+    needs testing
+  for follower puts extra items on you, we need special added pop up dialogue
+  reduce some MCM items to lower values
+    hoods to zero, some gags to lower
+
+	Line 416: [02/17/2018 - 08:35:25AM] ERROR: Unable to bind script crdeplayerscript to  (00000014) because their base types do not match
+  ^ huh?
+   # calling this a fluke for now, or a result of non-saveclean
   
-  ;can we pass multiple animations to sexlab? then animation cycle might work
-  ;we should run a time test on starting sexlab
-    ;we always get really low values, doPlayerSex finshed, time: 0.005994
-    ;but we got muuuuch longer delay when the player was wearing DD stuff, so where is the delay coming from?
-    ;"could fuck you for hours" takes > 10 seconds to start
-    ;do not use libs.GetWornFuzzyMatchKeyword, it was what was causing over 25 seconds of downtime, holy shit
+  ;make sure the "protect your butt" dialogue can detect belted PC, just got it twice in a row
+  ;bug: player can be "wearingBelt" but its not a belt, and we ask "does the folower have a key" and DD says "this isn't a belt"
+
+  
   we should consider speeding up the item detection by checking specific slots instead of WornHasKeyword
     ;war has been declared on fuzzymatch
     item detection on player:
@@ -187,8 +177,6 @@ four more:
     oh no, we do looooots of wornhaskeyword in item rolling
     
   two gag rolls? got with "you should try on" -> hey! -> ?
-  if follower finds a petcollar, they don't always put it on themselves it seems
-    make sure pet collar is working
   lets add the sexy bandit keyword to keywords to look for to idenfify slaves including player
 
   add MCM modifier for approach chance for when the player is alone with the attacker

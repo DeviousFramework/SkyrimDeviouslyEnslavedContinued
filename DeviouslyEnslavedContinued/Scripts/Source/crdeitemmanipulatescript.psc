@@ -226,30 +226,30 @@ function removeDDArmbinder(actor actorRef)
 endFunction
 
 ; TODO rewrite this to work with any direction player and NPC, not just one direction
-function stealKeys(actor actorRef)
-  if actorRef == None
+function stealKeys(actor theifActor)
+  if theifActor == None
     PlayerMon.Debugmsg("stealKeys err: none reference")
     return
   endif
-  PlayerMon.debugmsg("" + actorRef.getDisplayName() + " is stealing keys from " + player.GetDisplayName(), 1)
+  PlayerMon.debugmsg("" + theifActor.getDisplayName() + " is stealing keys from " + player.GetDisplayName(), 1)
   int index = 0
   int cnt
   While (index < PlayerMon.deviousKeys.length)
     cnt = player.getItemCount(PlayerMon.deviousKeys[index])
     player.removeItem(PlayerMon.deviousKeys[index], cnt, true)
-    actorRef.addItem(PlayerMon.deviousKeys[index], cnt, true)
+    theifActor.addItem(PlayerMon.deviousKeys[index], cnt, true)
     index += 1
   endWhile
   if Mods.deviousRegImperialKey != None
     cnt = player.getItemCount(Mods.deviousRegImperialKey)
     if cnt > 0
       player.removeItem(Mods.deviousRegImperialKey, cnt, true)
-      actorRef.addItem(Mods.deviousRegImperialKey, cnt, true)
+      theifActor.addItem(Mods.deviousRegImperialKey, cnt, true)
       endif
       cnt = player.getItemCount(Mods.deviousRegStormCloakKey)
     if cnt > 0
       player.removeItem(Mods.deviousRegStormCloakKey, cnt, true)
-      actorRef.addItem(Mods.deviousRegStormCloakKey, cnt, true)
+      theifActor.addItem(Mods.deviousRegStormCloakKey, cnt, true)
     endif
   endif
 endFunction

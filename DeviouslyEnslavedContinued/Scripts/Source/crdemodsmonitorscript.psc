@@ -773,9 +773,9 @@ function updateForms()
     wolfclubGuy           = Game.GetFormFromFile(0x0500184F, "wolfclub.esp") as Actor ;alfred, the guy outside the cave
   endif
 
-  hydraSlaverFaction      = Game.GetFormFromFile(0x0000B670, "hydra_slavegirls.esp") as Faction
-  modLoadedHydra          = hydraSlaverFaction != None
+  modLoadedHydra          = Quest.GetQuest("hyd_scene_ahello_regslave") != None
   if modLoadedHydra
+    hydraSlaverFaction        = Game.GetFormFromFile(0x0000B670, "hydra_slavegirls.esp") as Faction
     hydraSlaverFactionCaravan = Game.GetFormFromFile(0x9A072F71, "hydra_slavegirls.esp") as Faction
     hydraSlaveFaction         = Game.GetFormFromFile(0x0000B671, "hydra_slavegirls.esp") as Faction
   endif
@@ -824,8 +824,9 @@ function updateForms()
     PAHETied                      = Game.GetFormFromFile(0x0501EBF6 , "paradise_halls_SLExtension.esp") as Faction 
   endif
   
-  tailPlug        = Game.GetFormFromFile(0x00004371 , "sextoys-calyps-2.esp") as armor
-  modLoadedCalyps = tailPlug != None
+  
+  ;tailPlug        = Game.GetFormFromFile(0x00004371 , "sextoys-calyps-2.esp") as armor
+  ;modLoadedCalyps = tailPlug != None
   ;if(modLoadedCalyps == true)
   ;  tailPlug        = Game.GetFormFromFile(0x00004371 , "sextoys-calyps-2.esp") as armor
   ;endif
@@ -948,7 +949,7 @@ function updateForms()
   ;modLoadedDeviousSurrender       = (devsurCalmMagicEffect != None)
   
   tamslavesMainQuest              = Quest.GetQuest("SLTMineQuest") ;= Game.GetFormFromFile(0x71005453, "Slaves of Tamriel.esp") as Quest
-  tamslavesTattooEffect           = Game.GetFormFromFile(0x00000D62, "DeviousSurrender.esp") as MagicEffect
+  tamslavesTattooEffect           = Game.GetFormFromFile(0x00000D62, "Slaves of Tamriel.esp") as MagicEffect
   modLoadedDeviousSurrender       = (tamslavesMainQuest != None)
   
   ;bool previouslyLoaded              = modLoadedPrisonOverhaul || modLoadedPrisonOverhaulPatch
@@ -1029,7 +1030,7 @@ function updateForms()
     deviousPunishEquipmentNakedCollar                 = Game.GetFormFromFile(0x08200000, "Devious Punishment Equipment.esp") as Armor
     deviousPunishEquipmentPunishPlug                  = Game.GetFormFromFile(0xB250000D, "Devious Punishment Equipment.esp") as Armor
   endif
-    
+        
   ;SLFameSlutGlobal                  = Game.GetFormFromFile(0x19024266, "SexLab - Sexual Fame [SLSF].esm") as GlobalVariable
   SLSF_Quest                        = Quest.GetQuest("SLSF_CompatibilityScript")
   modLoadedFameFramework            = SLSF_Quest != None
