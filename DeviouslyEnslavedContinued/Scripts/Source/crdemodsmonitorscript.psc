@@ -46,8 +46,8 @@ float lastUpdateGameTime
 
 ; here because all other quests keep resetting
 ;actor[]                  Property PreviousFollowers Auto 
-FormList                  Property PreviousFollowers Auto 
-int PreviousFollowersIndex ; not needed
+;FormList                  Property PreviousFollowers Auto 
+;int PreviousFollowersIndex ; not needed
 
 ;mod loaded boolean
 bool Property modLoadedSD auto Conditional
@@ -534,7 +534,7 @@ EndEvent
 Event remoteResetCalled(string eventName, string strArg, float numArg, Form sender)
 ;Event remoteResetCalled()
   Maintenance()
-  PreviousFollowers.revert()
+  ;PreviousFollowers.revert()
   if Utility.GetCurrentRealTime() > 120 ; don't fire if this happens at the start of the game on save load, after 120 seconds
     Debug.Notification("CRDE: Refreshing mod detection finished. " + Utility.GetCurrentRealTime())
   endif

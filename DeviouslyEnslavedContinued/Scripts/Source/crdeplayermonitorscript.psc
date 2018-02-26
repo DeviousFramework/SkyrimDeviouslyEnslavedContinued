@@ -181,13 +181,14 @@ int Property followerItemsCombination   Auto Conditional
 int Property followerItemsWhichOneFree  Auto Conditional
 
 Float           CurrentGameTime         = 0.0
-float           onupdatetimeteststart   = 0.0
+float           onupdatetimeteststart   = 0.0       ; for testing how long things take per loop
 Float Property  timeoutGameTime         = 0.0 Auto  ; used if we need a temporary time out
 Float Property  busyGameTime            = 0.0 Auto  ; used to timeout dhlp suspend in the event something happens
 Float Property  timeoutEnslaveGameTime  = 0.0 auto
 Float           timeoutSexGameTime      = 0.0
 Float           timeoutFollowerApproach = 0.0
 float Property  timeoutFollowerNag      = 0.0 Auto Conditional
+float Property  timeoutPlayerRelease    = 0.0 Auto Conditional
 
 float           timeExtraVulnerableEnd  = 0.0   ; if the player is extra vulnerable for a certain amount of time, this is when it should end for the area
 location        timeExtraVulnerableLoc  = None
@@ -906,7 +907,7 @@ bool function attemptApproach()
   forceGreetSex     = 0
   forceGreetSlave   = 0
   
-  follower_attack_cooldown = (CurrentGameTime >= timeoutFollowerApproach + (120 * (1.0/1400.0))) ; this is the cooldown release
+  follower_attack_cooldown = (CurrentGameTime <= timeoutFollowerApproach ) ; this is the cooldown release
   
   if (playerScriptAlias as crdePlayerScript).weaponChanged == true 
     isWeaponProtected() ; save it for later
@@ -1205,10 +1206,10 @@ bool function attemptFollowerApproach(actor[] followers)
 
   hasSlaveFollowers = (slave != None) && (slave != follower)
   
-  Mods.PreviousFollowers.AddForm(follower) ; maybe you can just add a NONE and let their own logic handle it
-  if hasSlaveFollowers
-    Mods.PreviousFollowers.AddForm(slave)
-  endif
+  permanentFollowers.AddForm(follower) ; maybe you can just add a NONE and let their own logic handle it
+  ;if hasSlaveFollowers
+  ;  permanentFollowers.AddForm(slave)
+  ;endif
   
   ; attempt follower sex approach
   follower_thinks_player_sub    = StorageUtil.GetFloatValue(follower, "crdeThinksPCEnjoysSub")
@@ -1963,6 +1964,7 @@ function doPlayerSexFull(actor actorRef, actor actorRef2, bool rape = false, boo
     ;SexLab.StartSex(sexActors, single_animation);
     SexLab.StartSex(sexActors, animations);
   endif
+  ; ZZZ
   debugmsg("doPlayerSex finshed, time: " + (Utility.GetCurrentRealTime() - startingTime), 1)
 endFunction
 
@@ -1985,12 +1987,13 @@ Event crdeSexHook(int tid, bool HasPlayer);(string eventName, string argString, 
     Actor[] a = SexLab.HookActors(tid as string)
     debugmsg("err: sex ended but the sexlab thread that finished does not have player as an participant, actors:" + a)
    
-  else 
+  else ; sex was started by dec
   
     setPreviousPlayerHome() ; here because we want the last home the player wanted to have sex in
     
-    follower_attack_cooldown = false
-    timeoutFollowerApproach = Utility.GetCurrentGameTime() ; huh?
+    follower_attack_cooldown = true
+    ; set time with modifier now, so we can compare later for reset
+    timeoutFollowerApproach = Utility.GetCurrentGameTime() + (120 * (1.0/1400.0)) 
   
     if victim == None && sexFromDECWithBeltReapplied
       ; put the player back into their belt
@@ -2501,6 +2504,7 @@ endFunction
 ; manually add followers to permanent list
 ;  "permanent" list is still reset on mods refresh though, might want to change that...
 function addPermanentFollower()
+  ; get nearby NPCs as possible choises
   actor[] a = NPCSearchScript.getNearbyActorsLinear(500) ; range should be reasonably short
   
   UIListMenu menu = UIExtensions.GetMenu("UIListMenu", true) as UIListMenu
@@ -2513,6 +2517,7 @@ function addPermanentFollower()
     index += 1
   endWhile
   
+  ; add cancel button, and open menu for users to select one, wait for response from user
   menu.AddEntryItem(" ** cancel **")
   menu.OpenMenu()
   int result = UIExtensions.GetmenuResultInt("UIListMenu")
@@ -2524,7 +2529,7 @@ function addPermanentFollower()
       return 
     endif
     permanentFollowers.addForm(tmp)
-    Mods.PreviousFollowers.addForm(tmp)
+    ;Mods.PreviousFollowers.addForm(tmp)
     tmp.addToFaction(crdeFormerFollowerFaction)
     reshuffleFollowerAliases(tmp)
     Debug.Trace(a[result] + " -> " + tmp.GetDisplayName() +" has been added to the DEC manually marked list of followers.")
@@ -3013,10 +3018,12 @@ function testTestButton7()
   ;doPlayerSexFull(followerRefAlias02.GetActorRef(), followerRefAlias01.GetActorRef())
   float time = Utility.GetCurrentRealTime()
 
-  ItemScript.getRandomSingleDD(player)
-  debugmsg("time1: " + (Utility.GetCurrentRealTime() - time))
+  ;ItemScript.getRandomSingleDD(player)
+  ;debugmsg("time1: " + (Utility.GetCurrentRealTime() - time))
+  ItemScript.removeDDs(ignoreCollar = true)
   
   Debug.Notification("Test has completed.")
+  debugmsg("finished with removedds with collar: " + (Utility.GetCurrentRealTime() - time))
   MCM.bTestButton7 = false
 endFunction
 

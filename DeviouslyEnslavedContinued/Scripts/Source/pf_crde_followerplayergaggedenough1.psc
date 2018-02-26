@@ -7,7 +7,12 @@ Function Fragment_0(ObjectReference akSpeakerRef)
 Actor akSpeaker = akSpeakerRef as Actor
 ;BEGIN CODE
 ; playergagged to follower "mppp" -> yes I suppose you've been in there long enough, remove items
-(GetOwningQuest() as crdePlayerMonitorScript).ItemScript.unequipAllNonImportantSlow()
+crdePlayerMonitorScript PlayerMon = (GetOwningQuest() as crdePlayerMonitorScript)
+if PlayerMon.follower_enjoys_dom >= 10
+  PlayerMon.ItemScript.removeDDs(ignoreCollar = true)
+else
+  PlayerMon.ItemScript.removeDDs()
+endif
 
 ;END CODE
 EndFunction

@@ -38,7 +38,7 @@ crdeNPCSearchingScript Property NPCSearchScript Auto
 import GlobalVariable     ; needed for global variable functions (doesn't come with the object?!?!)
 ;import crdeDebugScript
 ;crdeDebugScript           Property DebugOut Auto
-crdePlayerMonitorScript   Property PlayerMonScript Auto
+crdePlayerMonitorScript   Property PlayerMon Auto
 crdeMCMScript             Property MCM Auto
 ;crdeSlaverunScript        Property SlaverunScript Auto
 crdeModsMonitorScript     Property Mods Auto
@@ -91,7 +91,7 @@ bool  masterIsSlaver    ; what was I going to do with this agaim?
 event OnInit()
   player = Game.GetPlayer()
   ;Utility.wait(7)
-  ;PlayerScript = (PlayerMonScript.playerScriptAlias as crdePlayerScript) 
+  ;PlayerScript = (PlayerMon.playerScriptAlias as crdePlayerScript) 
   ;while Mods.finishedCheckingMods == false
   ;  Debug.Trace("[crde]in npc:mods not finished yet", 1)
   ;  Utility.wait(2) ; in seconds
@@ -116,15 +116,15 @@ bool function checkActorBoundInFurniture(actor actorRef)
     debugmsg("debug: " + actorRef.GetDisplayName() + " has zbf refresh keyword", 3)
     return true
   ;elseif (actorRef.WornHasKeyword(Keyword.GetKeyword("zbfFurniture")) ) ; sitting in furniture and tied up
-  elseif Mods.zazKeywordFurniture != None && actorRef == player && PlayerMonScript.checkPlayerSittingInZaz() ; player only
+  elseif Mods.zazKeywordFurniture != None && actorRef == player && PlayerMon.checkPlayerSittingInZaz() ; player only
     int sitting = player.GetSitState()
     
-    if (sitting >= 1 || sitting <= 3) && !PlayerMonScript.checkPlayerReleasedFromZaz(); still sitting
+    if (sitting >= 1 || sitting <= 3) && !PlayerMon.checkPlayerReleasedFromZaz(); still sitting
       debugmsg("debug: player is sitting in furniture with zazFurniture keyword, sitting lvl:" + sitting, 3)
       return true
     else
       debugmsg("debug: furniture no longer valid, canceling", 3)
-      PlayerMonScript.releasePlayerSittingStatus()
+      PlayerMon.releasePlayerSittingStatus()
     endif
   elseif Mods.zazKeywordFurniture != None && actorRef.HasKeyword(Mods.zazKeywordFurniture) ; sitting in furniture and tied up
     debugmsg("debug: " + actorRef.GetDisplayName() + " has zbf furniture keyword", 0)
@@ -266,7 +266,7 @@ Actor function getclosestfollower()
     if testActor == None
       i += 100 ; list is empty from here on out, time to leave
     elseif testActor.IsInFaction(CurrentFollowerFaction) || testActor.IsInFaction(Mods.paradiseFollowingFaction)
-      Mods.PreviousFollowers.addForm(testActor)
+      PlayerMon.permanentFollowers.addForm(testActor)
       return testActor
     endif
     i += 1
@@ -306,9 +306,9 @@ bool function isInvalidRace(actor actorRef)
   endif
   race current_race_test
   int i = 0
-  int range = PlayerMonScript.alternateRaces.Length
+  int range = PlayerMon.alternateRaces.Length
   while i < range
-    current_race_test = PlayerMonScript.alternateRaces[i]
+    current_race_test = PlayerMon.alternateRaces[i]
     if actorRace == current_race_test
       return false
     endif
@@ -381,17 +381,17 @@ bool function isActorIneligable(actor actorRef, bool includeSlaveTraders = false
     return true
   endif
   
-  float arousal_modifier = (1 + ((PlayerMonScript.isNight() as int) * (MCM.fNightReqArousalModifier - 1)) )
+  float arousal_modifier = (1 + ((PlayerMon.isNight() as int) * (MCM.fNightReqArousalModifier - 1)) )
   if !MCM.bArousalFunctionWorkaround
     int arousal = actorRef.GetFactionRank(Mods.sexlabArousedFaction)
     if arousal < MCM.gMinApproachArousal.GetValueInt() / arousal_modifier ;&& !isSlaver ;aroused enough?
-      debugmsg("invalid: " + actorRef.GetDisplayName() + " arousal too low (faction): " + arousal + "/" + (MCM.gMinApproachArousal.GetValueInt() / arousal_modifier) as int + " Night:" + PlayerMonScript.isNight(), 3)
+      debugmsg("invalid: " + actorRef.GetDisplayName() + " arousal too low (faction): " + arousal + "/" + (MCM.gMinApproachArousal.GetValueInt() / arousal_modifier) as int + " Night:" + PlayerMon.isNight(), 3)
       return true
     Endif
   elseif MCM.bArousalFunctionWorkaround 
     int arousal = Aroused.GetActorArousal(actorRef) 
     if arousal < MCM.gMinApproachArousal.GetValueInt() / arousal_modifier  
-      debugmsg("invalid: " + actorRef.GetDisplayName() + " arousal too low (function): " + arousal + "/" + (MCM.gMinApproachArousal.GetValueInt() / arousal_modifier) as int + " Night:" + PlayerMonScript.isNight(), 3)
+      debugmsg("invalid: " + actorRef.GetDisplayName() + " arousal too low (function): " + arousal + "/" + (MCM.gMinApproachArousal.GetValueInt() / arousal_modifier) as int + " Night:" + PlayerMon.isNight(), 3)
       return true  
     Endif
   endif  
@@ -505,17 +505,17 @@ bool function isActorRefIneligable(actor actorRef, bool includeSlaveTraders = fa
     return true
   endif
   
-  float arousal_modifier = (1 + ((PlayerMonScript.isNight() as int) * (MCM.fNightReqArousalModifier - 1)) )
+  float arousal_modifier = (1 + ((PlayerMon.isNight() as int) * (MCM.fNightReqArousalModifier - 1)) )
   if !MCM.bArousalFunctionWorkaround
     int arousal = actorRef.GetFactionRank(Mods.sexlabArousedFaction)
     if arousal < MCM.gMinApproachArousal.GetValueInt() / arousal_modifier ;&& !isSlaver ;aroused enough?
-      debugmsg("invalid: " + actorRef.GetDisplayName() + " arousal too low (faction): " + arousal + "/" + (MCM.gMinApproachArousal.GetValueInt() / arousal_modifier) as int + " Night:" + PlayerMonScript.isNight(), 3)
+      debugmsg("invalid: " + actorRef.GetDisplayName() + " arousal too low (faction): " + arousal + "/" + (MCM.gMinApproachArousal.GetValueInt() / arousal_modifier) as int + " Night:" + PlayerMon.isNight(), 3)
       return true
     Endif
   elseif MCM.bArousalFunctionWorkaround 
     int arousal = Aroused.GetActorArousal(actorRef) 
     if arousal < MCM.gMinApproachArousal.GetValueInt() / arousal_modifier  
-      debugmsg("invalid: " + actorRef.GetDisplayName() + " arousal too low (function): " + arousal + "/" + (MCM.gMinApproachArousal.GetValueInt() / arousal_modifier) as int + " Night:" + PlayerMonScript.isNight(), 3)
+      debugmsg("invalid: " + actorRef.GetDisplayName() + " arousal too low (function): " + arousal + "/" + (MCM.gMinApproachArousal.GetValueInt() / arousal_modifier) as int + " Night:" + PlayerMon.isNight(), 3)
       return true  
     Endif
   endif  
@@ -572,7 +572,7 @@ bool function isActorRefIneligable(actor actorRef, bool includeSlaveTraders = fa
   elseif Mods.isSlave(actorRef) ; needs cleaning with the faction upscale
      debugmsg("invalid: " + actorRef.GetDisplayName() + " is a slave", 3)
     return true
-  ;elseif (PlayerMonScript.enslavedLevel > 1 || Mods.enslavedSD) && actorRef.IsInFaction(Mods.immersiveWenchGeneralFaction)
+  ;elseif (PlayerMon.enslavedLevel > 1 || Mods.enslavedSD) && actorRef.IsInFaction(Mods.immersiveWenchGeneralFaction)
   ;  debugmsg("invalid: " + actorRef.GetDisplayName() + " is in immersive wench faction and already enslaved", 3) 
   ;  return true
   endif
@@ -672,7 +672,7 @@ endFunction
 
 function addFollower(actor actorRef)
 
-  Mods.PreviousFollowers.AddForm(actorRef)
+  PlayerMon.permanentFollowers.AddForm(actorRef)
   
 endFunction
 
@@ -759,7 +759,7 @@ function timeTestActorTraits(actor actorRef)
   str += " guard faction: " + timeTaken
 
   timeTaken = Utility.GetCurrentRealTime()
-  float arousal_modifier = (1 + ((PlayerMonScript.isNight() as int) * (MCM.fNightReqArousalModifier - 1)) )
+  float arousal_modifier = (1 + ((PlayerMon.isNight() as int) * (MCM.fNightReqArousalModifier - 1)) )
   if !MCM.bArousalFunctionWorkaround
     int arousal = actorRef.GetFactionRank(Mods.sexlabArousedFaction)
     throwaway =  arousal < MCM.gMinApproachArousal.GetValueInt() / arousal_modifier ;&& !isSlaver ;aroused enough?
@@ -809,7 +809,7 @@ function timeTestActorTraits(actor actorRef)
   str += " aggressive: " + timeTaken
 
   timeTaken = Utility.GetCurrentRealTime()
-  throwaway = (PlayerMonScript.enslavedLevel > 1 || Mods.enslavedSD) && actorRef.IsInFaction(Mods.immersiveWenchGeneralFaction)
+  throwaway = (PlayerMon.enslavedLevel > 1 || Mods.enslavedSD) && actorRef.IsInFaction(Mods.immersiveWenchGeneralFaction)
   timeTaken = Utility.GetCurrentRealTime() - timeTaken 
   str += " immersive wench: " + timeTaken
 

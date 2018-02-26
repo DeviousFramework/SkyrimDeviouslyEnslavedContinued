@@ -7,7 +7,12 @@ Function Fragment_0(ObjectReference akSpeakerRef)
 Actor akSpeaker = akSpeakerRef as Actor
 ;BEGIN CODE
 ; I can't take it anymore please unlock me
-(GetOwningQuest() as crdePlayerMonitorScript).ItemScript.removeDDs()
+crdePlayerMonitorScript PlayerMon = (GetOwningQuest() as crdePlayerMonitorScript)
+if PlayerMon.follower_enjoys_dom >= 10
+  PlayerMon.ItemScript.removeDDs(ignoreCollar = true)
+else
+  PlayerMon.ItemScript.removeDDs()
+endif
 ;END CODE
 EndFunction
 ;END FRAGMENT

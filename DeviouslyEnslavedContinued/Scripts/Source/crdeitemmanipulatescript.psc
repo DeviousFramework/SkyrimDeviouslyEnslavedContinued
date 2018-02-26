@@ -101,33 +101,7 @@ Event OnInit()
   followerFoundArmorBuffer = new Armor[10]
 endEvent
 
-; just from player, was meant to clear armor quickly, not sure if it's even still being used 
-function removeDDs(actor targetActor = none, bool hasChastityKey = true, bool hasRestraintsKey = true)
-  ; bool cursedLootOnly = PlayerMon.isBlockFromDCURItemsOnly()
- 
-  ; if player.WornHasKeyword(libs.zad_DeviousCollar); && !PlayerMon.knownCollar.HasKeyword(libs.zad_BlockGeneric))
-   ; if PlayerMon.knownCollar.HasKeyword(libs.zad_BlockGeneric) && (!cursedLootOnly || !MCM.bEnslaveLockoutDCUR)
-     ; debugmsg("not enslaved: zad block generic detected, but only on DCUR items", 3)
-   ; else
-     ; removeDDbyKWD(player, libs.zad_DeviousCollar)
-   ; endif
- ; endif
- ; if player.WornHasKeyword(libs.zad_DeviousArmbinder) 
-   ; if PlayerMon.knownCollar.HasKeyword(libs.zad_BlockGeneric) && (!cursedLootOnly || !MCM.bEnslaveLockoutDCUR)
-     ; debugmsg("not enslaved: zad block generic detected, but only on DCUR items", 3)
-   ; else
-     ; removeDDbyKWD(player, libs.zad_DeviousCollar)
-   ; endif
-  ; endif
-  ; if player.WornHasKeyword(libs.zad_DeviousGag) 
-    ; removeDDbyKWD(player, libs.zad_DeviousGag)
-    ;;removeDDbyArmor(PlayerMon.knownGag)
-  ; endif
-  ; if player.WornHasKeyword(libs.zad_DeviousBlindFold) 
-    ; removeDDbyKWD(player, libs.zad_DeviousBlindFold)
-    ;;removeDDbyArmor(PlayerMon.knownBlindfold)
-  ; endif
-  ; because papyrus is too stupid to accept a generic argument to a property
+function removeDDs(actor targetActor = none, bool ignoreCollar = false, bool ignoreBelt = false)
   PlayerMon.debugmsg("starting removedds")
   
   if targetActor == none
@@ -143,56 +117,52 @@ function removeDDs(actor targetActor = none, bool hasChastityKey = true, bool ha
     return
   endif   
   bool playerHasBlockingKeyword = player.WornHasKeyword(libs.zad_BlockGeneric) ; only need to call this once
-  int i = deviceKeywords.length 
-  While i > 0
-    i -= 1
-    kw = deviceKeywords[i]    
-    if targetActor.wornhaskeyword(kw)
+  int max = deviceKeywords.length 
+  int i = 0
+  PlayerMon.debugmsg("size: " + i)
+  While i < max
+    kw = deviceKeywords[i]   
+    if i == 9 && ignoreBelt ; belt 
+      ; do nothing
+    elseif i == 14 && ignoreCollar ; collar
+      ; do nothing
+    elseif targetActor.wornhaskeyword(kw)
       id = libs.GetWornDevice(targetActor, kw)
       if id
         rd = libs.GetRenderedDevice(id)
       Endif     
-      If id && rd       
-        ; dcur_removableBlockedItems.Find(tmp_armor) == -1
-        if playerHasBlockingKeyword  
-          if  id.HasKeyword(libs.zad_BlockGeneric) || rd.HasKeyword(libs.zad_BlockGeneric) 
-            ; need to check if the item is cursed loot removable or not
-            if !MCM.bEnslaveLockoutDCUR && Mods.modLoadedCursedLoot \
-               && Mods.dcur_removableBlockedItems.Find(id) > 0 ; we look 
-              ; TODO TODO
-              libs.removeDevice(targetActor, id, rd, kw, false, skipevents = false, skipmutex = true)      
-              Utility.Wait(0.5)
-            else
-              PlayerMon.debugmsg("Cannot remove " + id +" because its blocked")
-              ; do nothing
-            endif
-        
-          else 
+      PlayerMon.debugmsg("found: keyword " + kw + " at " + i)
+      If id && rd
 
-            if targetActor == player  && libs.IsLockJammed(targetActor, kw)
-              ; we don't remove jammed devices if we're removing generic devices only
-              PlayerMon.debugmsg("Cannot remove " + id + " because the lock is jammed")
-            ; for now, lets see what happens if we leave this out
-            ; Elseif rd.HasKeyWord(dcur_kw_QuestItem)
-              ; ;That's a quest item. Needs to be taken off with the proper routine
-              ; libs.RemoveQuestDevice(targetActor, id, rd, kw, dcur_kw_QuestItem, \
-                                       ;destroyDevice = destroyDevices, skipMutex = true)
-            Else
-              libs.removeDevice(targetActor, id, rd, kw, false, skipevents = false, skipmutex = true)      
-              Utility.Wait(0.5)
-            EndIf
-            
+        if  id.HasKeyword(libs.zad_BlockGeneric) || rd.HasKeyword(libs.zad_BlockGeneric) 
+          ; need to check if the item is cursed loot removable or not
+          if !MCM.bEnslaveLockoutDCUR && Mods.modLoadedCursedLoot \
+             && Mods.dcur_removableBlockedItems.Find(id) > 0 ; we look 
+            libs.removeDevice(targetActor, id, rd, kw, false, skipevents = false, skipmutex = true)      
+            Utility.Wait(0.5)
+          else
+            PlayerMon.debugmsg("Cannot remove " + id +" because its blocked and not DCUR")
           endif
+      
+        else 
+          if targetActor == player  && libs.IsLockJammed(targetActor, kw)
+            ; we don't remove jammed devices if we're removing generic devices only
+            PlayerMon.debugmsg("Cannot remove " + id + " because the lock is jammed")
+          Else
+            libs.removeDevice(targetActor, id, rd, kw, false, skipevents = false, skipmutex = true)      
+            Utility.Wait(0.5)
+          EndIf
+          
         endif   
       Endif
     endif
+    i += 1
   EndWhile
   
   PlayerMon.updateWornDD(); good idea
-  ; TODO add other items that we might want to remove, like cuffs/belts
-  ;TODO add specifics for specialty colars later
 
 endFunction
+
 
 function removeDDbyArmor(actor actorRef, armor armorRef)
   keyword kwd = libs.GetDeviceKeyword(armorRef)
@@ -330,17 +300,17 @@ function unequipAllNonImportantSlow()
   endif
   
   if player.WornHasKeyword(libs.zad_DeviousBelt) ; belt
-    removeDDbyKWD(player, libs.zad_DeviousBelt) ; 37
+    removeDDbyKWD(player, libs.zad_DeviousBelt) ; 
     Utility.Wait(1)
   endif
 
   if player.WornHasKeyword(libs.zad_DeviousGag) ; gag
-    removeDDbyKWD(player, libs.zad_DeviousGag) ; 37
+    removeDDbyKWD(player, libs.zad_DeviousGag) 
     Utility.Wait(1)
   endif
 
-  if player.WornHasKeyword(libs.zad_DeviousBlindFold) ; gag
-    removeDDbyKWD(player, libs.zad_DeviousBlindFold) ; 37
+  if player.WornHasKeyword(libs.zad_DeviousBlindFold) ; blindfold
+    removeDDbyKWD(player, libs.zad_DeviousBlindFold) 
     Utility.Wait(1)
   endif
 
@@ -1129,21 +1099,30 @@ endFunction
 ; where "stuff" is plugs and piercings
 armor[] function getRandomBeltAndStuff(actor actorRef, bool punishment = false, bool forceStuff = false, bool forceGem = false)
   PlayerMon.debugmsg("checking if belt and stuff are already worn ...", 1)
+  armor belt = actorRef.GetWornForm(0x00080000) as armor
+  if belt && belt.HasKeyword(libs.zad_DeviousBelt)
+    PlayerMon.debugmsg("actor has belt already")
+  endif
   ; check what color the other items are, modify index
   ; todo: can we check if they are loyal imperial or stormcloak? if so we could add them to non-punishment
   
-  int newPadded   = MCM.iWeightBeltPadded  / ((1 * (punishment as int)) + 1)
-  int newIron     = MCM.iWeightBeltIron    / ((1 * (punishment as int)) + 1)
-  int newImperial = MCM.iWeightBeltRegulationsImperial   * (Mods.modLoadedDeviousRegulations as int) / ((1 * (punishment as int)) + 1)
-  int newSCloak   = MCM.iWeightBeltRegulationsStormCloak * (Mods.modLoadedDeviousRegulations as int) / ((1 * (punishment as int)) + 1)
-  int newShame    = MCM.iWeightBeltShame                 * (Mods.modLoadedCursedLoot as int) / ((1 * (punishment as int)) + 1)
+  ; if punish is set, we want punishment belts only
+  ; if punish is not set, punish belts should have a 1/4th chance of happening
+  ; what was I thinking: / ((1 * (punishment as int)) + 1)
+  ; eventually, I want this to include DD4 belts, gold/silver ect
+  int newPadded   = MCM.iWeightBeltPadded  * ((!punishment) as int * 4)
+  int newIron     = MCM.iWeightBeltIron    * ((!punishment) as int * 4)
+  int newImperial = MCM.iWeightBeltRegulationsImperial   * (Mods.modLoadedDeviousRegulations as int) * (punishment as int)
+  int newSCloak   = MCM.iWeightBeltRegulationsStormCloak * (Mods.modLoadedDeviousRegulations as int) * (punishment as int)
+  int newShame    = MCM.iWeightBeltShame                 * (Mods.modLoadedCursedLoot as int) * (punishment as int)
   int total = newPadded + newIron + newImperial\
             + newSCloak + newShame
-            ;+ MCM.iWeightPlugDasha \           + MCM.iWeightPlugCDEffect \         + MCM.iWeightPlugCDSpecial \
 
   int roll = Utility.RandomInt(1,total)
-  PlayerMon.debugmsg("padded/iron/imperial/stormcloak/shame(" + newPadded + "/" + newIron + "/" + newImperial + "/" + newSCloak + "/" + newShame + ")roll/total:(" + roll + "/" + total + ")", 2)
-  Armor belt
+  PlayerMon.debugmsg("padded/iron/imperial/stormcloak/shame(" \
+                    + newPadded + "/" + newIron + "/" + newImperial + "/" + newSCloak + "/" + newShame \
+                    + ")roll/total:(" + roll + "/" + total + ")", 2)
+  belt == NONE
   if roll < newPadded
     belt = libs.beltPaddedOpen
   elseif roll < newPadded + newIron
@@ -1791,6 +1770,7 @@ armor[] function getCDStuff(actor actorRef)
 endFunction
 
 ;followerItemsWhichOneFree
+; 2^0 is npc, 2^1 is player
 int function checkItemAddingAvailability(actor actorRef, keyword keywordRef)
   if keywordRef == None
     PlayerMon.debugmsg("Err checkItemAddingAvailability: keyword provided is none",1)
@@ -1801,17 +1781,18 @@ int function checkItemAddingAvailability(actor actorRef, keyword keywordRef)
     return 0
   endif
 
-  bool playerAlreadyWearing  = player.WornHasKeyword(keywordRef)
-  bool actorAlreadyWearing   = actorRef.WornHasKeyword(keywordRef)
-  if playerAlreadyWearing && actorAlreadyWearing
-    return 0
-  elseif playerAlreadyWearing
-    return 1
-  elseif actorAlreadyWearing
-    return 2
-  else
-    return 3
-  endif
+  int playerNotWearing   = player.WornHasKeyword(keywordRef) as int
+  int actorNotWearing    = actorRef.WornHasKeyword(keywordRef) as int
+  return actorNotWearing + (playerNotWearing * 2)
+  ;if playerAlreadyWearing && actorAlreadyWearing
+  ;  return 0
+  ;elseif playerAlreadyWearing
+  ;  return 1
+  ;elseif actorAlreadyWearing
+  ;  return 2
+  ;else
+  ;  return 3
+  ;endif
 endFunction
 
 function setFollowerFoundItem(actor actorRef, int itemCombo, keyword kw, objectReference c, armor a1, armor a2 = none, armor a3 = none)
@@ -2128,6 +2109,7 @@ function equipFollowerFoundItems(actor actorRef)
     i += 1
   endWhile
   
+  PlayerMon.resetFollowerContainerCount(actorRef)
 endFunction
 
 ; this is to apply follower items, and from player if they exist, onto the player from the follower context

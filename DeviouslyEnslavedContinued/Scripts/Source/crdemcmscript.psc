@@ -85,7 +85,7 @@ event OnConfigInit()
   endwhile
   Pages = new string[8]
   Pages[0] = "" ; too lazy to move a page worth of contents here, just leaving it empty
-  Pages[1] = "Settings"
+  Pages[1] = "General Settings"
   Pages[2] = "Item Options"
   Pages[3] = "Vulnerability"
   Pages[4] = "Enslavement"
@@ -186,6 +186,7 @@ event OnPageReset(string a_page)
     iGenderPrefMasterOID    = AddMenuOption("Master Gender Preference", genderList[iGenderPrefMaster])
     bUseSexlabGenderOID     = AddToggleOption("Use Sexlab Genders", bUseSexlabGender)
     bAlternateNPCSearchOID  = AddToggleOption("Alternate NPC search", bAlternateNPCSearch)
+    bRefreshModDetectOID          = AddToggleOption("Refresh detected mods", Mods.bRefreshModDetect)
     
     AddEmptyOption() ; spacer
     
@@ -521,8 +522,7 @@ event OnPageReset(string a_page)
 
     SetCursorPosition(1) ; now for right-hand side
 
-    FormList followers = Mods.PreviousFollowers  ; old unreliable method
-    ;actor[] followers = new followers
+    FormList followers = Mods.PlayMonScript.permanentFollowers  
     
     actorNames = new string[15] ; don't remove it locks to 1 name
     if followers != None
@@ -571,6 +571,7 @@ event OnPageReset(string a_page)
     AddEmptyOption() ; spacer
 
     bAddFollowerManuallyOID = AddTextOption("Add Follower Manually", "Push Here")
+    bRefreshFollowersOID    = AddTextOption("Clear followers list", "Push here") 
     ; get follower, if NONE
     if currentFollower == None
       AddEmptyOption() ; spacer
@@ -578,6 +579,7 @@ event OnPageReset(string a_page)
 
       AddEmptyOption() ; spacer
       AddTextOption("Followers need time to be added","")
+      AddTextOption(" and they need to have had sex with the player before","")
       AddTextOption("If you have a follower and they","")
       AddTextOption("haven't shown up, exit the menu","")
       AddTextOption("and wait ~30 seconds for DEC to find them","")
@@ -622,6 +624,8 @@ event OnPageReset(string a_page)
     bArousalFunctionWorkaroundOID         = AddToggleOption("Aroused function alternative", bArousalFunctionWorkaround)
     bSecondBusyCheckWorkaroundOID         = AddToggleOption("Second busy check", bSecondBusyCheckWorkaround)
     bIgnoreZazOnNPCOID                    = AddToggleOption("Ignore Zaz on NPC Slaves", bIgnoreZazOnNPC)
+    bSetValidRaceOID                      = AddToggleOption("Set Valid Race", bSetValidRace) 
+
     AddEmptyOption() ; spacer
   
     AddHeaderOption("Debug Toggle")
@@ -640,8 +644,6 @@ event OnPageReset(string a_page)
     AddHeaderOption("Useful Fixes/Debug Commands")
     bResetDHLPOID                 = AddToggleOption("Reset/resume DHLP suspend and approach", bResetDHLP)
     bRefreshSDMasterOID           = AddToggleOption("Refresh SD Masters", bRefreshSDMaster) 
-    bRefreshModDetectOID          = AddToggleOption("Refresh detected mods", Mods.bRefreshModDetect) 
-    bSetValidRaceOID              = AddToggleOption("Set Valid Race", bSetValidRace) 
     bPrintSexlabStatusOID         = AddToggleOption("Print Block/permit sexlab status", bPrintSexlabStatus)
     bPrintVulnerabilityStatusOID  = AddToggleOption("Print vulnerability status", bPrintVulnerabilityStatus)
     bTestTattoosOID               = AddToggleOption("Tattoo test", bTestTattoos)
@@ -893,11 +895,11 @@ event OnOptionSelect(int a_option)
       SendModEvent("crderesetmods")
       ; This is here because we want to reset this only when the user specifies, not every save load, that is worthless.
     endif
+    
+  elseif a_option == bRefreshFollowersOID  
+    Mods.PlayMonScript.permanentFollowers.revert()  
+  
   elseif a_option == bSetValidRaceOID
-    ;bSetValidRace = ! bSetValidRace
-    ;if Mods.bRefreshModDetect 
-    ;  Debug.MessageBox("Exit the menu and wait next to the NPC you want to set valid race for.")
-    ;endif
     Mods.PlayMonScript.appointValidRace()
     SetToggleOptionValue(a_option, bSetValidRace)
   elseif a_option == bTestTattoosOID 
@@ -929,7 +931,6 @@ event OnOptionSelect(int a_option)
     SetToggleOptionValue(a_option, bIgnoreZazOnNPC)
   
   elseif a_option == gUnfinishedDialogueToggleOID
-    ;gUnfinishedDialogueToggle = ! gUnfinishedDialogueToggle
     gUnfinishedDialogueToggle.SetValueInt((gUnfinishedDialogueToggle.GetValueInt() == 0) as int) ; toggle based on == equivilence
     SetToggleOptionValue(a_option, gUnfinishedDialogueToggle.GetValueInt() as bool)
     
@@ -2609,7 +2610,8 @@ event OnOptionHighlight(int a_option)
     SetInfoText("Refreshes the next master that will be chosen for distance SD outcome, prints the previous and next after refreshing.")
   elseif a_option == bRefreshModDetectOID  ;bRefreshModDetect
     SetInfoText("Refreshes the Mod detection manually, rechecking which available mods we can use")
-   
+  elseif a_option == bRefreshFollowersOID
+    SetInfoText("Clear the permanent followers list manually")
   elseif a_option == bSetValidRaceOID
     SetInfoText("Searches for nearby NPCs and allows you to pick one to set their race as valid for approach. THIS FEATURE REQUIRES UIEXTENSIONS")
   elseif a_option == bTestTattoosOID  
@@ -3215,11 +3217,13 @@ int bPrintVulnerabilityStatusOID
 bool Property bResetDHLP Auto
 int bResetDHLPOID
 bool Property bRefreshSDMaster Auto
-int bRefreshSDMasterOID ;bRefreshModDetect
+int bRefreshSDMasterOID 
 bool Property bSetValidRace Auto
 int bSetValidRaceOID
 ;bool Property bRefreshModDetect Auto
 int bRefreshModDetectOID 
+int bRefreshFollowersOID 
+
 
 bool Property bTestTattoos Auto
 int bTestTattoosOID
