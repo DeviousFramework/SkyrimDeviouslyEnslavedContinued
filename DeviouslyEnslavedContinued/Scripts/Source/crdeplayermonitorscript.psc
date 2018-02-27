@@ -423,7 +423,6 @@ bool function isPlayerBusy()
   if( player.GetCurrentScene() != none )
     debugmsg("Player is in scene, busy", 1)
     return true
-    ; disabled in 13.10 as experiment
   elseif   UI.IsMenuOpen("Dialogue Menu")  ;UI.IsMenuOpen("InventoryMenu") |||| UI.IsMenuOpen("ContainerMenu")
      debugmsg("Player is in UI, busy", 1)
     return true

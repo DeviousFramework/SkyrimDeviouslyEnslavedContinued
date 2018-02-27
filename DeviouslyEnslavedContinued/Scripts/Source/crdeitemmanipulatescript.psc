@@ -1781,8 +1781,8 @@ int function checkItemAddingAvailability(actor actorRef, keyword keywordRef)
     return 0
   endif
 
-  int playerNotWearing   = player.WornHasKeyword(keywordRef) as int
-  int actorNotWearing    = actorRef.WornHasKeyword(keywordRef) as int
+  int playerNotWearing   = (! player.WornHasKeyword(keywordRef)) as int
+  int actorNotWearing    = (! actorRef.WornHasKeyword(keywordRef)) as int
   return actorNotWearing + (playerNotWearing * 2)
   ;if playerAlreadyWearing && actorAlreadyWearing
   ;  return 0
@@ -2003,6 +2003,11 @@ function rollFollowerFoundItems(actor actorRef)
   
   int firstEight = collar + randomPlug + belt + glovesandboots + cuffs + randomGag + harness + armbinder 
 
+  if total == 0
+    PlayerMon.debugmsg("Err: Total is zero, cannot add items")
+    return
+  endif
+  
   int roll = Utility.RandomInt(1,total)
   keyword armorKeyword = None
   
@@ -2054,23 +2059,25 @@ function rollFollowerFoundItems(actor actorRef)
   elseif roll < firstEight + randomCD + nipplePiercings + petCollar + uniqueCollar + elbowbinder
     PlayerMon.followerItemsCombination = 8
     armorKeyword = libs.zad_DeviousArmbinder 
-  ;else;if roll < firstEight + randomCD + nipplePiercings + petCollar + uniqueCollar + elbowbinder + gemplugandmore
-  ;  PlayerMon.followerItemsCombination = 52
-  ;  armorKeyword = libs.zad_DeviousPlug 
+  else;if roll < firstEight + randomCD + nipplePiercings + petCollar + uniqueCollar + elbowbinder + gemplugandmore
+    PlayerMon.followerItemsCombination = 52
+    armorKeyword = libs.zad_DeviousPlug 
   endif     
+  
+  PlayerMon.debugmsg("collar/randomPlug/belt/glovesandboots/cuffs/randomGag/harness/armbinder/randomCD/nipplePiercings/petcollar/uniqueCollar/elbowbinder/gemplug("  \
+                    + collar + "/" + randomPlug + "/" + belt + "/" + glovesandboots + "/" + cuffs + "/" \
+                    + randomGag + "/"  + harness + "/"  + armbinder + "/"  + randomCD + "/" + nipplePiercings \
+                    + "/" + petCollar + "/" + uniqueCollar + "/" + elbowbinder \
+                    +  ")")
+  PlayerMon.debugmsg("roll/total/avail/ic/kw:("\
+                   + roll + "/" + total + "/" \
+                   + PlayerMon.followerItemsWhichOneFree + "/" + PlayerMon.followerItemsCombination + "/ " \
+                   + armorKeyword + ")", 2)
+
   
   if armorKeyword
     PlayerMon.followerItemsWhichOneFree = checkItemAddingAvailability(actorRef, armorKeyword)
     ;PlayerMon.debugmsg("for keyword: " + armorKeyword + " availability is " + PlayerMon.followerItemsWhichOneFree)
-    PlayerMon.debugmsg("collar/randomPlug/belt/glovesandboots/cuffs/randomGag/harness/armbinder/randomCD/nipplePiercings/petcollar/uniqueCollar/elbowbinder/gemplug("  \
-                      + collar + "/" + randomPlug + "/" + belt + "/" + glovesandboots + "/" + cuffs + "/" \
-                      + randomGag + "/"  + harness + "/"  + armbinder + "/"  + randomCD + "/" + nipplePiercings \
-                      + "/" + petCollar + "/" + uniqueCollar + "/" + elbowbinder \
-                      +  ")")
-    PlayerMon.debugmsg("roll/total/avail/ic/kw:("\
-                     + roll + "/" + total + "/" \
-                     + PlayerMon.followerItemsWhichOneFree + "/" + PlayerMon.followerItemsCombination + "/ " \
-                     + armorKeyword + ")", 2)
                         
   else
     PlayerMon.debugmsg("ERR: no armor keyword")
