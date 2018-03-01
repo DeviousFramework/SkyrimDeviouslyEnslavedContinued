@@ -624,8 +624,8 @@ event OnPageReset(string a_page)
     bArousalFunctionWorkaroundOID         = AddToggleOption("Aroused function alternative", bArousalFunctionWorkaround)
     bSecondBusyCheckWorkaroundOID         = AddToggleOption("Second busy check", bSecondBusyCheckWorkaround)
     bIgnoreZazOnNPCOID                    = AddToggleOption("Ignore Zaz on NPC Slaves", bIgnoreZazOnNPC)
-    bSetValidRaceOID                      = AddToggleOption("Set Valid Race", bSetValidRace) 
-
+    bSetValidRaceOID                      = AddTextOption("Set Valid Race", "Click Here") 
+    bToggleNeverFollowerOID               = AddTextOption("Toggle Follower Ignore", "Click Here") 
     AddEmptyOption() ; spacer
   
     AddHeaderOption("Debug Toggle")
@@ -901,7 +901,9 @@ event OnOptionSelect(int a_option)
   
   elseif a_option == bSetValidRaceOID
     Mods.PlayMonScript.appointValidRace()
-    SetToggleOptionValue(a_option, bSetValidRace)
+    ;SetToggleOptionValue(a_option, bSetValidRace)
+  elseif a_option == bToggleNeverFollowerOID
+    Mods.PlayMonScript.toggleNeverFollower()
   elseif a_option == bTestTattoosOID 
     bTestTattoos = ! bTestTattoos
     SetToggleOptionValue(a_option, bTestTattoos)  
@@ -2612,8 +2614,10 @@ event OnOptionHighlight(int a_option)
     SetInfoText("Refreshes the Mod detection manually, rechecking which available mods we can use")
   elseif a_option == bRefreshFollowersOID
     SetInfoText("Clear the permanent followers list manually")
-  elseif a_option == bSetValidRaceOID
+  elseif a_option == bSetValidRaceOID ;
     SetInfoText("Searches for nearby NPCs and allows you to pick one to set their race as valid for approach. THIS FEATURE REQUIRES UIEXTENSIONS")
+  elseif a_option == bToggleNeverFollowerOID ;
+    SetInfoText("Searches for nearby NPCs and allows you to pick one to set one to be ignored as a follower by DEC.")
   elseif a_option == bTestTattoosOID  
     SetInfoText("Checks if the tattoos worn by the player count as tattoos for vulnerability. REMINDER: I hard coded tattoos, if they don't count TELL ME and I'll fix it")
 
@@ -3219,8 +3223,10 @@ int bResetDHLPOID
 bool Property bRefreshSDMaster Auto
 int bRefreshSDMasterOID 
 bool Property bSetValidRace Auto
-int bSetValidRaceOID
-;bool Property bRefreshModDetect Auto
+int bSetValidRaceOID;
+int bToggleNeverFollowerOID;
+
+
 int bRefreshModDetectOID 
 int bRefreshFollowersOID 
 

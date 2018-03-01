@@ -88,6 +88,8 @@ actor master
 actor previousAttacker
 bool  masterIsSlaver    ; what was I going to do with this agaim?
 
+;Race Property DogRace Auto ;
+
 event OnInit()
   player = Game.GetPlayer()
   ;Utility.wait(7)

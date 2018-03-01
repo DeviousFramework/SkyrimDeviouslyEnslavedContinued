@@ -55,6 +55,7 @@ actor player
 
 ; because calling the property from playermon might take longer
 Faction Property CurrentFollowerFaction Auto 
+Faction Property crdeNeverFollowerFaction Auto
 
 event OnInit()
   player = Game.GetPlayer()
@@ -139,6 +140,7 @@ Actor[] function getNearbyActorsLinear(int distance = 1024)
   Return followers 
 endFunction
 
+; used by main loop for follower approach
 Actor[] function getNearbyFollowers(int specificDistance = 0)
   int searchDistance = 768 ; TODO set this in the MCM
   if specificDistance != 0
@@ -154,13 +156,6 @@ Actor[] function getNearbyFollowers(int specificDistance = 0)
   int i = 0 ; array index
   Actor[] a = new Actor[25] ; we're acounting previous followers now too
   
-  ;actor testActor = NearestFollower01.GetActorRef() ; this just led to two of the primary follower in the list
-  ;if testActor != None ;&& actorIsFollower(testActor, min_relationship)
-  ;  a[i]  =  testActor
-  ;  ;debugmsg("follower slot is " + testActor.GetDisplayName())
-  ;  NearestFollower01.clear()
-  ;  i += 1
-  ;endif
   actor testActor = nearest00.GetActorRef()
   if testActor != None && testActor.GetDistance(player) <= searchDistance && actorIsFollower(testActor, min_relationship)
     a[i]  =  testActor
@@ -281,6 +276,7 @@ bool function actorIsFollower(actor actorRef, int min_relationship)
   int gender_pref   = MCM.iGenderPref
   return !(( actor_sex == 0 && gender_pref == 2) || (actor_sex == 1 && gender_pref == 1)) \
          && ((actorRef.IsInFaction(CurrentFollowerFaction) || (actorRef.GetRelationShipRank(player) >= min_relationship)) \
+         && !actorRef.IsInFaction(crdeNeverFollowerFaction) \
          || (Mods.modLoadedParadiseHalls && actorRef.IsInFaction(Mods.paradiseFollowingFaction) \
          && !actorRef.WornHasKeyword(Mods.paradiseSlaveRestraintKW) && !(Mods.PAHETied && actorRef.IsInFaction(Mods.PAHETied))) \
          || (Mods.modLoadedSlaveTrainer && actorRef.IsInFaction(Mods.sltSlaveFaction)) \

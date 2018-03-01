@@ -1222,7 +1222,7 @@ bool function attemptFollowerApproach(actor[] followers)
       goal = max
     endif
     float roll                    = Utility.RandomFloat(100)
-    debugmsg("follower aroused roll:" + roll + " need below " + goal, 3)
+    debugmsg("follower sex approach roll:" + roll + " need below " + goal, 3)
     ; moved this out so that we can detect it in the conversations even if not sex roll
     follower_can_remove_belt      = wearingBelt && knownBelt.HasKeyword(libs.zad_DeviousBelt) \
                                   && !knownBelt.HasKeyword(blocking_keyword) && (follower.getItemCount(libs.GetDeviceKey(knownBelt)) > 0)
@@ -2540,6 +2540,56 @@ function addPermanentFollower()
   endif
 endFunction
 
+; looks for nearby NPCs and allows the user to select one to set as neverfollower
+;  meaning DEC should ignore them as a possible follower
+function toggleNeverFollower()
+
+  actor[] a = NPCSearchScript.getNearbyActorsLinear(500) ; range should be reasonably short
+  UIListMenu menu = UIExtensions.GetMenu("UIListMenu", true) as UIListMenu
+  
+  int index = 0
+  while index < a.length
+    if a[index] != None && a[index].GetDisplayName() != ""
+      menu.AddEntryItem(a[index].GetDisplayName())
+    endif
+    index += 1
+  endWhile
+  
+  ; add cancel button, and open menu for users to select one, wait for response from user
+  menu.AddEntryItem(" ** cancel **")
+  menu.OpenMenu()
+  int result = UIExtensions.GetmenuResultInt("UIListMenu")
+  if result >= 0 && result < a.length
+    actor targetActor = a[result]
+    if targetActor.IsInFaction(crdeNeverFollowerFaction) ;follower has faction, which is neverfollower
+      ;then remove them
+      targetActor.RemoveFromFaction(crdeNeverFollowerFaction)
+      debugmsg(targetActor.GetDisplayName() + " should be eligible to be a follower again ",4)
+    else
+      ; add them to the faction to stop followers from finding
+      targetActor.AddToFaction(crdeNeverFollowerFaction)
+      ; also remove them from the previous follower list
+      if permanentFollowers.HasForm(targetActor)
+        permanentFollowers.RemoveAddedForm(targetActor)
+      endif
+      ; and remove previousfollower from actor 
+      if targetActor.IsInFaction(crdeFormerFollowerFaction)
+        targetActor.RemoveFromFaction(crdeFormerFollowerFaction)
+      endif
+      debugmsg(targetActor.GetDisplayName() + " should no longer count as follower to Deviously Enslaved",4)
+    endif
+
+  elseif result == a.length
+    ; do nothing, was the cancel button
+    debugmsg("cancel button pushed")
+  else
+    Debug.Messagebox("ERROR: returning index was the wrong size")
+  endif
+
+    
+  
+endFunction
+
 ; resets DHLP Suspend status
 ; ignores DEC set it in the first place, this can interfere with other mods 
 ;  (unlikely if the user is manually setting it to go off)
@@ -3546,3 +3596,4 @@ Race Property WerewolfBeastRace Auto
 Keyword Property BrawlKeyword  Auto  
 
 Faction Property crdeFormerFollowerFaction Auto
+Faction Property crdeNeverFollowerFaction Auto

@@ -128,7 +128,9 @@ Notes:
   
   () set SD limite removal to off, might be the cause of the stack dump
   
-  
+  plug roll while belted shouldn't happen
+  add alt for "what is it" if they are your master
+  soft sex, or at least master soft sex should result in opening belt for sex, followed by rebelt
   more of the dialogue should increase follower dom tendency
   more gagged alt for "oh you like this interesting"
     follower should comment on how it looks
