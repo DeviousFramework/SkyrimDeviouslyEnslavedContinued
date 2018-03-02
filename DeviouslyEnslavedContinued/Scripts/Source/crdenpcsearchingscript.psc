@@ -55,7 +55,8 @@ actor player
 
 ; because calling the property from playermon might take longer
 Faction Property CurrentFollowerFaction Auto 
-Faction Property crdeNeverFollowerFaction Auto
+Faction Property crdeNeverFollowerFaction Auto;
+Faction Property crdeFormerFollowerFaction Auto
 
 event OnInit()
   player = Game.GetPlayer()
@@ -264,18 +265,16 @@ Actor[] function getNearbyFollowers(int specificDistance = 0)
   
 endFunction
 
-; Yes that's a lot of stack thrashing, but cleaner on my eyes, use until I'm sure I don't have to add to this
-; I want it to exist in a loop, but I don't know how to loop through named variables, don't think this language allows for it
 ; min relationship is because I think passing another function parameter, even with the thrashing
 ;  is probably faster than asking for a property in papyrus, could be wrong though...
-bool function actorIsFollower(actor actorRef, int min_relationship)
+bool function actorIsFollower(actor actorRef, int min_relationship = 3)
   ; so it doesn't get pulled from the game's engine twice, bad compiler
   ;   heck, he base actor needs to get pulled twice too 
   ;   so does the preference
   int actor_sex     = actorRef.GetActorBase().getSex()
   int gender_pref   = MCM.iGenderPref
   return !(( actor_sex == 0 && gender_pref == 2) || (actor_sex == 1 && gender_pref == 1)) \
-         && ((actorRef.IsInFaction(CurrentFollowerFaction) || (actorRef.GetRelationShipRank(player) >= min_relationship)) \
+         && ((actorRef.IsInFaction(CurrentFollowerFaction) || (actorRef.GetRelationShipRank(player) >= min_relationship) || actorRef.IsInFaction(crdeFormerFollowerFaction) ) \
          && !actorRef.IsInFaction(crdeNeverFollowerFaction) \
          || (Mods.modLoadedParadiseHalls && actorRef.IsInFaction(Mods.paradiseFollowingFaction) \
          && !actorRef.WornHasKeyword(Mods.paradiseSlaveRestraintKW) && !(Mods.PAHETied && actorRef.IsInFaction(Mods.PAHETied))) \

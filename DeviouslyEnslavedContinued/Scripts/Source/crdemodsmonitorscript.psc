@@ -232,6 +232,8 @@ Armor   Property  cdPunisherPlug Auto
 quest   property  cdxCellControl auto
 GlobalVariable Property cdFollowerTiedUp Auto 
 int               cdPreviousDisposition
+Cell    Property  cdxVIPHouse Auto ; cannot detect quest because no states, no factions.. how the uckf does he keep track of everything?
+
 
 ;PetCollar
 armor Property petCollar Auto ; Don't use this for detection, there are many collars, use magic effect for checking
@@ -757,8 +759,10 @@ function updateForms()
     
     cdxCellControl     = Quest.GetQuest("CDxCellController")
     
-    cdFollowerTiedUp      = Game.GetFormFromFile(0x00105F0D , "Captured Dreams.esp") as GlobalVariable
+    cdFollowerTiedUp      = Game.GetFormFromFile(0x00105F0D, "Captured Dreams.esp") as GlobalVariable
     cdPreviousDisposition = (Game.GetFormFromFile(0x000892FC, "Captured Dreams.esp") as GlobalVariable).GetValueInt()
+    
+    cdxVIPHouse        = Game.GetFormFromFile(0x0808F7A0, "Captured Dreams.esp") as Cell
     
     RegisterForModEvent("CDxDisposition ","CDxDispositionUpdate")
     ;Armor   Property cdMagePlug auto
@@ -1316,6 +1320,11 @@ int function isPlayerEnslaved()
   endIf
   
   if modLoadedCD 
+    if curCell == cdxVIPHouse
+      setEnslavedLevel(3)          ; VIP, do nothing
+      debugmsg("enslaved: player is busy with VIP", 3)
+      return iEnslavedLevel ; should be a singleton case, we can leave
+    endif
     if(cdExpQuest02.GetStage() > 50 && cdExpQuest02.GetStage() < 900) ; does this last until game reload?
       ;debugmsg("CD enslave 3")
       setEnslavedLevel(3)          ; expansion quest

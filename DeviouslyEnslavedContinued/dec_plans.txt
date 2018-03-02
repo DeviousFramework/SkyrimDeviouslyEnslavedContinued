@@ -128,6 +128,7 @@ Notes:
   
   () set SD limite removal to off, might be the cause of the stack dump
   
+  "Oh you found more keys? good we can use some {steal}"
   plug roll while belted shouldn't happen
   add alt for "what is it" if they are your master
   soft sex, or at least master soft sex should result in opening belt for sex, followed by rebelt
@@ -1237,6 +1238,13 @@ iGenderPrefMasterOID    = AddMenuOption("Master Gender Preference", genderList[i
 ; actual
 string[] Property singleVulnerabilities Auto
 
+uhh.... can we have a none item?
+[02/28/2018 - 08:00:43PM] ERROR: None is not a valid inventory item
+stack:
+	[ (02002B74)].DLC1SeranaLevelingScript.GetItemCount() - "<native>" Line ?
+	[crdePlayerMonitor (95001827)].crdeplayermonitorscript.attemptFollowerApproach() - "crdePlayerMonitorScript.psc" Line 1228
+	[crdePlayerMonitor (95001827)].crdeplayermonitorscript.attemptApproach() - "crdePlayerMonitorScript.psc" Line 938
+	[crdePlayerMonitor (95001827)].crdeplayermonitorscript.OnUpdate() - "crdePlayerMonitorScript.psc" Line 250
 
 
 

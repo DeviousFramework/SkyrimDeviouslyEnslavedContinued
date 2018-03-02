@@ -954,7 +954,7 @@ bool function attemptApproach()
   actor tmp = None
   while i < followers.length && hasFollowers == false
     tmp = followers[i]
-    if tmp != None && tmp.IsInFaction(CurrentFollowerFaction) && \
+    if tmp != None && NPCSearchScript.actorIsFollower(tmp) && \
      !NPCMonitorScript.isWearingSlaveDD(tmp) && !Mods.isSlave(tmp) ; 13.11: we don't count followers if they are slaves
       hasFollowers = true
     endif
