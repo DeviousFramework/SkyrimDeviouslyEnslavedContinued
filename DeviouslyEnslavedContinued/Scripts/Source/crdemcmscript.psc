@@ -186,7 +186,7 @@ event OnPageReset(string a_page)
     iGenderPrefMasterOID    = AddMenuOption("Master Gender Preference", genderList[iGenderPrefMaster])
     bUseSexlabGenderOID     = AddToggleOption("Use Sexlab Genders", bUseSexlabGender)
     bAlternateNPCSearchOID  = AddToggleOption("Alternate NPC search", bAlternateNPCSearch)
-    bRefreshModDetectOID          = AddToggleOption("Refresh detected mods", Mods.bRefreshModDetect)
+    bRefreshModDetectOID    = AddToggleOption("Refresh detected mods", Mods.bRefreshModDetect)
     
     AddEmptyOption() ; spacer
     
@@ -207,6 +207,7 @@ event OnPageReset(string a_page)
     
     AddHeaderOption("General lockout")
     bSDGeneralLockoutOID        = AddToggleOption("SD+ Enslave Lockout", bSDGeneralLockout, (!Mods.modLoadedSD) as int)
+    bCDSlaveLockoutOID          = AddToggleOption("CD Enslave Lockout", bCDSlaveLockout, (!Mods.modLoadedCD) as int)
 
     
   elseif a_page == Pages[2] ; items
@@ -998,9 +999,12 @@ event OnOptionSelect(int a_option)
   elseif a_option == bUseSexlabGenderOID
     bUseSexlabGender = ! bUseSexlabGender
     SetToggleOptionValue(a_option, bUseSexlabGender)
-  elseif a_option == bSDGeneralLockoutOID
+  elseif a_option == bSDGeneralLockoutOID 
     bSDGeneralLockout = ! bSDGeneralLockout
     SetToggleOptionValue(a_option, bSDGeneralLockout)
+  elseif a_option == bCDSlaveLockoutOID 
+    bCDSlaveLockout = ! bCDSlaveLockout
+    SetToggleOptionValue(a_option, bCDSlaveLockout)
   elseif a_option == tFollowerteleportToPlayerOID
     currentFollower.MoveTo(Mods.player)
   elseif a_option == bAddFollowerManuallyOID  
@@ -2828,8 +2832,10 @@ event OnOptionHighlight(int a_option)
   elseif a_option == iDistanceWeightDCLLeahOID
     SetInfoText("Chance of getting the Cursed loot Leah enslavement outcome when enslaved. (given)")
 
-  elseif a_option == bSDGeneralLockoutOID
+  elseif a_option == bSDGeneralLockoutOID ;
     SetInfoText("Toggles if DEC shouldn't be active during SD+ Enslavement, if ON DEC will do nothing")
+  elseif a_option == bCDSlaveLockoutOID ;
+    SetInfoText("Toggles if DEC should allow follower and sex approach while a CD slave")
 
   elseif a_option == iSexEventDeviceOID
     SetInfoText("Chance of getting items after DEC started sex when the player is already enslaved")
@@ -3460,6 +3466,9 @@ GlobalVariable property crdeBDialogueCanBeBeltedToggle auto
 
 bool Property bSDGeneralLockout Auto
 int bSDGeneralLockoutOID
+bool Property bCDSlaveLockout Auto
+int bCDSlaveLockoutOID 
+
 
 bool property bAddFollowerManually Auto
 int bAddFollowerManuallyOID

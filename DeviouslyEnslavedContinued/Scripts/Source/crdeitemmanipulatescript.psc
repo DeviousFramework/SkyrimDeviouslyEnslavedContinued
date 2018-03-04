@@ -1976,10 +1976,14 @@ function rollFollowerFoundItems(actor actorRef)
   followerFoundArmorBuffer[3] = None
   followerFoundArmorBuffer[4] = None
   
+  int gemPlugAvailable  = (MCM.iWeightPlugSoulGem > 0 || MCM.iWeightPlugCharging > 0 || MCM.iWeightPlugShock > 0 \
+                        || (MCM.iWeightPlugCDEffect > 0 || MCM.iWeightPlugCDSpecial > 0 && Mods.modLoadedCD)) as int
+
   
   ;int random          = 1 ;MCM.iWeightBeltPadded  * (player.WornHasKeyword(libs.zad_Devious) as int)
   int collar          = MCM.iWeightSingleCollar       * ((checkItemAddingAvailability(actorRef, libs.zad_DeviousCollar) > 0) as int)  
-  int randomPlug      = MCM.iWeightPlugs              * ((checkItemAddingAvailability(actorRef, libs.zad_DeviousPlug) > 0) as int) 
+  int randomPlug      = MCM.iWeightPlugs              * ((checkItemAddingAvailability(actorRef, libs.zad_DeviousPlug) > 0) as int) \
+                                                      * ((checkItemAddingAvailability(actorRef, libs.zad_DeviousBelt) > 0) as int) 
   int belt            = MCM.iWeightSingleBelt         * ((checkItemAddingAvailability(actorRef, libs.zad_DeviousBelt) > 0) as int) 
   int glovesandboots  = MCM.iWeightSingleGlovesBoots  * ((checkItemAddingAvailability(actorRef, libs.zad_DeviousBoots) > 0) as int) 
   int cuffs           = MCM.iWeightSingleCuffs        * ((checkItemAddingAvailability(actorRef, libs.zad_DeviousArmCuffs) > 0) as int) 
@@ -1993,13 +1997,12 @@ function rollFollowerFoundItems(actor actorRef)
   
   int elbowbinder     = MCM.iWeightSingleElbowbinder  * ((checkItemAddingAvailability(actorRef, libs.zad_DeviousArmbinder)  > 0 && Mods.modLoadedDD4) as int)
   int hobbledress     = MCM.iWeightSingleElbowbinder  * ((checkItemAddingAvailability(actorRef, libs.zad_DeviousSuit)  > 0 && Mods.modLoadedDD4) as int)
-  ;int gemplugandmore  = gemPlugAvailable * MCM.iWeightPlugs \
-                       ;* ((checkItemAddingAvailability(actorRef, libs.zad_DeviousPlug)  > 0) as int) / 2
+
   
   ;int rubberSuit      = MCM.iWeightSingleBelt   * (( ! player.WornHasKeyword(libs.zad_DeviousSuit)) as int) 
   
   int total       = collar + randomPlug + belt + glovesandboots + cuffs + randomGag + harness + armbinder \
-                  + randomCD + nipplePiercings + petCollar + uniqueCollar + elbowbinder ;+ gemplugandmore
+                  + randomCD + nipplePiercings + petCollar + uniqueCollar + elbowbinder 
   
   int firstEight = collar + randomPlug + belt + glovesandboots + cuffs + randomGag + harness + armbinder 
 
@@ -2017,8 +2020,6 @@ function rollFollowerFoundItems(actor actorRef)
   elseif roll < collar + randomPlug 
     ; roll for a gem plug or regular plug
     ; I SHOULD make the roll based on gem plug vs total (both) but I'm lazy
-    int gemPlugAvailable  = (MCM.iWeightPlugSoulGem > 0 || MCM.iWeightPlugCharging > 0 || MCM.iWeightPlugShock > 0 \
-                          || (MCM.iWeightPlugCDEffect > 0 || MCM.iWeightPlugCDSpecial > 0 && Mods.modLoadedCD)) as int
     if  gemPlugAvailable && Utility.RandomInt(0, 100) > 50
       PlayerMon.followerItemsCombination = 52
       armorKeyword = libs.zad_DeviousPlug
@@ -2056,12 +2057,9 @@ function rollFollowerFoundItems(actor actorRef)
   elseif roll < firstEight + randomCD + nipplePiercings + petCollar + uniqueCollar 
     PlayerMon.followerItemsCombination = 30
     armorKeyword = libs.zad_DeviousCollar
-  elseif roll < firstEight + randomCD + nipplePiercings + petCollar + uniqueCollar + elbowbinder
+  else;if roll < firstEight + randomCD + nipplePiercings + petCollar + uniqueCollar + elbowbinder
     PlayerMon.followerItemsCombination = 8
     armorKeyword = libs.zad_DeviousArmbinder 
-  else;if roll < firstEight + randomCD + nipplePiercings + petCollar + uniqueCollar + elbowbinder + gemplugandmore
-    PlayerMon.followerItemsCombination = 52
-    armorKeyword = libs.zad_DeviousPlug 
   endif     
   
   PlayerMon.debugmsg("collar/randomPlug/belt/glovesandboots/cuffs/randomGag/harness/armbinder/randomCD/nipplePiercings/petcollar/uniqueCollar/elbowbinder/gemplug("  \

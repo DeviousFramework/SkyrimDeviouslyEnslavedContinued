@@ -128,8 +128,9 @@ Notes:
   
   () set SD limite removal to off, might be the cause of the stack dump
   
+  "gave you boots before leaving"
   "Oh you found more keys? good we can use some {steal}"
-  plug roll while belted shouldn't happen
+  ;plug roll while belted shouldn't happen
   add alt for "what is it" if they are your master
   soft sex, or at least master soft sex should result in opening belt for sex, followed by rebelt
   more of the dialogue should increase follower dom tendency

@@ -233,7 +233,8 @@ quest   property  cdxCellControl auto
 GlobalVariable Property cdFollowerTiedUp Auto 
 int               cdPreviousDisposition
 Cell    Property  cdxVIPHouse Auto ; cannot detect quest because no states, no factions.. how the uckf does he keep track of everything?
-
+faction property  cdxSlaveFactionP Auto ;08167346 
+faction property  cdxSlaveFactionR Auto ;08167346 
 
 ;PetCollar
 armor Property petCollar Auto ; Don't use this for detection, there are many collars, use magic effect for checking
@@ -763,6 +764,9 @@ function updateForms()
     cdPreviousDisposition = (Game.GetFormFromFile(0x000892FC, "Captured Dreams.esp") as GlobalVariable).GetValueInt()
     
     cdxVIPHouse        = Game.GetFormFromFile(0x0808F7A0, "Captured Dreams.esp") as Cell
+    cdxSlaveFactionP   = Game.GetFormFromFile(0x08167346, "Captured Dreams.esp") as Faction
+    cdxSlaveFactionR   = Game.GetFormFromFile(0x08167347, "Captured Dreams.esp") as Faction
+
     
     RegisterForModEvent("CDxDisposition ","CDxDispositionUpdate")
     ;Armor   Property cdMagePlug auto
@@ -1323,9 +1327,9 @@ int function isPlayerEnslaved()
     if curCell == cdxVIPHouse
       setEnslavedLevel(3)          ; VIP, do nothing
       debugmsg("enslaved: player is busy with VIP", 3)
-      return iEnslavedLevel ; should be a singleton case, we can leave
+      return iEnslavedLevel 
     endif
-    if(cdExpQuest02.GetStage() > 50 && cdExpQuest02.GetStage() < 900) ; does this last until game reload?
+    if(cdExpQuest02.GetStage() > 50 && cdExpQuest02.GetStage() < 900) 
       ;debugmsg("CD enslave 3")
       setEnslavedLevel(3)          ; expansion quest
       debugmsg("enslaved: cd expansion quest 3", 3)
@@ -1334,11 +1338,25 @@ int function isPlayerEnslaved()
       setEnslavedLevel(3)          ; slave start
       debugmsg("enslaved: CD location protected 3", 3)
       return iEnslavedLevel ; should be a singleton case, we can leave
+    elseif player.IsInFaction(cdxSlaveFactionP) || player.IsInFaction(cdxSlaveFactionP)
+      if MCM.bCDSlaveLockout
+        setEnslavedLevel(3)          ; slave, users don't want stuff to happen so do nothing
+        debugmsg("enslaved: player is CDx slave 3, lockout is on", 3)
+      else
+        setEnslavedLevel(2)          ; slave, users don't want stuff to happen so do nothing
+        debugmsg("enslaved: player is CDx slave 2", 3)
+      endif
+      return iEnslavedLevel 
     elseif (cdPlayerSlave != None && cdPlayerSlave.GetStage() != 0 && cdPlayerSlave.isRunning()) ||\
            (cdPlayerProperty != None && cdPlayerProperty.GetStage() != 0 && cdPlayerProperty.isRunning())
-      setEnslavedLevel(2)          ; slave start
-      debugmsg("enslaved: CD player is slave 2", 3)
-      return iEnslavedLevel ; should be a singleton case, we can leave
+      if MCM.bCDSlaveLockout
+        setEnslavedLevel(3)          ; slave, users don't want stuff to happen so do nothing
+        debugmsg("enslaved: player is CDx slave 3, lockout is on", 3)
+      else
+        setEnslavedLevel(2)          ; slave, users don't want stuff to happen so do nothing
+        debugmsg("enslaved: player is CDx slave 2", 3)
+      endif
+      return iEnslavedLevel
     endif
     ; loaded but not a slave, keep going
   endif

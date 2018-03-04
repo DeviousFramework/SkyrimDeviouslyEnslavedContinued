@@ -37,11 +37,11 @@ bool Property needsMaintenance Auto
 ; float version is Xxx.Yy.Zz = > Xxx.YyZz
 ; IE 3.2.1 would be 3.0201, 2.13.2 would be 2.1302
 float function getVersion()
-  return 13.1316
+  return 13.1317
   EndFunction
 
 string function getVersionString()
-  return "13.13.16"
+  return "13.13.17"
 EndFunction
 
 Function Maintenance()
@@ -53,10 +53,11 @@ Function Maintenance()
     if(lastVersion == 0)
       upOrStart = "Starting "
       needsMaintenance = false
+    ;else 
+    ; this might be a good place to force a mod refresh
     endif
     Debug.Notification(upOrStart + "Deviously Enslaved Cont. v" + getVersionString())
     Debug.trace("[CRDE] " + upOrStart + "DEC v" + getVersionString())
-		;(Mods as crdeModsMonitorScript).Maintenance() 
   endIf
 
 	Utility.Wait(3)
