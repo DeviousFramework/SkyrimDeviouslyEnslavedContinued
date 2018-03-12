@@ -1731,9 +1731,9 @@ int function isPlayerEnslaved()
   
   ;Debug.trace("[CRDE] EnslaveLevel " + iEnslavedLevel)
 
-  if iEnslavedLevel >= 1
-    PlayMonScript.updateMaster()
-  endif
+  ;if iEnslavedLevel >= 1
+  ;  PlayMonScript.updateMaster()
+  ;endif
   ;if iEnslavedLevel > 0
   ;  debugmsg("enslaved: default return " + iEnslavedLevel, 2)
   ;endif

@@ -201,7 +201,8 @@ function stealKeys(actor theifActor)
     PlayerMon.Debugmsg("stealKeys err: none reference")
     return
   endif
-  PlayerMon.debugmsg("" + theifActor.getDisplayName() + " is stealing keys from " + player.GetDisplayName(), 1)
+  ;PlayerMon.debugmsg("" + theifActor.getDisplayName() + " is stealing keys from " + player.GetDisplayName(), 1)
+  PlayerMon.debugmsg(theifActor.getDisplayName() + " took your device keys!", 1)
   int index = 0
   int cnt
   While (index < PlayerMon.deviousKeys.length)
@@ -491,9 +492,9 @@ armor[] function getRandomSingleDD(actor actorRef)
            ") roll/total:(" + roll + "/" + total + ")")
   armor[] items = new armor[3]     
   if roll <= glovesbootsChance
-    if actorRef != None && actorRef == player
-      Debug.Notification(actorRef.GetDisplayName() + " gave you some lovely boots and gloves before leaving!")
-    endif 
+    ;if actorRef != None && actorRef == player
+    ;  Debug.Notification(actorRef.GetDisplayName() + " gave you some lovely boots and gloves before leaving!")
+    ;endif 
     return getRandomDDxRGlovesBoots()
   elseif roll <= glovesbootsChance + armbinderChance
     items[0] = getRandomDDArmbinders()
@@ -619,20 +620,20 @@ function equipRandomPonySuit(actor actorRef)
   removeCurrentCollar(actorRef)
   actorRef.UnEquipItemSlot(32)
 
-  int roll = Utility.RandomInt(0, total)
+  int roll = Utility.RandomInt(1, total)
   PlayerMon.debugmsg("pony roll: original, suit, harness (" +\
            originalSuit + "/" +\
            newSuit + "/" +\
            newHarnessed + "/" +\
            ") roll/total:(" + roll + "/" + total + ")")
 
-  if roll < originalSuit
+  if roll <= originalSuit
     actorRef.SetOutfit(BlackPonyMixedOutfit) 
   else ; all dd suits, lets mix items so less redundant code
     ; roll for belt and plug or plug and armbinder?
     equipRegularDDItem( actorRef, Mods.DD4PonyTailPlug, none) ; pony plug
     
-    if roll < originalSuit + newSuit
+    if roll <= originalSuit + newSuit
       ; add pony gag, pony plug, pony shoes, cat suit body, arms, armbinder
       equipRegularDDItem( actorRef, Mods.DD4CatsuitBodyBlack, none) ; cat suit
       equipRegularDDItem( actorRef, Mods.DD4CatsuitArmsBlack, none) ; cat gloves long
@@ -1123,15 +1124,15 @@ armor[] function getRandomBeltAndStuff(actor actorRef, bool punishment = false, 
                     + newPadded + "/" + newIron + "/" + newImperial + "/" + newSCloak + "/" + newShame \
                     + ")roll/total:(" + roll + "/" + total + ")", 2)
   belt == NONE
-  if roll < newPadded
+  if roll <= newPadded
     belt = libs.beltPaddedOpen
-  elseif roll < newPadded + newIron
+  elseif roll <= newPadded + newIron
     belt = libs.beltIron
-  elseif roll < newPadded + newIron + newImperial
+  elseif roll <= newPadded + newIron + newImperial
     belt = Mods.deviousRegImperialBelt
-  elseif roll < newPadded + newIron + newImperial + newSCloak
+  elseif roll <= newPadded + newIron + newImperial + newSCloak
     belt = Mods.deviousRegStormCloakBelt   
-  else;if roll < newPadded + newIron + newImperial + newSCloak + newShame
+  else;if roll <= newPadded + newIron + newImperial + newSCloak + newShame
     belt = Mods.dcurBeltOfShame
   endif     
   armor[] items = getRandomBeltStuff(actorRef, belt, punishment, forceStuff) ; now that we know which belt we're getting...
@@ -1390,11 +1391,11 @@ armor function getRandomHeavyBondage(actor actorRef)
 
   int roll = Utility.RandomInt(0, total)
   
-  if roll < yoke
+  if roll <= yoke
     return getRandomDDYoke(actorRef)
-  elseif roll < yoke + elbow
+  elseif roll <= yoke + elbow
     return getRandomDDElbowbinder()
-  else;if roll < yoke + elbow + armbinder
+  else;if roll <= yoke + elbow + armbinder
     return getRandomDDArmbinders()
   endif
   
@@ -1452,13 +1453,13 @@ armor function getRandomHood(actor actorRef)
   + dcurHood + "/" \
   + ")")
   ; can we replace this with a static array that gets reset with mods reset?
-  if roll < ddHood
+  if roll <= ddHood
     if roll == 0
       return Mods.DD4HoodBlackEbonite
     else
       return Mods.DD4HoodRubberHood
     endif
-  else;if roll < ddHood + dcurHood
+  else;if roll <= ddHood + dcurHood
     roll = roll - 2
     if roll == 0
       return Mods.dcurBaloonHoodBlk
@@ -1584,12 +1585,12 @@ function equipTransparentOutfit(actor actorRef)
     PlayerMon.debugmsg("Err: equipTransparentOutfit called but cursed loot isn't installed")
     return 
   endif
-  int roll = Utility.RandomInt(0, total)
+  int roll = Utility.RandomInt(1, total)
   
-  if roll < weightDDsuit
+  if roll <= weightDDsuit
     ; if player is PlayerMon.wearing items on top of the suit, take them off, keep them, put them back on?
     SendModEvent("dcur-triggerExhibitionistSuit")
-  else;if roll < weightDDsuit + weightDCURSuit
+  else;if roll <= weightDDsuit + weightDCURSuit
   ; I think its suit then boots, but it might not matter
     libs.ManipulateGenericDevice(actorRef, Mods.DD4TransparentCatsuit, true)
     libs.ManipulateGenericDevice(actorRef, Mods.DD4TransparentCatsuitBoots, true)
@@ -1607,7 +1608,7 @@ endFunction
 armor[] function getRandomCDItems(actor actorRef)    
   armor[] items = new armor[6]
   int item_index = 0
-  int style = Utility.RandomInt(1,5) ; 0 is padded, 1 is gold, 2 is silver, 3 is white, 4 is black, 5 is red
+  int style = Utility.RandomInt(0,5) ; 0 is padded, 1 is gold, 2 is silver, 3 is white, 4 is black, 5 is red
   
   ; plug roll
   int roll = Utility.RandomInt(1,5)
@@ -1736,7 +1737,7 @@ armor[] function getCDStuff(actor actorRef)
   int roll = Utility.RandomInt(helpersChance + devilsChance)
 
     ; TODO change this to a random vag + anal where you can get more than one plug
-  if roll < helpersChance
+  if roll <= helpersChance
     roll = Utility.RandomInt(3)
     if roll == 0
       items[0] = Mods.cdTheifPlug
@@ -1747,7 +1748,7 @@ armor[] function getCDStuff(actor actorRef)
     else
       items[0] = Mods.cdFighterPlug
     endif
-  else;if roll < helpersChance + devilsChance
+  else;if roll <= helpersChance + devilsChance
     roll = Utility.RandomInt(6)
     if roll == 0
       items[0] = Mods.cdTormentingPlug
@@ -2014,10 +2015,10 @@ function rollFollowerFoundItems(actor actorRef)
   int roll = Utility.RandomInt(1,total)
   keyword armorKeyword = None
   
-  if     roll < collar 
+  if     roll <= collar 
     PlayerMon.followerItemsCombination = 1
     armorKeyword = libs.zad_DeviousCollar
-  elseif roll < collar + randomPlug 
+  elseif roll <= collar + randomPlug 
     ; roll for a gem plug or regular plug
     ; I SHOULD make the roll based on gem plug vs total (both) but I'm lazy
     if  gemPlugAvailable && Utility.RandomInt(0, 100) > 50
@@ -2027,37 +2028,37 @@ function rollFollowerFoundItems(actor actorRef)
       PlayerMon.followerItemsCombination = 50
       armorKeyword = libs.zad_DeviousPlug
     endif
-  elseif roll < collar + randomPlug + belt 
+  elseif roll <= collar + randomPlug + belt 
     PlayerMon.followerItemsCombination = 3
     armorKeyword = libs.zad_DeviousBelt
-  elseif roll < collar + randomPlug + belt + glovesandboots 
+  elseif roll <= collar + randomPlug + belt + glovesandboots 
     PlayerMon.followerItemsCombination = 4
     armorKeyword = libs.zad_DeviousBoots
-  elseif roll < collar + randomPlug + belt + glovesandboots + cuffs
+  elseif roll <= collar + randomPlug + belt + glovesandboots + cuffs
     PlayerMon.followerItemsCombination = 6
     armorKeyword = libs.zad_DeviousArmCuffs
-  elseif roll < collar + randomPlug + belt + glovesandboots + cuffs + randomGag 
+  elseif roll <= collar + randomPlug + belt + glovesandboots + cuffs + randomGag 
     PlayerMon.followerItemsCombination = 13
     armorKeyword = libs.zad_DeviousGag
-  elseif roll < collar + randomPlug + belt + glovesandboots + cuffs + randomGag + harness 
+  elseif roll <= collar + randomPlug + belt + glovesandboots + cuffs + randomGag + harness 
     PlayerMon.followerItemsCombination = 56
     armorKeyword = libs.zad_DeviousHarness
-  elseif roll < firstEight
+  elseif roll <= firstEight
     PlayerMon.followerItemsCombination = 8
     armorKeyword = libs.zad_DeviousArmbinder
-  elseif roll < firstEight + randomCD 
+  elseif roll <= firstEight + randomCD 
     PlayerMon.followerItemsCombination = 40
     armorKeyword = libs.zad_DeviousBelt ; TODO this should be changed
-  elseif roll < firstEight + randomCD + nipplePiercings
+  elseif roll <= firstEight + randomCD + nipplePiercings
     PlayerMon.followerItemsCombination = 21
     armorKeyword = libs.zad_DeviousPiercingsNipple
-  elseif roll < firstEight + randomCD + nipplePiercings + petCollar
+  elseif roll <= firstEight + randomCD + nipplePiercings + petCollar
     PlayerMon.followerItemsCombination = 31
     armorKeyword = libs.zad_DeviousCollar
-  elseif roll < firstEight + randomCD + nipplePiercings + petCollar + uniqueCollar 
+  elseif roll <= firstEight + randomCD + nipplePiercings + petCollar + uniqueCollar 
     PlayerMon.followerItemsCombination = 30
     armorKeyword = libs.zad_DeviousCollar
-  else;if roll < firstEight + randomCD + nipplePiercings + petCollar + uniqueCollar + elbowbinder
+  else;if roll <= firstEight + randomCD + nipplePiercings + petCollar + uniqueCollar + elbowbinder
     PlayerMon.followerItemsCombination = 8
     armorKeyword = libs.zad_DeviousArmbinder 
   endif     

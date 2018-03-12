@@ -11,7 +11,8 @@ Actor akSpeaker = akSpeakerRef as Actor
 crdePlayerMonitorScript PlayerMon = GetOwningQuest() as crdePlayerMonitorScript ; oh alright, three references is enough for a temp variable
 ;PlayerMon.ItemScript.removeDDbyKWD(akSpeakerRef, ItemScript.libs.zad_DeviousBelt)
 ;however, for now, not completely care free, add one of some item to player
-PlayerMon.doPlayerSex(akSpeaker, rape = false, soft = true)
+;PlayerMon.doPlayerSex(akSpeaker, rape = false, soft = true)
+PlayerMon.doPlayerSexAndReplaceBelt(akSpeaker)
 actor[] nearby = PlayerMon.NPCSearchScript.getNearbyActors(500)
 PlayerMon.adjustPerceptionPlayerSub(nearby,3,35)
 PlayerMon.modFollowerLikesDom(akSpeaker,5,30)

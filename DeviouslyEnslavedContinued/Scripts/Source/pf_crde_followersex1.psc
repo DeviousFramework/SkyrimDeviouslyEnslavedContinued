@@ -7,7 +7,7 @@ Function Fragment_0(ObjectReference akSpeakerRef)
 Actor akSpeaker = akSpeakerRef as Actor
 ;BEGIN CODE
 crdePlayerMonitorScript monitorScript = GetOwningQuest() as crdePlayerMonitorScript
-monitorScript.doPlayerSex(akSpeaker, true)
+monitorScript.doPlayerSex(akSpeaker, rape = false, soft = true)
 ;END CODE
 EndFunction
 ;END FRAGMENT

@@ -387,13 +387,13 @@ bool function isActorIneligable(actor actorRef, bool includeSlaveTraders = false
   if !MCM.bArousalFunctionWorkaround
     int arousal = actorRef.GetFactionRank(Mods.sexlabArousedFaction)
     if arousal < MCM.gMinApproachArousal.GetValueInt() / arousal_modifier ;&& !isSlaver ;aroused enough?
-      debugmsg("invalid: " + actorRef.GetDisplayName() + " arousal too low (faction): " + arousal + "/" + (MCM.gMinApproachArousal.GetValueInt() / arousal_modifier) as int + " Night:" + PlayerMon.isNight(), 3)
+      debugmsg("invalid: " + actorRef.GetDisplayName() + " arousal too low (faction): " + arousal + "/" + (MCM.gMinApproachArousal.GetValueInt() / arousal_modifier) as int, 3)
       return true
     Endif
   elseif MCM.bArousalFunctionWorkaround 
     int arousal = Aroused.GetActorArousal(actorRef) 
     if arousal < MCM.gMinApproachArousal.GetValueInt() / arousal_modifier  
-      debugmsg("invalid: " + actorRef.GetDisplayName() + " arousal too low (function): " + arousal + "/" + (MCM.gMinApproachArousal.GetValueInt() / arousal_modifier) as int + " Night:" + PlayerMon.isNight(), 3)
+      debugmsg("invalid: " + actorRef.GetDisplayName() + " arousal too low (function): " + arousal + "/" + (MCM.gMinApproachArousal.GetValueInt() / arousal_modifier) as int , 3)
       return true  
     Endif
   endif  

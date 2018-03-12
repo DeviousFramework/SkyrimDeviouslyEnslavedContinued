@@ -37,6 +37,20 @@ int Property hitByPlayer auto
 
 FormList Property itemsPutOnPlayer auto
 
+float property follower_enjoys_dom            auto
+float property follower_enjoys_sub            auto
+float property follower_thinks_player_sub     auto
+float property follower_thinks_player_dom     auto
+float property follower_frustration           auto
+
+function updateFollowerOpinions(actor actorRef)
+  follower_enjoys_dom           = StorageUtil.GetFloatValue(actorRef, "crdeFollEnjoysDom")
+  follower_enjoys_sub           = StorageUtil.GetFloatValue(actorRef, "crdeFollEnjoysSub") 
+  follower_thinks_player_sub    = StorageUtil.GetFloatValue(actorRef, "crdeThinksPCEnjoysSub")
+  follower_thinks_player_dom    = StorageUtil.GetFloatValue(actorRef, "crdeThinksPCEnjoysDom") 
+  follower_frustration          = StorageUtil.GetFloatValue(actorRef, "crdeFollowerFrustration")
+endFunction
+
 
 Event OnInit()
 ;zadBQ00.psc:    RegisterForModEvent("DDI_RemoveDevice", "OnDDIRemoveDevice")

@@ -8,7 +8,8 @@ Actor akSpeaker = akSpeakerRef as Actor
 ;BEGIN CODE
 ; Glance at follower -> yeah threesom!
 crdePlayerMonitorScript PlayerMon = (GetOwningQuest() as crdePlayerMonitorScript)
-PlayerMon.doPlayerSexFull(akSpeaker, PlayerMon.followerRefAlias01.GetActorRef())
+;PlayerMon.doPlayerSexFull(akSpeaker, PlayerMon.followerRefAlias01.GetActorRef())
+PlayerMon.doPlayerSex(akSpeaker, PlayerMon.followerRefAlias01.GetActorRef())
 ;END CODE
 EndFunction
 ;END FRAGMENT

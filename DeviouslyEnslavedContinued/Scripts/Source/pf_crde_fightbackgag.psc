@@ -7,8 +7,8 @@ Function Fragment_0(ObjectReference akSpeakerRef)
 Actor akSpeaker = akSpeakerRef as Actor
 ;BEGIN CODE
 ; start fight with him
-  ;akSpeakerRef.StartCombat(Game.GetPlayer()) ; for some odd reason this won't compile here, but will in playermon
-  (GetOwningQuest() as crdePlayerMonitorScript).StartCombat(akSpeaker)
+  ;akSpeakerRef.StartBrawl(Game.GetPlayer()) ; for some odd reason this won't compile here, but will in playermon
+  (GetOwningQuest() as crdePlayerMonitorScript).StartBrawl(akSpeaker)
 ;END CODE
 EndFunction
 ;END FRAGMENT

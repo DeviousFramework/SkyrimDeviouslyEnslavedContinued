@@ -6,7 +6,7 @@ Scriptname pf_crde_enslaverunaway Extends TopicInfo Hidden
 Function Fragment_0(ObjectReference akSpeakerRef)
 Actor akSpeaker = akSpeakerRef as Actor
 ;BEGIN CODE
-(GetOwningQuest() as crdePlayerMonitorScript).StartCombat(akSpeaker)
+(GetOwningQuest() as crdePlayerMonitorScript).StartBrawl(akSpeaker)
 ;END CODE
 EndFunction
 ;END FRAGMENT

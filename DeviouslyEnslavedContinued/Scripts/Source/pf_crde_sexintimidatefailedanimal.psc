@@ -10,7 +10,9 @@ Actor akSpeaker = akSpeakerRef as Actor
 ;crdePlayerMonitorScript monitorScript = GetOwningQuest() as crdePlayerMonitorScript
 ; add more items? collar
 (GetOwningQuest() as crdeItemManipulateScript).equipRandomPetItem(Game.GetPlayer())
-(GetOwningQuest() as  crdePlayerMonitorScript).doPlayerSex(akSpeaker, rape = true)
+;(GetOwningQuest() as  crdePlayerMonitorScript).doPlayerSex(akSpeaker, rape = true)
+(GetOwningQuest() as  crdePlayerMonitorScript).doPlayerSexAndReplaceBelt(akSpeaker)
+
 ;END CODE
 EndFunction
 ;END FRAGMENT

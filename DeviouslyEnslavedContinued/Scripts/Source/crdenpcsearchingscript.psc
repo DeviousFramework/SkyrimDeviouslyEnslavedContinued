@@ -252,7 +252,7 @@ Actor[] function getNearbyFollowers(int specificDistance = 0)
   FormList previousFollowers = PlayerMon.permanentFollowers ; sure, why wouldn't it fail to work for such a stupid reason, right?
   While f < previousFollowers.GetSize()
     Actor tmp = previousFollowers.GetAt(f) as Actor
-    if tmp.IsDead()
+    if !tmp || tmp.IsDead()
       previousFollowers.RemoveAddedForm(tmp as Form)
     elseif tmp.GetDistance(player) <= searchDistance
       a[i] = tmp

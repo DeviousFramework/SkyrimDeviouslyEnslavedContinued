@@ -193,6 +193,9 @@ float Property  timeoutPlayerRelease    = 0.0 Auto Conditional
 float           timeExtraVulnerableEnd  = 0.0   ; if the player is extra vulnerable for a certain amount of time, this is when it should end for the area
 location        timeExtraVulnerableLoc  = None
 
+float           brawlStartGameTime      = 0.0
+actor           currentBrawler          = None
+
 ImageSpaceModifier property LightFade auto ; fade back to light, to counter the simpleslavery bug for now
 
 bool threadBusy   = false
@@ -204,7 +207,20 @@ Event OnUpdate()
     clear_force_variables() 
     RegisterForSingleUpdate(MCM.fEventInterval * 2)
   else
+    onupdatetimeteststart       = Utility.GetCurrentRealTime()
+    CurrentGameTime             = Utility.GetCurrentGameTime() ; use gametime, since realtime gets reset per game session, cannot work through game saves
+    if currentBrawler != None && brawlStartGameTime < CurrentGameTime
+      ; stop brawl, its been long enough
+      DGIntimidateQuest.stop()
+      ;and rmeove actor 
+      currentBrawler = None
+      debugmsg("Stopping brawl, time is up")
+    elseif currentBrawler != None
+      debugmsg(((brawlStartGameTime - CurrentGameTime) * 24 * 60) + " GMins remain until brawl timeout")
+    endif
+    
     if player.IsInCombat() 
+       
       if forceGreetIncomplete
         debugmsg("player in combat, was being approached, cancelling", 1)
         clear_force_variables()
@@ -225,8 +241,6 @@ Event OnUpdate()
       endif
       
     else ; not a combat situation
-      onupdatetimeteststart       = Utility.GetCurrentRealTime()
-      CurrentGameTime             = Utility.GetCurrentGameTime() ; use gametime, since realtime gets reset per game session, cannot work through game saves
       ; approach is already active, test for reset
       if forceGreetIncomplete    
         if busyGameTime < CurrentGameTime ; took too long, reset
@@ -662,8 +676,8 @@ function updatePlayerVulnerability(bool isSlaver = false)
   ;  debugmsg("playerscript is none")
   ;endIf ; shouldn't happen anymore, has been long enough most users shouldn't run into this error anymore
   if PlayerScript.equipmentChanged == true ; equipment has changed
-    updateEquippedPlayerVulnerability(isSlaver)
-    ;CheckGuardApproachable() 
+    updateEquippedPlayerVulnerability(isSlaver) ; for now, lets always do this, its not as expensive anymore
+    ;CheckGuardApproachable()
     
   ; the following can happen now in THIS function without checking equippment 
   ;elseif PlayerScript.sittingInZaz ; else if because we don't need to check if gear was already checked. will get caught regardless
@@ -872,7 +886,7 @@ bool function attemptApproach()
     elseif followerRefAlias01.GetActorRef()
       debugmsg("ForceGreet incomplete, " + timeLeft + " GMins remaining, approached by " + followerRefAlias01.GetActorRef().GetDisplayName() ,1)
     else
-      debugmsg("ForceGreet incomplete, " + timeLeft + " GMins remaining, approached by NULL actor???"  ,1)
+      debugmsg("ForceGreet incomplete, " + timeLeft + " GMins remaining, approached by NULL actor"  ,1)
     endif
     return false ; approach in progress, just don't do anything else here, but no reset
   endif
@@ -1156,7 +1170,7 @@ bool function attemptFollowerApproach(actor[] followers)
     if tmp_follower == None ; TODO if we can't remove the main follower showing up twice, remove them here
       ; do nothing, we can avoid
     else
-      tmp_armor = tmp_follower.GetWornForm(0x02000000)
+      tmp_armor = tmp_follower.GetWornForm(0x00004000)
       bool followerGagged = tmp_armor && tmp_armor.HasKeyword(libs.zad_DeviousGag)
       tmp_armor = tmp_follower.GetWornForm(0x00010000)
       bool followerBound  = tmp_armor && tmp_armor.HasKeyword(libs.zad_DeviousHeavyBondage)
@@ -1188,24 +1202,37 @@ bool function attemptFollowerApproach(actor[] followers)
     endif
     i += 1
   endWhile
+  
   playerContainerOpenCount = 0 ; reset
+  int followerArousalMin = MCM.gFollowerArousalMin.GetValueInt()
   
   ; and then we pick ONE at random (for sex)
   ; TODO: consider searching for one that is horny enough
+  int count = 0
   if follower_count > 0
-    follower = valid_followers[Utility.RandomInt(0, follower_count - 1)]
-    debugmsg("Follower chosen randomly is " + follower.GetDisplayName() + " out of " + follower_count , 1)
+    int startIndex = Utility.RandomInt(0, follower_count - 1)
+    while count < follower_count
+      follower = valid_followers[(startIndex + count) % follower_count]
+      if follower.GetFactionRank(Mods.sexlabArousedFaction) >= followerArousalMin
+        debugmsg("Follower chosen randomly is " + follower.GetDisplayName() + " out of " + follower_count , 1)
+        count += 100
+      else
+        debugmsg("Follower " + follower.GetDisplayName() + " is not aroused enough " , 1)
+        count += 1
+      endif
+
+    endWhile
   endif
   
-  if follower == None 
+  if follower == None || count == follower_count
     ;debugmsg("No nearby enemies, Follower exists, but busy or slave", 1) ; old but looks wrong
-    debugmsg("No nearby followers", 1)
+    debugmsg("No nearby usable followers", 1)
     return false
   endif
 
   hasSlaveFollowers = (slave != None) && (slave != follower)
   
-  permanentFollowers.AddForm(follower) ; maybe you can just add a NONE and let their own logic handle it
+  permanentFollowers.AddForm(follower)
   ;if hasSlaveFollowers
   ;  permanentFollowers.AddForm(slave)
   ;endif
@@ -1224,9 +1251,15 @@ bool function attemptFollowerApproach(actor[] followers)
     float roll                    = Utility.RandomFloat(100)
     debugmsg("follower sex approach roll:" + roll + " need below " + goal, 3)
     ; moved this out so that we can detect it in the conversations even if not sex roll
-    follower_can_remove_belt      = wearingBelt && knownBelt.HasKeyword(libs.zad_DeviousBelt) \
-                                  && !knownBelt.HasKeyword(blocking_keyword) && (follower.getItemCount(libs.GetDeviceKey(knownBelt)) > 0)
-    if aroused_level >= MCM.gFollowerArousalMin.GetValueInt() && roll < goal && !Mods.isSlave(follower)
+    key beltkey = None
+    if wearingBelt && knownBelt
+      beltkey == libs.GetDeviceKey(knownBelt)
+      debugmsg("player belt has key: " + beltkey)
+    endif
+    follower_can_remove_belt  = wearingBelt && knownBelt && knownBelt.HasKeyword(libs.zad_DeviousBelt) \
+                              && !knownBelt.HasKeyword(blocking_keyword) \
+                              && (beltkey && follower.getItemCount(beltkey) > 0)
+    if aroused_level >= followerArousalMin && roll < goal && !Mods.isSlave(follower)
       if !(MCM.gForceGreetItemFind.GetValueInt() as bool)
         Debug.Notification( follower.GetDisplayName() + " looks aroused.")
       endif
@@ -1519,6 +1552,7 @@ function updateWornDD(bool collarOnly = false)
   wearingGag = knownGag != None && collarOnly == false && knownGag.HasKeyword(libs.zad_DeviousGag)
   
   knownBelt = player.GetWornForm(0x00080000) as armor ; 49
+  ;debugmsg("BELT: " + knownBelt)
   wearingBelt = knownBelt != None && knownBelt.HasKeyword(libs.zad_DeviousBelt)
   
   armor tmp  = player.GetWornForm(0x00100000) as armor ; 50 nipple
@@ -1697,29 +1731,33 @@ endFunction
 
 function doPlayerSexAndReplaceBelt(actor actorRef)
   ; for now, just trigger an extra variable and call the regular function
-  sexFromDECWithBeltReapplied = true
-  ItemScript.removeDDbyKWD(player, libs.zad_DeviousBelt)
-  
-  ; our own sex start, since we know what's happening exactly
-  string animationTags
-  string supressTags
+  if wearingBelt 
+    sexFromDECWithBeltReapplied = true
+    ItemScript.removeDDbyKWD(player, libs.zad_DeviousBelt)
+    
+    ; our own sex start, since we know what's happening exactly
+    string animationTags
+    string supressTags
 
-  if player.GetActorBase().GetSex() == 1 && Utility.RandomInt(0,100) < 65 
-    animationTags = "vaginal"
-  else   
-    animationTags = "anal"
+    if player.GetActorBase().GetSex() == 1 && Utility.RandomInt(0,100) < 65 
+      animationTags = "vaginal"
+    else   
+      animationTags = "anal"
+    endif
+    supressTags += ",Breastfeeding,blowjob" ; for now, oral,mouth can't be supressed since it might be two women
+
+    SendModEvent("crdePlayerSexConsentStarting")  
+    
+    sexFromDEC = true
+    actor[] sexActors = new actor[2] ; only 3 if we ever decide to have threesomes and such
+    sexActors[0] = player
+    sexActors[1] = actorRef
+    ;debugmsg("doPlayersex with belt actors: player " + player.GetDisplayName() +" and " + actorRef.GetDisplayName())
+    sslBaseAnimation[] animations = SexLab.GetAnimationsByTag(2, animationTags, TagSuppress = supressTags)
+    SexLab.StartSex(sexActors, animations, player, None, false)
+  else
+    doPlayerSex(actorRef, none, rape = false, soft = true)
   endif
-  supressTags += ",Breastfeeding,blowjob" ; for now, oral,mouth can't be supressed since it might be two women
-
-  SendModEvent("crdePlayerSexConsentStarting")  
-  
-  sexFromDEC = true
-  actor[] sexActors = new actor[2] ; only 3 if we ever decide to have threesomes and such
-  sexActors[0] = player
-  sexActors[1] = actorRef
-  ;debugmsg("doPlayersex with belt actors: player " + player.GetDisplayName() +" and " + actorRef.GetDisplayName())
-  sslBaseAnimation[] animations = SexLab.GetAnimationsByTag(2, animationTags, TagSuppress = supressTags)
-  SexLab.StartSex(sexActors, animations, player, None, false)
 endFunction
 
 ; remove blocking items if the NPC or player have keys
@@ -1785,13 +1823,14 @@ EndFunction
 
 ; this exists because I don't want to recompile > 40 fragments to update to threesome.
 ; just keep this as a pointer to the other one, at least until I have another reason to change it then update it
-function doPlayerSex(actor actorRef, bool rape = false, bool soft = false, bool oral_only = false)
-  doPlayerSexFull(actorRef, none, rape, soft, oral_only )
-endFunction
-
-
+;function doPlayerSex(actor actorRef, bool rape = false, bool soft = false, bool oral_only = false)
+;  doPlayerSexFull(actorRef, none, rape, soft, oral_only )
+;endFunction
+;;
+;
 ; soft specifies if the sex can allow for softer sexual animations, like cuddling
-function doPlayerSexFull(actor actorRef, actor actorRef2, bool rape = false, bool soft = false, bool oral_only = false)
+;function doPlayerSexFull(actor actorRef, actor actorRef2 = none, bool rape = false, bool soft = false, bool oral_only = false)
+function doPlayerSex(actor actorRef, actor actorRef2 = none, bool rape = false, bool soft = false, bool oral_only = false)
   float startingTime = Utility.GetCurrentRealTime() 
   Debug.SendAnimationEvent(actorRef, "IdleNervous") ; should work well enough; no longer works...what
   clear_force_variables() ; handles forceGreetIncomplete = false
@@ -1887,6 +1926,8 @@ function doPlayerSexFull(actor actorRef, actor actorRef2, bool rape = false, boo
     animations = libs.SelectValidDDAnimations(sexActors, 2 + ((actorRef2 != None) as int), forceaggressive = !soft, includetag = newAnimationTags, suppresstag = supressTags )
   endif
   
+  ;    SexLab.StartSex(sexActors, animations);
+
   debugmsg(("anim:'" + animationTags +"',supp:'" + supressTags+ "',animsize:" + animations.length), 3)
   
   ; if I'm only getting 8 animations with these tags, most users probably get near enough to zero to be a problem
@@ -1897,7 +1938,7 @@ function doPlayerSexFull(actor actorRef, actor actorRef2, bool rape = false, boo
       if DDi3
         animations = libs.SelectValidDDAnimations(sexActors, 3, forceaggressive = !soft, includetag = animationTags, suppresstag = supressTags )
       else
-        animations = SexLab.GetAnimationsByTag(3, animationTags, TagSuppress = supressTags)
+        animations = SexLab.GetAnimationsByTag(3, "", TagSuppress = supressTags)
       endif
     else
       debugmsg("No animations available with given tags, reducing ...", 4)
@@ -1905,7 +1946,7 @@ function doPlayerSexFull(actor actorRef, actor actorRef2, bool rape = false, boo
       if DDi3
         animations = libs.SelectValidDDAnimations(sexActors, 2, forceaggressive = !soft, includetag = animationTags, suppresstag = supressTags )
       else
-        animations = SexLab.GetAnimationsByTag(2, animationTags, TagSuppress = supressTags)
+        animations = SexLab.GetAnimationsByTag(2, "", TagSuppress = supressTags)
       endif
     endif
     if animations.length == 0
@@ -1963,8 +2004,8 @@ function doPlayerSexFull(actor actorRef, actor actorRef2, bool rape = false, boo
     ;SexLab.StartSex(sexActors, single_animation);
     SexLab.StartSex(sexActors, animations);
   endif
-  ; ZZZ
-  debugmsg("doPlayerSex finshed, time: " + (Utility.GetCurrentRealTime() - startingTime), 1)
+
+  debugmsg("doPlayerSex finished, time: " + (Utility.GetCurrentRealTime() - startingTime), 1)
 endFunction
 
 ; this is the hook called after sexlab is finished
@@ -1977,14 +2018,15 @@ Event crdeSexHook(int tid, bool HasPlayer);(string eventName, string argString, 
   ; mod must be active, 
   ;  sex must have come from DEC or we don't care,
   ;  and the player must be involved in sex from this side
+  Actor[] actorList = SexLab.HookActors(tid as string)
+
   if MCM.gCRDEEnable.GetValueInt() != 1 
     ; do nothing, mod is off lets not flood the log
     debugmsg("err: sex ended but DEC is turned off")
   elseif !(sexFromDEC || MCM.bHookAnySexlabEvent) 
     debugmsg("err: sex ended but DEC was not the starting mod, and override is not set, ignoring")
   elseif !Thread.HasPlayer() 
-    Actor[] a = SexLab.HookActors(tid as string)
-    debugmsg("err: sex ended but the sexlab thread that finished does not have player as an participant, actors:" + a)
+    debugmsg("err: sex ended but the sexlab thread that finished does not have player as an participant, actors:" + actorList)
    
   else ; sex was started by dec
   
@@ -1994,6 +2036,7 @@ Event crdeSexHook(int tid, bool HasPlayer);(string eventName, string argString, 
     ; set time with modifier now, so we can compare later for reset
     timeoutFollowerApproach = Utility.GetCurrentGameTime() + (120 * (1.0/1400.0)) 
   
+    actor victim = Thread.getVictim()
     if victim == None && sexFromDECWithBeltReapplied
       ; put the player back into their belt
       ItemScript.equipRegularDDItem(player, ItemScript.previousBelt, libs.zad_DeviousBelt)
@@ -2003,10 +2046,6 @@ Event crdeSexHook(int tid, bool HasPlayer);(string eventName, string argString, 
       debugmsg("sexlabhook: sex was specified no attack, leaving", 3)
       return 
     endif
-    
-    ;debugmsg("testing debug, sex from DEC: " + sexFromDEC + " MCM: " + MCM.bHookAnySexlabEvent)
-    Actor[] actorList = SexLab.HookActors(tid as string)
-    actor victim = Thread.getVictim()
     
     if Thread.ActorCount <= 1  && wearingBelt  ; we know the player was involved to get this far, lets increase reputation and temporary vulnerability
       debugmsg("sexlabhook: masterbation detected while belted", 3)
@@ -2071,13 +2110,29 @@ Event crdeSexHook(int tid, bool HasPlayer);(string eventName, string argString, 
     
     sexFromDEC                    = false 
     sexFromDECWithoutAfterAttacks = false
-    ;debugmsg("resetting sexFromDEC @ 2")
 
     ; did nearby npc, who might one day be your follower, see you have sex and/or bondage (check if they are in LOS I guess...)
     modifyNearbyNPCPerception(actorList, vicIsPlayer)
     
   ;else
     ;debugmsg("crdeSexhook ERR: sexlab doesn't have player controller or mod is turned off", 2)
+  endif
+  
+  if actorList && actorList.length > 0
+    actor a
+    int i = 0
+    While i <= actorList.length ; for now assume threesome only, more is infrequent
+      a == actorList[i]
+      if a != None
+        float frustration = StorageUtil.GetFloatValue(a, "crdeFollowerFrustration")
+        if frustration >= 5
+          StorageUtil.SetFloatValue(a, "crdeFollowerFrustration", (frustration - 5))
+        elseif frustration > 0
+          StorageUtil.SetFloatValue(a, "crdeFollowerFrustration", 0)
+        endif
+      endif
+      i += 1
+    endWhile
   endif
   
 endEvent
@@ -3063,16 +3118,126 @@ function testTestButton7()
     ; player.SetVehicle(randomly_chosen)
   ; endif
 
-  ;ItemScript.equipArousingPlugAndBelt(player)
-  ;doPlayerSexFull(followerRefAlias02.GetActorRef(), followerRefAlias01.GetActorRef())
   float time = Utility.GetCurrentRealTime()
+ 
 
-  ;ItemScript.getRandomSingleDD(player)
-  ;debugmsg("time1: " + (Utility.GetCurrentRealTime() - time))
-  ItemScript.removeDDs(ignoreCollar = true)
+  actor[] sexActors = new actor[2]
+  actor[] a = NPCSearchScript.getNearbyActorsLinear()
   
+  UIListMenu menu = UIExtensions.GetMenu("UIListMenu", true) as UIListMenu
+  
+  int index = 0
+  while index < a.length
+    if a[index] != None
+      menu.AddEntryItem(a[index].GetDisplayName())
+    endif
+    index += 1
+  endWhile
+  
+  menu.AddEntryItem(" ** cancel **")
+  menu.OpenMenu()
+  int result = UIExtensions.GetmenuResultInt("UIListMenu")
+  
+  if result < index
+  
+    sexActors[0] = player
+    sexActors[1] = a[result]
+    
+    String newAnimationTags = ""
+    String regularSupressTags = "Solo"
+    bool rape = true
+    bool soft = false
+    
+    int actorGender  = 0
+    int playerGender = 0
+
+    if MCM.bUseSexlabGender
+      actorGender     = SexLab.GetGender(sexActors[1])
+      playerGender    = SexLab.GetGender(player) ; we call these enough save as var
+    else
+      actorGender     = a[1].GetActorBase().getSex()
+      playerGender    = player.GetActorBase().GetSex() ; we call these enough save as var
+    endif   
+    
+   
+    string animationTags = "";
+    int preSex = prepareForDoPlayerSex(sexActors[1])
+    debugmsg("prepare result: "+ preSex)
+    ; if we removed something, we might as well sex in that area
+    if preSex == 2 && Utility.RandomInt(0,100) < 65 
+      animationTags = "Vaginal"
+    elseif preSex== 2 ; roll failed  
+      animationTags = "Anal"
+    ;elseif actorGender == 1 && (preSex == 1 || oral_only)
+    ;  animationTags = "Cunnilingus"
+    elseif preSex == 1 
+      animationTags = "Oral"
+    endif
+    
+    
+    ; if both female, no aggressive req, too few animations, annoying
+    ;debugmsg("genders are player,attacker: " + player.GetActorBase().GetSex() + "," + actorGender)
+    if rape 
+      if playerGender == 0 && actorGender == 1   
+        ; user wanted animations where woman was not in male role, this might help with that
+        animationTags += ",Cowgirl"
+      elseif !(playerGender == 1 && actorGender == 1 && !MCM.bFxFAlwaysAggressive)
+        animationTags += ",Aggressive"
+      endif
+      SendModEvent("crdePlayerSexRapeStarting")
+    else
+      SendModEvent("crdePlayerSexConsentStarting")
+    endif 
+    
+    if soft == false
+      ;regularSupressTags  += ",Cuddling,Acrobat,Petting,Foreplay"
+      regularSupressTags  += ",Cuddling,Acrobat,Petting,"
+    endif
+    
+    ; generate some extra tags based on what the two actors are wearing
+    String extraSupressTags = ""
+
+    if playerGender == 1 && actorGender == 1 ; both girls
+      extraSupressTags += ",handjob,footjob,boobjob" ; seriously now
+      ; even oral on a dildo has some embarrassment value, but handjob on dildo is just silly, same with foot and boob, especially since they are kinda... woman focused
+      ; TODO: remove this and check what animations are being dumped because 1/5 stages has one of these
+    endif
+
+    debugmsg("actors array: " + sexActors)
+
+    sslBaseAnimation[] animations = new sslBaseAnimation[1] ; ignore this, this is just a declare for papyrus compiler
+    ; from sexlab, assuming no regular tag and full suppress tags
+    animations = SexLab.GetAnimationsByTag(2, newAnimationTags, TagSuppress = regularSupressTags + extraSupressTags)
+    debugmsg("Animation count we got from sexlab based without filtering, size: " + animations.length)
+    ; same thing but instead of sexlab, check DD
+    animations = libs.SelectValidDDAnimations(sexActors, 2, forceaggressive = false, suppresstag = regularSupressTags )
+    debugmsg("Animation count we got from DD with reduced supression tags, size: " + animations.length)
+    
+    string astring = "\n"
+    sslBaseAnimation tmp = NONE
+    int i = 0
+    while i < animations.length
+        tmp = animations[i]
+        astring += " > A: " + tmp.name + " tags:" + tmp.GetRawTags() + "\n"
+      i += 1
+    endWhile
+    debugmsg("Animations: " + astring)
+    
+    Sexlab.StartSex(sexActors, animations)
+    
+    ; debugmsg(("anim:'" + animationTags +"',supp:'" + supressTags+ "',animsize:" + animations.length), 3)
+    
+          ; animations = libs.SelectValidDDAnimations(sexActors, 3, forceaggressive = !soft, includetag = animationTags, suppresstag = supressTags )
+          ; animations = SexLab.GetAnimationsByTag(3, "", TagSuppress = supressTags)
+        ; supressTags = "Solo,Breastfeeding,Acrobat"
+          ; animations = libs.SelectValidDDAnimations(sexActors, 2, forceaggressive = !soft, includetag = animationTags, suppresstag = supressTags )
+          ; animations = SexLab.GetAnimationsByTag(2, "", TagSuppress = supressTags)
+  else
+    debugmsg("Test was canceled.")
+  endif
+  ; ZZZ
   Debug.Notification("Test has completed.")
-  debugmsg("finished with removedds with collar: " + (Utility.GetCurrentRealTime() - time))
+  debugmsg("finished with test time was: " + (Utility.GetCurrentRealTime() - time))
   MCM.bTestButton7 = false
 endFunction
 
@@ -3428,17 +3593,19 @@ bool function isNight()
 endFunction
 
 ; this exists here so that we can start combat from dialogue with the same function
-; also StartCombat() wouldn't compile in a fragment according to my old comments, odd.
-function StartCombat(actor Attacker)
+; also StartBrawl() wouldn't compile in a fragment according to my old comments, odd.
+function StartBrawl(actor Attacker)
   ; works, but we want brawl rather than actual combat since they die from guards alot
-  ;Attacker.StartCombat(player)
+  ;Attacker.StartBrawl(player)
   
   ; testing 
   ; taken from mod: Fighting words
   ;BrawlKeyword.SendStoryEvent(None, pTarget, pTargetFriend)
   BrawlKeyword.SendStoryEvent(None, Attacker, None)
-  
-  
+  currentBrawler = Attacker
+  brawlStartGameTime = Utility.GetCurrentGameTime() + (3/48) ; in days, 3 * half hour or 1.5 hours
+  debugmsg("a brawl was started with attacker: " + attacker.GetDisplayName())
+
 endFunction
 
 ; was going to be used for stalker and follower-drags-you-home concepts, both stalled
@@ -3594,6 +3761,7 @@ Worldspace Property markarthSpace Auto ; used with slaverun
 Race Property WerewolfBeastRace Auto
 
 Keyword Property BrawlKeyword  Auto  
+Quest Property DGIntimidateQuest Auto
 
 Faction Property crdeFormerFollowerFaction Auto
 Faction Property crdeNeverFollowerFaction Auto

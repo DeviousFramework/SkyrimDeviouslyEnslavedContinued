@@ -1,4 +1,4 @@
-; verstort 2/2018
+; verstort 3/2018
 ; this is more notes at this point than just plans
 
 
@@ -123,25 +123,68 @@ Notes:
    - only follower items (interaction)
    - 
   
-  can we change the plug adding to avoid belts
-   - at the least we need to allow harnesses with it
-  
-  () set SD limite removal to off, might be the cause of the stack dump
-  
-  "gave you boots before leaving"
-  "Oh you found more keys? good we can use some {steal}"
-  ;plug roll while belted shouldn't happen
+  Should get done before RC14:
   add alt for "what is it" if they are your master
-  soft sex, or at least master soft sex should result in opening belt for sex, followed by rebelt
+    could really use a lot of these, but each one needs its own script and we keep crashing when working on these... why?
+  if we keep the dispositions of the master on the master quest, can we detect that during dialogue condition time?
+  ;on sex with player, drop frustration
+  ;swap in doplayersexwithbeltreplace 
+    ; feel like I missed some, hard to tell
+  ;more gagged alt for "oh you like this interesting"
+  ;  follower should comment on how it looks
+  ;  follower should lament if they want to try it on after seeing you in it
+  ;  follower should comment on how they would like to add more?
   more of the dialogue should increase follower dom tendency
-  more gagged alt for "oh you like this interesting"
-    follower should comment on how it looks
-    follower should lament if they want to try it on after seeing you in it
-    follower should comment on how they would like to add more?
+  some items aren't restting follower roll chances
   if gagged and shakes head, at home or with really dom follower, good chance they do it anyway
+  I think there is no unlock me please available if they have the key for it, serana had a key and I got nothing
+  shout on follower doesn't work apparently
+  if follower finds a petcollar, they don't always put it on themselves it seems
+    make sure pet collar is working
+    pet collar isn't installed, so why do we roll true for pet collar when it isn't installed?
+  ;users think we shouldn't get belt with plugs always
+    could have sworn I had belt OR harness setup, but guess not?  
+  also add unique collars to post sex, meaning single item detection
+  finish straitjacket and the other item we wanted
+  turn hoods down
+  
+  () set SD limited removal to off, might be the cause of the stack dump
+  
+  .19 will require save clean, go nuts on the save cleaning stuff NOW
+  
+  unique collar is broken, roll total is zero
+  ;shame belt for follower game, unacceptable
+  ; 200/200, shame was zero, bad rolling
+  set 1 more hour every time the player asks to be released, or at least the follower thinks so
+  ;slaverun dialogue should detect what the player is wearing
+  belt re-equip after a sex does not work, or maybe serana wasn't dom enough?
+  slaverun specific dialogue? "not going to unlock your belt here, too many weird people"?
+  
+  player wants more tied up, different dialogue
+  need follower is not interested, at all
+  need follower approaches for sex, add item beforehand
+  
+  follower test for if they can remove belt needs fixing
+    fixed but needs testing
+    we should be able to keep track of this stuff as part of vulnerability, specifically if it has a key
+    
+  follower approach attempt needs to be rewritten to make more sense
+    if we're going to search through the follower list twice anyway, lets search for BOTH first, then chekc our options
+  keep better track of which followers are best for attacking player
+  ;player items are not being updated for item approach
+    NOW IT WORKS I DID NOTHING WHAT THE FUFK
+  make sure the new dialogue detects that the mod is turned off, and detects that the follower dialogue is off
+  make follower negate work for all attackers too
+  ;fix brawl
+  ask for more animations
+  can we refresh mods and playermon on update so we have less save cleaning req
+  
+  ;"Oh you found more keys? good we can use some {steal}"
+  ;"gave you boots before leaving"
+
+  ;plug roll while belted shouldn't happen
   piercing weight starts at zero
   plugs are none, huh?
-  some items aren't restting follower roll chances
   
   ; changed the mods reset no longer resets follower list
   ; moved some minor MCM around
@@ -155,14 +198,13 @@ Notes:
       ; need version with sub follower putting it on themselves <- think we might have this one already
       ; need player showing they want it and optional dialogue to go with it
       
-  now that we have batch compiling, consider removing doPlayerSexFull
+  ;now that we have batch compiling, consider removing doPlayerSexFull
   ;follower attack cooldown is broken, always on, never works, geez how could this happen?
      might have actually been fine, bu tnot I have it set backwards, needs to be tested
-  the dialogue where player approaches follower tied up, ignores possiblity that player is gagged no wonder I haven't seen it forawhile
+  ;the dialogue where player approaches follower tied up, ignores possiblity that player is gagged no wonder I haven't seen it forawhile
   ; gagged player, item approach, missing "what did you have in mind"
     still missing version where follower puts items on themselves instead
   ;"you'd better be naked in 3 seconds" < need either higher frustration and medium dom, or high dom
-  on sex with player, drop frustration
   
   ; bug where you NEED a blocking keyword for removedds to work
   disabled NPCs can try to attack the player, maybe not a big bug
@@ -182,7 +224,6 @@ Notes:
   ;move keys from player to follower if you ask to be tied up?
   ; the player->follower dialogue overrides the follower->player dialogue
   ;item removal is not working. Non-gag release does nothing at all, and the rest 'tries' to remove items but they are still equipped state wise
-  I think there is no unlock me please available if they have the key for it, serana had a key and I got nothing
   dog collar found by follower -> no gagged option to question it, just "shakes head"
   ;belt should not be punish for any of these light hearted versions
   sex, while tied up, never leads to release from items, even for the one that is dialogue to be that way
@@ -194,10 +235,6 @@ Notes:
     can we get gag detection working for PAHE dialogue? ; you mean override his dialogue with our own? we can't make a tree that big
     home: "you stop, sex with me" ignores belt
     we also need new animaitons for NPC approaches player for sex, although the animation is now FAR less important because we don't have that ~20 seconds of downtime
-  shout on follower doesn't work apparently
-  if follower finds a petcollar, they don't always put it on themselves it seems
-    make sure pet collar is working
-    pet collar isn't installed, so why do we roll true for pet collar when it isn't installed?
   ;can we detect if the player is overencombered in dialogue? if we can, we can add that as a dilogue
     ; close enough, we can detect invenory and carry, but not compare, so just inventory >= 300 for now
     needs testing
@@ -213,7 +250,7 @@ Notes:
   ;bug: player can be "wearingBelt" but its not a belt, and we ask "does the folower have a key" and DD says "this isn't a belt"
 
   
-  we should consider speeding up the item detection by checking specific slots instead of WornHasKeyword
+  ;we should consider speeding up the item detection by checking specific slots instead of WornHasKeyword
     ;war has been declared on fuzzymatch
     item detection on player:
     old double function:
@@ -222,7 +259,7 @@ Notes:
       almost everything: old: 16.864990  new: 0.145020
       huge difference, and that's with debug spouting out of the second one
     this could be a huge benefit for NPC searching too
-    oh no, we do looooots of wornhaskeyword in item rolling
+      oh no, we do looooots of wornhaskeyword in item rolling
     
   two gag rolls? got with "you should try on" -> hey! -> ?
   lets add the sexy bandit keyword to keywords to look for to idenfify slaves including player
@@ -232,9 +269,6 @@ Notes:
   if sleeping NPCs can attack player, we need to fix this but leave sleeping NPC can attack player as option
   
   need to tell the difference between the follower having added items and the player getting items otherwise
-  users think we shouldn't get belt with plugs always
-    could have sworn I had belt OR harness setup, but guess not?  
-  also add unique collars to post sex, meaning single item detection
   user thinks "Oh right, you are still tied up... oh well, only one end needs to be open, right" leads to no belt re-adding, which 
   user wants new pony suit finished 
   fix bug where follower forgets item if they get interupted
@@ -259,7 +293,6 @@ Notes:
   
   inspiration from SS, make a few generic NPC masters that can be put anywhere with generic AI and decent appearance, 
     then create a list of locations they can spawn at, to get around limited NPCs that are killable
-  finish straitjacket
   re-organize unique collars to not roll against single/double, but to fit under collars themselves
   
   "have you found a key for this annoying belt yet?" dom version?
@@ -1247,6 +1280,32 @@ stack:
 	[crdePlayerMonitor (95001827)].crdeplayermonitorscript.attemptApproach() - "crdePlayerMonitorScript.psc" Line 938
 	[crdePlayerMonitor (95001827)].crdeplayermonitorscript.OnUpdate() - "crdePlayerMonitorScript.psc" Line 250
 
+  ; no plug
+[03/05/2018 - 07:01:18PM] [DCUR] Sex attacks are disabled!
+[03/05/2018 - 07:01:23PM] [CRDE] time before NPC search: 0.781998
+[03/05/2018 - 07:01:23PM] [CRDE] closest npc(s): 1:Bitch
+[03/05/2018 - 07:01:25PM] [SGO] UpdateLoop:Begin
+[03/05/2018 - 07:01:25PM] [SGO] UpdateLoop:Done
+[03/05/2018 - 07:01:26PM] [CRDE] invalid: Bitch is wearing slave DD gear
+[03/05/2018 - 07:01:26PM] [CRDE] time after NPC search: 3.946991
+[03/05/2018 - 07:01:27PM] [CRDE] Follower chosen randomly is Kinky Karen out of 1
+[03/05/2018 - 07:01:27PM] [CRDE] Follower re-chosen randomly is Kinky Karen out of 1 after 0 rechecks
+[03/05/2018 - 07:01:27PM] [CRDE] Items found by follower :0
+[03/05/2018 - 07:01:27PM] [CRDE] Follower item adding roll:31.794825 need under 90.000000, containers: 90
+[03/05/2018 - 07:01:27PM] [CRDE] thinks sub: 0.000000, thinks dom: 0.000000, enjoys sub: 0.000000, enjoys dom: 0.000000, frust: 0.000000, availablility: 0
+[03/05/2018 - 07:01:27PM] [CRDE] Follower found items invalid, rolling random items
+[03/05/2018 - 07:01:28PM] [CRDE] collar/randomPlug/belt/glovesandboots/cuffs/randomGag/harness/armbinder/randomCD/nipplePiercings/petcollar/uniqueCollar/elbowbinder/gemplug(55/50/55/30/53/80/5/15/25/20/14/35/10)
+[03/05/2018 - 07:01:28PM] [CRDE] roll/total/avail/ic/kw:(90/447/0/50/ [Keyword <zad_DeviousPlug (0A003331)>])
+[03/05/2018 - 07:01:28PM] [CRDE] checking follower items ...
+[03/05/2018 - 07:01:28PM] [CRDE] OnUpdate time:5.782990
+[03/05/2018 - 07:01:51PM] [CRDE] Player is in UI, busy
+[03/05/2018 - 07:01:51PM] [CRDE] OnUpdate time:0.057007
+[03/05/2018 - 07:01:53PM] [POP].::.xpoCrimeScanner: (scanning) OnUpdate
+[03/05/2018 - 07:01:57PM] [CRDE] items to add:[None, None, None, None]
+[03/05/2018 - 07:02:01PM] [CRDE] Player is in UI, busy
+[03/05/2018 - 07:02:01PM] [CRDE] OnUpdate time:0.072998
 
+bad animations:
+gag and full belt: A: Mitos Hugging Behind tags:["FeetCum", "Dirty", "Laying", "Reverse", "Footjob", "Feet", "Fetish", "Penis", "Straight", "sex", "Mitos", "FM", "MF", ""]
 
 
