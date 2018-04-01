@@ -150,25 +150,37 @@ Notes:
   
   () set SD limited removal to off, might be the cause of the stack dump
   
-  .19 will require save clean, go nuts on the save cleaning stuff NOW
+  user wants detection for keyword: sexlab::EroticArmor
+  user complains that vampire detection is not working, and that approach is complaining about armor keywords
+  
+  ;recompile all with doplayersexwithbeltreplace ;equipRegularDDItem
+  ;recompile all with equipRegularDDItem ;
+  ;edit the script such that we check against none cell
+  ;make cursed loot leah a non-0 chance
+  ;"lets remove a piece" did nothing
+  check that follower key detection is working again
+    and consider adding keys to follower game if they don't have some already
+  does EFF use different follower containers?
+  naked dungeons has code that can detect when entering dungeons, assuming it would also have code for detecting when the dungeon is over then
+    might not be enough, we want to know when the dungeon is CLEARED too
+  user wants privacy item approach and sex approach overrides, great
+  set min time in player game, make it extendable in 13-60 minute increments
+  player approaches follower for sex, follower requires certain items be worn during sex angrim inflence
+    need follower is not interested, at all
   
   unique collar is broken, roll total is zero
   ;shame belt for follower game, unacceptable
   ; 200/200, shame was zero, bad rolling
-  set 1 more hour every time the player asks to be released, or at least the follower thinks so
   ;slaverun dialogue should detect what the player is wearing
   belt re-equip after a sex does not work, or maybe serana wasn't dom enough?
   slaverun specific dialogue? "not going to unlock your belt here, too many weird people"?
   
-  player wants more tied up, different dialogue
-  need follower is not interested, at all
-  need follower approaches for sex, add item beforehand
   
-  follower test for if they can remove belt needs fixing
+  ;follower test for if they can remove belt needs fixing
     fixed but needs testing
     we should be able to keep track of this stuff as part of vulnerability, specifically if it has a key
     
-  follower approach attempt needs to be rewritten to make more sense
+  follower approach attempt function needs to be rewritten to make more sense
     if we're going to search through the follower list twice anyway, lets search for BOTH first, then chekc our options
   keep better track of which followers are best for attacking player
   ;player items are not being updated for item approach
@@ -179,9 +191,6 @@ Notes:
   ask for more animations
   can we refresh mods and playermon on update so we have less save cleaning req
   
-  ;"Oh you found more keys? good we can use some {steal}"
-  ;"gave you boots before leaving"
-
   ;plug roll while belted shouldn't happen
   piercing weight starts at zero
   plugs are none, huh?

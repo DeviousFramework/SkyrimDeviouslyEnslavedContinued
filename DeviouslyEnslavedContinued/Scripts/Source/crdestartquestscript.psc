@@ -37,15 +37,15 @@ bool Property needsMaintenance Auto
 ; float version is Xxx.Yy.Zz = > Xxx.YyZz
 ; IE 3.2.1 would be 3.0201, 2.13.2 would be 2.1302
 float function getVersion()
-  return 13.1320
+  return 13.1322
   EndFunction
 
 string function getVersionString()
-  return "14 RC 1, 13.13.20"
+  return "13.13.22, RC 1"
 EndFunction
 
 Function Maintenance()
-  Debug.trace("[CRDE] startquest::Maintenance ...")
+  Debug.trace("[CRDE] startquest::Maintenance version: " + getVersionString() )
   needsMaintenance = true
   lastVersion = getVersion()
   if getVersion() > lastVersion
@@ -62,17 +62,18 @@ Function Maintenance()
 
 	Utility.Wait(3)
 
-	if(Mods.isRunning() == false)
+	if Mods.isRunning() == false
 		bool sOK = Mods.start()
 		Debug.Trace("[CRDE] startquest, ModsMon startup: " + sOK)
-		SendModEvent("crderesetmods")
+		(Mods as crdeModsMonitorScript).Maintenance() ;SendModEvent("crderesetmods") ; not sure this is really needed if the quest is started a few lines up
   else
-		SendModEvent("crderesetmods")
+		;SendModEvent("crderesetmods")
+    (Mods as crdeModsMonitorScript).Maintenance()
 	endif
 
 	Utility.Wait(0.25)		
 
-	if(Player.isRunning() == false)
+	if Player.isRunning() == false
 		bool sOK = Player.start()
 		Debug.Trace("[CRDE] startquest, PlayerMon startup: " + sOK)
 	else

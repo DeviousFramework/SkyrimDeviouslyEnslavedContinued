@@ -10,7 +10,7 @@ Actor akSpeaker = akSpeakerRef as Actor
 crdePlayerMonitorScript PlayerMon = GetOwningQuest() as crdePlayerMonitorScript ; oh alright, three references is enough for a temp variable
 ;PlayerMon.ItemScript.equipRandomSingleDD(akSpeaker)
 ;however, for now, not completely care free, add one of some item to player
-PlayerMon.doPlayerSexAndReplaceBelt(akSpeaker)
+PlayerMon.doPlayerSexAndReplaceBelt(akSpeaker, forcePenetrate = true)
 ;END CODE
 EndFunction
 ;END FRAGMENT

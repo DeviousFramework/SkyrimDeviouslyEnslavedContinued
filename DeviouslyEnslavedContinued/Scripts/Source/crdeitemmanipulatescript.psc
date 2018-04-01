@@ -29,7 +29,7 @@ Scriptname crdeItemManipulateScript extends Quest
 ;***********************************************************************************************
 
 zadLibs         Property libs Auto
-ZadXLibs         Property libsx Auto
+ZadXLibs        Property libsx Auto
 SexLabFramework Property SexLab Auto
 
 crdePlayerMonitorScript   Property PlayerMon Auto
@@ -354,7 +354,7 @@ bool function removeCurrentCollar(actor actorRef)
 endFunction
 
 ; should equip any DD item
-function equipRegularDDItem(actor actorRef, Armor dd, keyword kw)
+function equipRegularDDItem(actor actorRef, Armor dd, keyword kw = none)
   if dd != None
     armor rndrd = libs.GetRenderedDevice(dd) 
     if kw == None

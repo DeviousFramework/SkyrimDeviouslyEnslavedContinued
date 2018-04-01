@@ -61,7 +61,7 @@ Keyword Property LocTypeHold Auto
 Event OnInit()
 ;zadBQ00.psc:    RegisterForModEvent("DDI_RemoveDevice", "OnDDIRemoveDevice")
   ;RegisterForModEvent("crde", "OnDDIRemoveDevice")
-  RegisterForModEvent("crdePlayerSexConsentStarting", "addFollowerAddedItemEvent")
+  ;RegisterForModEvent("crdePlayerSexConsentStarting", "addFollowerAddedItemEvent")
   
   ; reset formlist
   itemsPutOnPlayer.Revert()

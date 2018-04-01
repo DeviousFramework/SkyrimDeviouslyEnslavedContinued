@@ -150,6 +150,10 @@ actor[] function getClosestActor(actor actorRef, bool skipSlavers = false)
   actor npcActor    = none
   Actor[] validNpcs = new Actor[10]
   Cell c = actorRef.GetParentCell()
+  if c == NONE
+    debug.trace("[CRDE] Err: Cannot search this area for NPCs using getClosestActor because cell is NONE")
+    return validNpcs
+  endif
   int foundActorCount = c.GetNumRefs(43) 
   
   while searchIndex < foundActorCount && npcIndex < MCM.iNPCSearchCount

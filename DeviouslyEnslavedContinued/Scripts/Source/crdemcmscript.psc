@@ -378,7 +378,7 @@ event OnPageReset(string a_page)
     iVulnerableSlaveTattooOID = AddSliderOption("Slave Tattoos", iVulnerableSlaveTattoo, "Level {0}")
     iVulnerableSlutTattooOID  = AddSliderOption("Slut Tattoos", iVulnerableSlutTattoo, "Level {0}")
     iVulnerableAnkleChainsOID = AddSliderOption("Ankle Chains", iVulnerableAnkleChains, "Level {0}")
-
+    iVulnerableSexlabErotic   = AddSliderOption("Sexlab \"Erotic\" armor", iVulnerableSexlabErotic , "Level {0}")
     
     SetCursorPosition(1) ; switch sides
     
@@ -416,15 +416,16 @@ event OnPageReset(string a_page)
     AddHeaderOption("Vulnerable only while naked")
     iNakedReqGagOID           = AddSliderOption("Gag", iNakedReqGag, "Level {0}");(!Mods.iNakedReqGag) as int)
     iNakedReqCollarOID        = AddSliderOption("Collar", iNakedReqCollar, "Level {0}");(!Mods.iNakedReqCollar) as int)
-    AddEmptyOption() ;iNakedReqArmbinderOID  = AddSliderOption("iNakedReqArmbinder", iNakedReqArmbinder, "Level {0}");(!Mods.iNakedReqArmbinder) as int)
-    AddEmptyOption() ;iNakedReqBlindfoldOID  = AddSliderOption("iNakedReqBlindfold", iNakedReqBlindfold, "Level {0}");(!Mods.iNakedReqBlindfold) as int)
+    AddEmptyOption()        ;iNakedReqArmbinderOID  = AddSliderOption("iNakedReqArmbinder", iNakedReqArmbinder, "Level {0}");(!Mods.iNakedReqArmbinder) as int)
+    AddEmptyOption()        ;iNakedReqBlindfoldOID  = AddSliderOption("iNakedReqBlindfold", iNakedReqBlindfold, "Level {0}");(!Mods.iNakedReqBlindfold) as int)
     iNakedReqBukkakeOID       = AddSliderOption("Semen", iNakedReqBukkake, "Level {0}");(!Mods.iNakedReqBukkake) as int)
-    AddEmptyOption()      ;iNakedReqSlaveBootsOID  = AddSliderOption("iNakedReqSlaveBoots", iNakedReqSlaveBoots, "Level {0}");(!Mods.iNakedReqSlaveBoots) as int)
+    AddEmptyOption()        ;iNakedReqSlaveBootsOID  = AddSliderOption("iNakedReqSlaveBoots", iNakedReqSlaveBoots, "Level {0}");(!Mods.iNakedReqSlaveBoots) as int)
     iNakedReqHarnessOID       = AddSliderOption("Harness", iNakedReqHarness, "Level {0}");(!Mods.iNakedReqHarness) as int)
     iNakedReqPiercedOID       = AddSliderOption("Piercings", iNakedReqPierced, "Level {0}");(!Mods.iNakedReqPierced) as int)
     iNakedReqSlaveTattooOID   = AddSliderOption("Slave Tattoos", iNakedReqSlaveTattoo, "Level {0}")
     iNakedReqSlutTattooOID    = AddSliderOption("Slut Tattoos", iNakedReqSlutTattoo, "Level {0}");(!Mods.iNakedReqSlutTattoo) as int)
     iNakedReqAnkleChainsOID   = AddSliderOption("Ankle Chains", iNakedReqAnkleChains, "Level {0}")
+    AddEmptyOption()        ; iVulnerableSexlabErotic
 
     
   elseif a_page == Pages[4] ; Enslavement
@@ -1738,6 +1739,10 @@ event OnOptionSliderOpen(int a_option)
     SetSliderDialogRange(0, 4)
     SetSliderDialogInterval( 1 )
 
+  elseif a_option == iVulnerableSexlabEroticOID
+    SetSliderDialogStartValue(iVulnerableSexlabErotic)
+    SetSliderDialogRange(0, 4)
+    SetSliderDialogInterval(1)
   elseif a_option == iNakedReqGagOID
 		SetSliderDialogStartValue(iNakedReqGag)
     SetSliderDialogRange(0, 4)
@@ -2341,6 +2346,10 @@ event OnOptionSliderAccept(int a_option, float a_value)
     iVulnerableAnkleChains = a_value as int
     SetSliderOptionValue(a_option, a_value, "{0}")
 
+  elseif a_option == iVulnerableSexlabEroticOID
+    iVulnerableSexlabErotic = a_option as int
+    SetSliderOptionValue(a_option, a_value, "{0}")
+    
   elseif a_option == iNakedReqGagOID
     iNakedReqGag = a_value as int
     SetSliderOptionValue(a_option, a_value, "{0}")
@@ -3013,6 +3022,7 @@ Int iVulnerablePiercedOID
 int iVulnerableSlaveTattooOID
 int iVulnerableSlutTattooOID
 int iVulnerableAnkleChainsOID
+int iVulnerableSexlabEroticOID
 
 Int Property  iVulnerableFurniture Auto
 Int Property  iVulnerableGag Auto
@@ -3026,6 +3036,7 @@ Int Property  iVulnerablePierced Auto
 Int Property  iVulnerableSlaveTattoo Auto
 Int Property  iVulnerableSlutTattoo Auto
 Int Property  iVulnerableAnkleChains Auto
+int Property  iVulnerableSexlabErotic Auto
 
 ; naked requirement for vulnerability
 bool Property iNakedReqFurniture Auto

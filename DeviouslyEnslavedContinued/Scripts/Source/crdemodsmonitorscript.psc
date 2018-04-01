@@ -444,7 +444,8 @@ Quest Property huntedHouseQuest Auto
 
 ; slave trainer
 Faction Property sltSlaveFaction Auto
-MagicEffect Property dawnguardLordForm Auto
+;MagicEffect Property dawnguardLordForm Auto
+Race Property dawnguardLordForm Auto
 Quest Property dflowQuest Auto
 
 
@@ -472,6 +473,8 @@ bool Property bRefreshModDetect Auto
 Perk Property crdeContainerPerk Auto
 
 keyword property sexybanditGearKeyword auto ;07027A60
+
+keyword property slaEroticKeyword auto
 
 Event OnInit()
   Debug.Trace("[CRDE] Mods::init() ...")
@@ -527,11 +530,11 @@ Event Maintenance()
   if player.HasPerk(crdeContainerPerk)
     player.removePerk(crdeContainerPerk)
   endif
-  Debug.Trace("[CRDE] Mods::Maintenance, after perk, time: " + (Utility.GetCurrentRealTime() - time))
+  ;Debug.Trace("[CRDE] Mods::Maintenance, after perk, time: " + (Utility.GetCurrentRealTime() - time)) most time was before this,
   if  i == 1 ; we want the perk to be re-added
     player.addPerk(crdeContainerPerk)
   endif
-  Debug.Trace("[CRDE] Mods::Maintenance, starting updateForms, time: " + (Utility.GetCurrentRealTime() - time))
+  ;Debug.Trace("[CRDE] Mods::Maintenance, starting updateForms, time: " + (Utility.GetCurrentRealTime() - time))
 EndEvent
 
 Event remoteResetCalled(string eventName, string strArg, float numArg, Form sender)
@@ -1071,7 +1074,8 @@ function updateForms()
     sltSlaveFaction =  Game.GetFormFromFile(0x05001D91, "SlaveTrainer.esp") as Faction
   endif
   
-  dawnguardLordForm =  Game.GetFormFromFile(0x0200283C, "Dawnguard.esm") as MagicEffect 
+  ;dawnguardLordForm =  Game.GetFormFromFile(0x0200283C, "Dawnguard.esm") as MagicEffect 
+  dawnguardLordForm =  Game.GetFormFromFile(0x0200283A, "Dawnguard.esm") as Race
 
   dflowQuest = Quest.GetQuest("_DFlow")
   
@@ -1106,6 +1110,8 @@ function updateForms()
   ; reason: ItemScript::player was never used, and we were calling PlayerMon.player all the time
   ; so I switched to local player, but it alocates on init, which never happens for updating players
   ;PlayMonScript.ItemScript.player = Game.GetPlayer()
+  
+  slaEroticKeyword = Game.GetFormFromFile(0x0308c8f6, "SexLabAroused.esm") as keyword
   
   Debug.Trace("[CRDE] ******** ignore any errors between these two messages FINISH ********", 1)
   finishedCheckingMods = true

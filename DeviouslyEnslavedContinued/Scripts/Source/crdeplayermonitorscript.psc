@@ -117,6 +117,7 @@ MagicEffect Property SexLabCumAnalEffect Auto
 bool        Property sexFromDEC Auto ; was DEC what called this sexlab session?
 bool        Property sexFromDECWithoutAfterAttacks Auto ; but do we not want attackers afterwards? (friendly?)
 bool        Property sexFromDECWithBeltReapplied Auto
+armor[]     Property itemsSavedForAfterSex Auto
 
 int   Property playerContainerOpenCount Auto
 
@@ -483,7 +484,7 @@ bool function isPlayerBusy()
   elseif Mods.modLoadedWorkingGirl && player.GetItemCount(Mods.workingGirlJobToken) > 0
     debugmsg("Player is whore (SLWG), busy", 1)
     return true
-  elseif Mods.dawnguardLordForm != None && player.HasMagicEffect(Mods.dawnguardLordForm)
+  elseif Mods.dawnguardLordForm != None && player.getRace() == Mods.dawnguardLordForm ;player.HasMagicEffect(Mods.dawnguardLordForm)
     debugmsg("Player is vampire lord/lady, busy", 1)
     return true
   elseif player.GetRace() == WerewolfBeastRace
@@ -586,28 +587,29 @@ function updateEquippedPlayerVulnerability(bool isSlaver = false)
       
   ; regular first, then non-naked sensitive
   int[] vulnerableValues = new int[32] ; depends on how many we have
-  vulnerableValues[0] = MCM.iVulnerableNaked * ((isNude || isSlaver) as int) 
-  vulnerableValues[1] = MCM.iVulnerableCollar * (wearingCollar as int)          
-  vulnerableValues[2] = MCM.iNakedReqCollar * (wearingCollar && (isNude || isSlaver)) as int
-  vulnerableValues[3] = MCM.iVulnerableGag * (wearingGag as int)                
-  vulnerableValues[4] = MCM.iNakedReqGag * (wearingGag && (isNude || isSlaver)) as int
-  vulnerableValues[5] = MCM.iVulnerableBukkake * (wearingBukkake as int)
-  vulnerableValues[6] = MCM.iNakedReqBukkake * (wearingBukkake && (isNude || isSlaver)) as int
-  vulnerableValues[7] = MCM.iVulnerableHarness * (wearingHarness as int)
-  vulnerableValues[8] = MCM.iNakedReqHarness * (wearingHarness && (isNude || isSlaver)) as int
-  vulnerableValues[9] = MCM.iVulnerablePierced * (wearingPiercings as int)
+  vulnerableValues[0]  = MCM.iVulnerableNaked * ((isNude || isSlaver) as int) 
+  vulnerableValues[1]  = MCM.iVulnerableCollar * (wearingCollar as int)          
+  vulnerableValues[2]  = MCM.iNakedReqCollar * (wearingCollar && (isNude || isSlaver)) as int
+  vulnerableValues[3]  = MCM.iVulnerableGag * (wearingGag as int)                
+  vulnerableValues[4]  = MCM.iNakedReqGag * (wearingGag && (isNude || isSlaver)) as int
+  vulnerableValues[5]  = MCM.iVulnerableBukkake * (wearingBukkake as int)
+  vulnerableValues[6]  = MCM.iNakedReqBukkake * (wearingBukkake && (isNude || isSlaver)) as int
+  vulnerableValues[7]  = MCM.iVulnerableHarness * (wearingHarness as int)
+  vulnerableValues[8]  = MCM.iNakedReqHarness * (wearingHarness && (isNude || isSlaver)) as int
+  vulnerableValues[9]  = MCM.iVulnerablePierced * (wearingPiercings as int)
   vulnerableValues[10] = MCM.iNakedReqPierced * (wearingPiercings && (isNude || isSlaver)) as int
   vulnerableValues[11] = MCM.iVulnerableAnkleChains * (wearingAnkleChains as int)
   vulnerableValues[12] = MCM.iNakedReqAnkleChains * (wearingAnkleChains && (isNude || isSlaver)) as int
   vulnerableValues[13] = MCM.iVulnerableSlaveBoots * (wearingSlaveBoots as int)
   vulnerableValues[14] = MCM.iVulnerableArmbinder * (wearingArmbinder as int)
   vulnerableValues[15] = MCM.iVulnerableBlindfold * (wearingBlindfold as int)
+  vulnerableValues[16] = MCM.iVulnerableSexlabErotic * (player.WornHasKeyword( Mods.slaEroticKeyword) as int)
   
   int largest = 0
   int num2    = 0
   int num3    = 0
   int i = 0
-  while i < vulnerableValues.length
+  while i < 17 ;vulnerableValues.length
     if vulnerableValues[i] > 0
       if vulnerableValues[i] == 2
         num2 += 1
@@ -870,7 +872,8 @@ bool function attemptApproach()
   if isPlayerBusy ; lets test this sooner, fewer moot cycles
     clear_force_variables(true) 
     return false ; if busy, nothing else to do here, leave
-  ; while being approached, look for stuff to make sure we haven't broken approach
+    
+  ; while currently being approached, look for stuff to make sure we haven't broken approach
   elseif forceGreetIncomplete ;&&  attackerRefAlias != None && attackerRefAlias.GetActorRef() != player ; removed in 13.10
     ; recheck vulnerability here too for weapons
     actor tmp = attackerRefAlias.GetActorRef()
@@ -1696,12 +1699,6 @@ function trySexConvo(actor actorRef)
   attackerRefAlias.ForceRefTo(actorRef)
 endFunction
 
-; just gonna borrow this from Cursed Loot
-; needs notes
-;Actor function getClosestFollower() 
-  ; moved to NPCMonitor
-    
-;endfunction
 
 ; so that we can skip the follower protection in the future
 ; this was going to be used back when users complained that followers got in the way of enslavement, instead they complained to the slave mod authors ¯\_(ツ)_/¯
@@ -1729,35 +1726,57 @@ function doFollowerRapeSlave(actor actorRef)
 endFunction
 
 
-function doPlayerSexAndReplaceBelt(actor actorRef)
+function doPlayerSexAndReplaceBelt(actor actorRef, bool forcePenetrate = false)
   ; for now, just trigger an extra variable and call the regular function
+  string supressTags = "solo,Breastfeeding,blowjob,"
+  string animationTags
+  actor[] sexActors = new actor[2] ; only 3 if we ever decide to have threesomes and such
+  sexActors[0] = player
+  sexActors[1] = actorRef
+  itemsSavedForAfterSex = new armor[5]
+  int itemsSavedIndex = 0
+  
   if wearingBelt 
+    debugmsg("removing belt and starting sex")
     sexFromDECWithBeltReapplied = true
+    itemsSavedForAfterSex[itemsSavedIndex] = knownBelt
+    itemsSavedIndex += 1
     ItemScript.removeDDbyKWD(player, libs.zad_DeviousBelt)
     
     ; our own sex start, since we know what's happening exactly
-    string animationTags
-    string supressTags
 
-    if player.GetActorBase().GetSex() == 1 && Utility.RandomInt(0,100) < 65 
-      animationTags = "vaginal"
-    else   
-      animationTags = "anal"
+    if forcePenetrate && player.GetActorBase().GetSex() == 1 && Utility.RandomInt(0,100) < 85 
+      animationTags += "vaginal"
+    elseif forcePenetrate
+      animationTags += "anal"
     endif
-    supressTags += ",Breastfeeding,blowjob" ; for now, oral,mouth can't be supressed since it might be two women
 
     SendModEvent("crdePlayerSexConsentStarting")  
     
     sexFromDEC = true
-    actor[] sexActors = new actor[2] ; only 3 if we ever decide to have threesomes and such
-    sexActors[0] = player
-    sexActors[1] = actorRef
     ;debugmsg("doPlayersex with belt actors: player " + player.GetDisplayName() +" and " + actorRef.GetDisplayName())
-    sslBaseAnimation[] animations = SexLab.GetAnimationsByTag(2, animationTags, TagSuppress = supressTags)
-    SexLab.StartSex(sexActors, animations, player, None, false)
-  else
-    doPlayerSex(actorRef, none, rape = false, soft = true)
+    ;sslBaseAnimation[] animations = SexLab.GetAnimationsByTag(2, animationTags, TagSuppress = supressTags)
+    ;SexLab.StartSex(sexActors, animations, player, None, false)
   endif
+  if wearingGag
+    debugmsg("no belt, bug gag, removing gag and starting sex")
+    sexFromDECWithBeltReapplied = true
+
+    itemsSavedForAfterSex[itemsSavedIndex] = knownGag
+    itemsSavedIndex += 1
+    
+    sexFromDEC = true
+    ;animationTags += "anal" ; nah, oral is a murky keyword
+
+  ; else
+    ; debugmsg("cannot remove belt and start sex, not wearing supposedly")
+    ; doPlayerSex(actorRef, none, rape = false, soft = true)
+  endif
+  
+  sslBaseAnimation[] animations = SexLab.GetAnimationsByTag(2, animationTags, TagSuppress = supressTags)
+  SexLab.StartSex(sexActors, animations, player, None, false)
+
+  
 endFunction
 
 ; remove blocking items if the NPC or player have keys
@@ -2037,10 +2056,23 @@ Event crdeSexHook(int tid, bool HasPlayer);(string eventName, string argString, 
     timeoutFollowerApproach = Utility.GetCurrentGameTime() + (120 * (1.0/1400.0)) 
   
     actor victim = Thread.getVictim()
-    if victim == None && sexFromDECWithBeltReapplied
+    if  sexFromDECWithBeltReapplied ; victim == None &&
       ; put the player back into their belt
-      ItemScript.equipRegularDDItem(player, ItemScript.previousBelt, libs.zad_DeviousBelt)
-      return
+      debugmsg("sexlabhook: belt returned is set true, attempting armor returning", 3)
+
+      int i = 0
+      armor arm
+      while i < itemsSavedForAfterSex.length
+        arm = itemsSavedForAfterSex[i] 
+        if arm != NONE
+          ItemScript.equipRegularDDItem(player, arm)          
+          i += 1
+        else 
+          i = 100
+        endif
+      endWhile
+      sexFromDECWithBeltReapplied = false
+      return ; done here
     endif
     if ( sexFromDEC && sexFromDECWithoutAfterAttacks  ) ; specific case
       debugmsg("sexlabhook: sex was specified no attack, leaving", 3)
