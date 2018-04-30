@@ -483,27 +483,17 @@ Event OnInit()
   RegisterForModEvent("dhlp-Suspend", "OnSuspend")
   RegisterForModEvent("dhlp-Resume", "OnResume")
   RegisterForModEvent("crderesetmods", "remoteResetCalled")
-  
+
+  ; this can't exist in maintenence, at least the if checking the MCM value cannot, can deadlock
+  player.addPerk(crdeContainerPerk)
+
   ;Maintenance() ; don't call here, playerstartquest is calling it
   ; it seems to get called twice here, if I check which location is calling it, I get mods:oninit twice
 EndEvent
 
+; nothing exists here anymore, it was all moved in an attempts to stop DEC from updating mods twice per save load
 Event onUpdate()
-  Debug.Trace("[CRDE]Mods:OnUpdate running ...")
-  ;if !player.HasPerk(crdeContainerPerk)
-  ;  Debug.Trace("[CRDE]Player Container Perk was missing, applying ...")
-  ;  player.addPerk(crdeContainerPerk)
-  ;endif
-  ;if bRefreshModDetect
-  ;  ; if init called it already
-  ;  Utility.Wait(2.0)
-  ;  if lastUpdateGameTime != 0
-  ;    Debug.Trace("CRDE: " + lastUpdateGameTime + "< " + Utility.GetCurrentGameTime() )
-  ;    Maintenance() 
-  ;  ;else
-  ;  ;  Debug.Trace("[CRDE] Ignoring mods detection reset: not enough time has passed since last reset")
-  ;  endif
-  ;endif
+  ;Debug.Trace("[CRDE]Mods:OnUpdate running ...")
 endEvent
 ;Event onGameLoad()
 
@@ -526,15 +516,15 @@ Event Maintenance()
   ; for a few versions, we'll just reapply the perk every update
   ;  why? because the perk doesn't auto refresh when a newer version of code is installed
   ;  so the parameters don't get re-init
-  int i = ( MCM.bFollowerDialogueToggle.GetValueInt() == 1) as int
-  if player.HasPerk(crdeContainerPerk)
-    player.removePerk(crdeContainerPerk)
-  endif
-  ;Debug.Trace("[CRDE] Mods::Maintenance, after perk, time: " + (Utility.GetCurrentRealTime() - time)) most time was before this,
-  if  i == 1 ; we want the perk to be re-added
-    player.addPerk(crdeContainerPerk)
-  endif
-  ;Debug.Trace("[CRDE] Mods::Maintenance, starting updateForms, time: " + (Utility.GetCurrentRealTime() - time))
+  ;int i = ( MCM.bFollowerDialogueToggle.GetValueInt() == 1) as int
+  ;if player.HasPerk(crdeContainerPerk)
+  ;  player.removePerk(crdeContainerPerk)
+  ;endif
+  ;;Debug.Trace("[CRDE] Mods::Maintenance, after perk, time: " + (Utility.GetCurrentRealTime() - time)) most time was before this,
+  ;if  i == 1 ; we want the perk to be re-added
+  ;  player.addPerk(crdeContainerPerk)
+  ;endif
+  ;;Debug.Trace("[CRDE] Mods::Maintenance, starting updateForms, time: " + (Utility.GetCurrentRealTime() - time))
 EndEvent
 
 Event remoteResetCalled(string eventName, string strArg, float numArg, Form sender)
@@ -1715,7 +1705,7 @@ int function isPlayerEnslaved()
     setEnslavedLevel(2) ; up to master if the player is vulnerable
   endif
   
-  if dflowQuest && dflowQuest.isRunning() && dflowQuest.GetStage() >= 2
+  if dflowQuest && MCM.bDFGeneralLockout && dflowQuest.isRunning() && dflowQuest.GetStage() >= 2
     debugmsg("enslaved: Devious followers has locked the player", 3)
     setEnslavedLevel(2)
 

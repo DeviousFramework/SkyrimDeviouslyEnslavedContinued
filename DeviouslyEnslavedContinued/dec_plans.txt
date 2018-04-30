@@ -123,7 +123,7 @@ Notes:
    - only follower items (interaction)
    - 
   
-  Should get done before RC14:
+  Should get done before RC14 2:
   add alt for "what is it" if they are your master
     could really use a lot of these, but each one needs its own script and we keep crashing when working on these... why?
   if we keep the dispositions of the master on the master quest, can we detect that during dialogue condition time?
@@ -146,21 +146,23 @@ Notes:
     could have sworn I had belt OR harness setup, but guess not?  
   also add unique collars to post sex, meaning single item detection
   finish straitjacket and the other item we wanted
-  turn hoods down
+  ;turn hoods down
   
   () set SD limited removal to off, might be the cause of the stack dump
   
-  user wants detection for keyword: sexlab::EroticArmor
-  user complains that vampire detection is not working, and that approach is complaining about armor keywords
+  ;user wants detection for keyword: sexlab::EroticArmor
+  ;user complains that vampire detection is not working, and that approach is complaining about armor keywords
+  user wants follower dom/sub tendencies to account for sex positions
+  
   
   ;recompile all with doplayersexwithbeltreplace ;equipRegularDDItem
   ;recompile all with equipRegularDDItem ;
   ;edit the script such that we check against none cell
   ;make cursed loot leah a non-0 chance
   ;"lets remove a piece" did nothing
-  check that follower key detection is working again
-    and consider adding keys to follower game if they don't have some already
-  does EFF use different follower containers?
+  ;check that follower key detection is working again; the problem is third party follower mods
+  ;  and consider adding keys to follower game if they don't have some already
+  
   naked dungeons has code that can detect when entering dungeons, assuming it would also have code for detecting when the dungeon is over then
     might not be enough, we want to know when the dungeon is CLEARED too
   user wants privacy item approach and sex approach overrides, great

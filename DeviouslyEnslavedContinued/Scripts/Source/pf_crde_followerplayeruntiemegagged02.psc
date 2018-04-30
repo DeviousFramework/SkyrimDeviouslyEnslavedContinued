@@ -7,7 +7,7 @@ Function Fragment_0(ObjectReference akSpeakerRef)
 Actor akSpeaker = akSpeakerRef as Actor
 ;BEGIN CODE
 ; player: can you untie me now -> sure, but why did you put these items on anyway? gagged
-(GetOwningQuest() as crdePlayerMonitorScript).ItemScript.removeDDs()
+(GetOwningQuest() as crdePlayerMonitorScript).ItemScript.removeDDs(removerActor = akSpeaker)
 
 ;END CODE
 EndFunction

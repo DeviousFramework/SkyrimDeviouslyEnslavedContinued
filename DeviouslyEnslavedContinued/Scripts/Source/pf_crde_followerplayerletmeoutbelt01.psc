@@ -9,9 +9,9 @@ Actor akSpeaker = akSpeakerRef as Actor
 ; I can't take it anymore please unlock me
 crdePlayerMonitorScript PlayerMon = (GetOwningQuest() as crdePlayerMonitorScript)
 if PlayerMon.follower_enjoys_dom >= 10
-  PlayerMon.ItemScript.removeDDs(ignoreCollar = true)
+  PlayerMon.ItemScript.removeDDs(removerActor = akSpeaker, ignoreCollar = true)
 else
-  PlayerMon.ItemScript.removeDDs()
+  PlayerMon.ItemScript.removeDDs(removerActor = akSpeaker)
 endif
 ;END CODE
 EndFunction

@@ -9,9 +9,9 @@ Actor akSpeaker = akSpeakerRef as Actor
 ; playergagged to follower "mppp" -> yes I suppose you've been in there long enough, remove items
 crdePlayerMonitorScript PlayerMon = (GetOwningQuest() as crdePlayerMonitorScript)
 if PlayerMon.follower_enjoys_dom >= 10
-  PlayerMon.ItemScript.removeDDs(ignoreCollar = true)
+  PlayerMon.ItemScript.removeDDs(ignoreCollar = true, removerActor = akSpeaker)
 else
-  PlayerMon.ItemScript.removeDDs()
+  PlayerMon.ItemScript.removeDDs(removerActor = akSpeaker)
 endif
 
 ;END CODE

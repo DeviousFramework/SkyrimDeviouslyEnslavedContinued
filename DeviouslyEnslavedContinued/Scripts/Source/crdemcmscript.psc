@@ -206,8 +206,9 @@ event OnPageReset(string a_page)
     AddEmptyOption() ; spacer
     
     AddHeaderOption("General lockout")
-    bSDGeneralLockoutOID        = AddToggleOption("SD+ Enslave Lockout", bSDGeneralLockout, (!Mods.modLoadedSD) as int)
+    bSDGeneralLockoutOID        = AddToggleOption("SD+ General Lockout", bSDGeneralLockout, (!Mods.modLoadedSD) as int)
     bCDSlaveLockoutOID          = AddToggleOption("CD Enslave Lockout", bCDSlaveLockout, (!Mods.modLoadedCD) as int)
+    bDFGeneralLockoutOID        = AddToggleOption("Devious Followers Lockout", bDFGeneralLockout, (Mods.dflowQuest != None) as int)
 
     
   elseif a_page == Pages[2] ; items
@@ -367,18 +368,18 @@ event OnPageReset(string a_page)
     
     AddEmptyOption() ; spacer
     AddHeaderOption("Vulnerable items")
-    iVulnerableCollarOID      = AddSliderOption("Collar", iVulnerableCollar, "Level {0}")
-    iVulnerableGagOID         = AddSliderOption("Gag", iVulnerableGag, "Level {0}")
-    iVulnerableArmbinderOID   = AddSliderOption("Armbinder+Yoke", iVulnerableArmbinder, "Level {0}")
-    iVulnerableBlindfoldOID   = AddSliderOption("BlindFold", iVulnerableBlindfold, "Level {0}")
-    iVulnerableBukkakeOID     = AddSliderOption("Semen", iVulnerableBukkake, "Level {0}")
-    iVulnerableSlaveBootsOID  = AddSliderOption("SlaveBoots",  iVulnerableSlaveBoots, "Level {0}")
-    iVulnerableHarnessOID     = AddSliderOption("Harness", iVulnerableHarness, "Level {0}")
-    iVulnerablePiercedOID     = AddSliderOption("Piercings", iVulnerablePierced, "Level {0}")
-    iVulnerableSlaveTattooOID = AddSliderOption("Slave Tattoos", iVulnerableSlaveTattoo, "Level {0}")
-    iVulnerableSlutTattooOID  = AddSliderOption("Slut Tattoos", iVulnerableSlutTattoo, "Level {0}")
-    iVulnerableAnkleChainsOID = AddSliderOption("Ankle Chains", iVulnerableAnkleChains, "Level {0}")
-    iVulnerableSexlabErotic   = AddSliderOption("Sexlab \"Erotic\" armor", iVulnerableSexlabErotic , "Level {0}")
+    iVulnerableCollarOID        = AddSliderOption("Collar", iVulnerableCollar, "Level {0}")
+    iVulnerableGagOID           = AddSliderOption("Gag", iVulnerableGag, "Level {0}")
+    iVulnerableArmbinderOID     = AddSliderOption("Armbinder+Yoke", iVulnerableArmbinder, "Level {0}")
+    iVulnerableBlindfoldOID     = AddSliderOption("BlindFold", iVulnerableBlindfold, "Level {0}")
+    iVulnerableBukkakeOID       = AddSliderOption("Semen", iVulnerableBukkake, "Level {0}")
+    iVulnerableSlaveBootsOID    = AddSliderOption("SlaveBoots",  iVulnerableSlaveBoots, "Level {0}")
+    iVulnerableHarnessOID       = AddSliderOption("Harness", iVulnerableHarness, "Level {0}")
+    iVulnerablePiercedOID       = AddSliderOption("Piercings", iVulnerablePierced, "Level {0}")
+    iVulnerableSlaveTattooOID   = AddSliderOption("Slave Tattoos", iVulnerableSlaveTattoo, "Level {0}")
+    iVulnerableSlutTattooOID    = AddSliderOption("Slut Tattoos", iVulnerableSlutTattoo, "Level {0}")
+    iVulnerableAnkleChainsOID   = AddSliderOption("Ankle Chains", iVulnerableAnkleChains, "Level {0}")
+    iVulnerableSexlabEroticOID  = AddSliderOption("Sexlab \"Erotic\" armor", iVulnerableSexlabErotic , "Level {0}")
     
     SetCursorPosition(1) ; switch sides
     
@@ -500,8 +501,8 @@ event OnPageReset(string a_page)
 
     SetCursorPosition(0) ; left side first
     AddHeaderOption("General")
-    bFollowerDialogueToggleOID            = AddToggleOption("Follower dialogue", bFollowerDialogueToggle.GetValueInt(), 0)
-    bFollowerRemembersHitOID         = AddToggleOption("Remembers if you shot them", bFollowerRemembersHit)
+    bFollowerDialogueToggleOID            = AddToggleOption("Follower dialogue", bFollowerDialogueToggle.GetValueInt() == 1)
+    bFollowerRemembersHitOID              = AddToggleOption("Remembers if you shot them", bFollowerRemembersHit)
     AddEmptyOption() ; spacer
 
     gForceGreetItemFindOID                = AddToggleOption("Follower Approaches Directly (Item found)", gForceGreetItemFind.GetValueInt())
@@ -761,7 +762,8 @@ event OnOptionSelect(int a_option)
     bConfidenceToggle = ! bConfidenceToggle
     SetToggleOptionValue(a_option, bConfidenceToggle) 
   elseif (a_option == bFollowerDialogueToggleOID)
-    bool new_value = bFollowerDialogueToggle.GetValueInt() == 0
+    bool new_value = ! bFollowerDialogueToggle.GetValueInt() as bool
+    debug.trace("new value is: " + new_value)
     bFollowerDialogueToggle.SetValueInt( new_value as int )
     ; add/remove the perk
     Perk containerPerk  = Mods.crdeContainerPerk
@@ -771,7 +773,6 @@ event OnOptionSelect(int a_option)
     elseif !new_value && player.HasPerk(containerPerk)
       player.removePerk(containerPerk)
     endif
-
 
   elseif (a_option == bAttackersGuardsOID)
     bAttackersGuards = ! bAttackersGuards
@@ -1006,6 +1007,9 @@ event OnOptionSelect(int a_option)
   elseif a_option == bCDSlaveLockoutOID 
     bCDSlaveLockout = ! bCDSlaveLockout
     SetToggleOptionValue(a_option, bCDSlaveLockout)
+  elseif a_option == bDFGeneralLockoutOID ;
+    bDFGeneralLockout = ! bDFGeneralLockout
+    SetToggleOptionValue(a_option, bDFGeneralLockout)
   elseif a_option == tFollowerteleportToPlayerOID
     currentFollower.MoveTo(Mods.player)
   elseif a_option == bAddFollowerManuallyOID  
@@ -2801,7 +2805,7 @@ event OnOptionHighlight(int a_option)
   elseif a_option == fFollowerSpecThinksPlayerSubOID
     SetInfoText("The value of how much your follower thinks player enjoys being submissive")
   elseif a_option == fFollowerSpecContainersCountOID
-    SetInfoText("How many containers your followre has found. This determines the likelyhood that they will find DD items anytime soon.")
+    SetInfoText("How many containers your follower has found. This determines the likelyhood that they will find DD items anytime soon.")
   elseif a_option == fFollowerSpecFrustrationOID
     SetInfoText("The value of how frustrated your follower is")
 
@@ -2845,6 +2849,8 @@ event OnOptionHighlight(int a_option)
     SetInfoText("Toggles if DEC shouldn't be active during SD+ Enslavement, if ON DEC will do nothing")
   elseif a_option == bCDSlaveLockoutOID ;
     SetInfoText("Toggles if DEC should allow follower and sex approach while a CD slave")
+  elseif a_option == bDFGeneralLockoutOID ;
+    SetInfoText("Toggles if DEC should allow follower and sex approach while a Devious Followers slave")
 
   elseif a_option == iSexEventDeviceOID
     SetInfoText("Chance of getting items after DEC started sex when the player is already enslaved")
@@ -3479,7 +3485,8 @@ bool Property bSDGeneralLockout Auto
 int bSDGeneralLockoutOID
 bool Property bCDSlaveLockout Auto
 int bCDSlaveLockoutOID 
-
+bool Property bDFGeneralLockout Auto
+int bDFGeneralLockoutOID
 
 bool property bAddFollowerManually Auto
 int bAddFollowerManuallyOID

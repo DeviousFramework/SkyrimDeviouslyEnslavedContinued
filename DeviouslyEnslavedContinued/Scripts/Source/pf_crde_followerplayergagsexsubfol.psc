@@ -12,7 +12,7 @@ Actor akSpeaker = akSpeakerRef as Actor
 crdePlayerMonitorScript PlayerMon = GetOwningQuest() as crdePlayerMonitorScript ; oh alright, three references is enough for a temp variable
 ;PlayerMon.ItemScript.removeDDbyKWD(akSpeakerRef, ItemScript.libs.zad_DeviousBelt)
 ;however, for now, not completely care free, add one of some item to player
-PlayerMon.ItemScript.removeDDs()
+PlayerMon.ItemScript.removeDDs(removerActor = akSpeaker)
 ;PlayerMon.doPlayerSex(akSpeaker, rape = false, soft = true)
 PlayerMon.doPlayerSexAndReplaceBelt(akSpeaker)
 

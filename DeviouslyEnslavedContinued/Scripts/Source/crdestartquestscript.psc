@@ -37,11 +37,11 @@ bool Property needsMaintenance Auto
 ; float version is Xxx.Yy.Zz = > Xxx.YyZz
 ; IE 3.2.1 would be 3.0201, 2.13.2 would be 2.1302
 float function getVersion()
-  return 13.1322
+  return 13.1404
   EndFunction
 
 string function getVersionString()
-  return "13.13.22, RC 1"
+  return "13.14.4"
 EndFunction
 
 Function Maintenance()
@@ -65,10 +65,12 @@ Function Maintenance()
 	if Mods.isRunning() == false
 		bool sOK = Mods.start()
 		Debug.Trace("[CRDE] startquest, ModsMon startup: " + sOK)
-		(Mods as crdeModsMonitorScript).Maintenance() ;SendModEvent("crderesetmods") ; not sure this is really needed if the quest is started a few lines up
+		;(Mods as crdeModsMonitorScript).Maintenance() ; WARNING this can waitlock as start->mods.maint looks at MCM values, and MCM.init looks at Mods
+    SendModEvent("crderesetmods") 
   else
-		;SendModEvent("crderesetmods")
-    (Mods as crdeModsMonitorScript).Maintenance()
+    (Mods as crdeModsMonitorScript).Maintenance() 
+ 		;SendModEvent("crderesetmods")
+
 	endif
 
 	Utility.Wait(0.25)		

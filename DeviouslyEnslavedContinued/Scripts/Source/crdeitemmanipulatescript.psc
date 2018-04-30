@@ -95,14 +95,15 @@ armor actorKnownSlaveBoots
 armor actorKnownAnkleChains
 
 
-
 Event OnInit()
   player = Game.GetPlayer()
   followerFoundArmorBuffer = new Armor[10]
 endEvent
 
-function removeDDs(actor targetActor = none, bool ignoreCollar = false, bool ignoreBelt = false)
-  PlayerMon.debugmsg("starting removedds")
+; reminder: cannot set generic parameter to actors, so has to start as none
+; 
+function removeDDs(actor targetActor = none, actor removerActor = none, bool ignoreCollar = false, bool ignoreBelt = false)
+  PlayerMon.debugmsg("starting removedds: removerActor " +removerActor)
   
   if targetActor == none
     targetActor = player
@@ -138,7 +139,11 @@ function removeDDs(actor targetActor = none, bool ignoreCollar = false, bool ign
           ; need to check if the item is cursed loot removable or not
           if !MCM.bEnslaveLockoutDCUR && Mods.modLoadedCursedLoot \
              && Mods.dcur_removableBlockedItems.Find(id) > 0 ; we look 
-            libs.removeDevice(targetActor, id, rd, kw, false, skipevents = false, skipmutex = true)      
+            libs.removeDevice(targetActor, id, rd, kw, false, skipevents = false, skipmutex = true)
+            if removerActor != None ; we only want to do this for functions that give us the extra actor
+              player.removeItem(id, aiCount = 1, abSilent = true);, akOtherContainer = removerActor)
+              removerActor.additem(id)
+            endif
             Utility.Wait(0.5)
           else
             PlayerMon.debugmsg("Cannot remove " + id +" because its blocked and not DCUR")
@@ -149,7 +154,11 @@ function removeDDs(actor targetActor = none, bool ignoreCollar = false, bool ign
             ; we don't remove jammed devices if we're removing generic devices only
             PlayerMon.debugmsg("Cannot remove " + id + " because the lock is jammed")
           Else
-            libs.removeDevice(targetActor, id, rd, kw, false, skipevents = false, skipmutex = true)      
+            libs.removeDevice(targetActor, id, rd, kw, false, skipevents = false, skipmutex = true)  
+            if removerActor != None ; we only want to do this for functions that give us the extra actor
+              player.removeItem(id, aiCount = 1, abSilent = true);, akOtherContainer = removerActor)
+              removerActor.additem(id)
+            endif            
             Utility.Wait(0.5)
           EndIf
           
@@ -2140,7 +2149,7 @@ function equipFollowerAndPlayerItems(actor follower, \
   ; TODO swap to a system that swings heavier toward the other direction
   PlayerMon.debugmsg("minimum items: " + requiredMin + ", count roll: " + icount)
 
-   ; assuming 3 for belt, 1 collar, 1 armbinder, 1 gag, 2 for cuffs, 5 should be enough but lets do 6 
+  ; assuming 3 for belt, 1 collar, 1 armbinder, 1 gag, 2 for cuffs, 5 should be enough but lets do 6 
   armor[] items = new armor[6] 
   int itemsptr = 0
   armor[] tmp = new armor[1] ; just declaring, ignore the size
@@ -2175,7 +2184,7 @@ function equipFollowerAndPlayerItems(actor follower, \
       i += 1
     endWhile
   endif
-  if forceHarness
+  if forceHarness && !player.WornHasKeyword(libs.zad_DeviousHarness) ; *** HARNESS ***
     tmp = getRandomHarnessAndStuff(player, force_stuff = true) 
     int i = 0
     while i < tmp.length
