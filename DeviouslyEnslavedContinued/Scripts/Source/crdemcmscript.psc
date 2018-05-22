@@ -36,7 +36,7 @@ actor currentFollower
 string[] property actorNames Auto
 
 int function GetVersion()
-  return (StartScript.GetVersion() *10000) as int 
+  return (StartScript.GetVersion() * 10000) as int 
 endFunction
 
 ; @implements SKI_ConfigBase
@@ -172,7 +172,7 @@ event OnPageReset(string a_page)
     AddHeaderOption("Dialogue Chances")
     iChanceSexConvoOID              = AddSliderOption("Chance of Sex Conversation", iChanceSexConvo, "{0}%")
     iChanceEnslavementConvoOID      = AddSliderOption("Chance of Enslavement Conversation", iChanceEnslavementConvo, "{0}%")
-    iChanceVulEnslavementConvoOID   = AddSliderOption("Chance of Armbinder Conversation", iChanceVulEnslavementConvo, "{0}%", 1)
+    ;iChanceVulEnslavementConvoOID   = AddSliderOption("Chance of Armbinder Conversation", iChanceVulEnslavementConvo, "{0}%", 1)
     fModifierSlaverChancesOID       = AddSliderOption("Modifier of chances if NPC is Slaver", fModifierSlaverChances, "{1}"); slaver event modifier
     AddEmptyOption() ; spacer
     

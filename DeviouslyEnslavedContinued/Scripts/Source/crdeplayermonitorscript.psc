@@ -603,7 +603,9 @@ function updateEquippedPlayerVulnerability(bool isSlaver = false)
   vulnerableValues[13] = MCM.iVulnerableSlaveBoots * (wearingSlaveBoots as int)
   vulnerableValues[14] = MCM.iVulnerableArmbinder * (wearingArmbinder as int)
   vulnerableValues[15] = MCM.iVulnerableBlindfold * (wearingBlindfold as int)
-  vulnerableValues[16] = MCM.iVulnerableSexlabErotic * (player.WornHasKeyword( Mods.slaEroticKeyword) as int)
+  if Mods.slaEroticKeyword
+    vulnerableValues[16] = MCM.iVulnerableSexlabErotic * (player.WornHasKeyword( Mods.slaEroticKeyword) as int)
+  endif
   
   int largest = 0
   int num2    = 0
@@ -2153,8 +2155,8 @@ Event crdeSexHook(int tid, bool HasPlayer);(string eventName, string argString, 
   if actorList && actorList.length > 0
     actor a
     int i = 0
-    While i <= actorList.length ; for now assume threesome only, more is infrequent
-      a == actorList[i]
+    While i < actorList.length ; for now assume threesome only, more is infrequent
+      a = actorList[i]
       if a != None
         float frustration = StorageUtil.GetFloatValue(a, "crdeFollowerFrustration")
         if frustration >= 5
@@ -3571,7 +3573,7 @@ function refreshSDMaster()
       endif
       old_position += 1
     endWhile
-    menu.AddEntryItem(" * reminder: gender restriction is on*")
+    menu.AddEntryItem(" ** reminder: gender restriction is on **")
 
   else ; no gender restriction, just use the list we already have
     int index = 0
@@ -3590,16 +3592,21 @@ function refreshSDMaster()
   menu.OpenMenu() ; kinda a weird way to do this, wouldn't you just open teh menu and grab the result, not open menu, return, then wait for a response?
   int result = UIExtensions.GetmenuResultInt("UIListMenu")
   
-  if a[result].isDead() 
+  if result <= a_index + 1
+    debugmsg("random button pushed, selecting at random ...", 0) 
+    Debug.Notification("Random SD Master assigned")     ; ERROR: this doesn't take into account the possibility that the slaver is already dead
+    ;DistanceEnslave.SDNextMaster = a[Utility.RandomInt(0, a_index)] ; 
+    DistanceEnslave.randomSDMaster = true ; we can roll last second, 
+                                          ;  means the user doesn't need to re-random to get different outcomes
+  elseif a[result].isDead() 
     Debug.MessageBox("The actor you selected: " + a[result] + " is dead, and cannot be used")
+
   elseif result >= 0 && result < a_index
     ; valid choice
     DistanceEnslave.SDNextMaster = a[result]  
     Debug.MessageBox("Next distance SD master set is " + a[result].GetDisplayName() +", wasPreviously:" + previous.GetDisplayName() + ", Last master:" + DistanceEnslave.SDPreviousMaster.GetDisplayName())
-  elseif result <= a_index + 1
-    debugmsg("random button pushed, selecting at random ...", 0) 
-    Debug.Notification("Random SD Master assigned")
-    DistanceEnslave.SDNextMaster = a[Utility.RandomInt(0, a_index)] 
+    DistanceEnslave.randomSDMaster = false
+
   elseif result <= a_index + 2
     ; do nothing, was the cancel button
     debugmsg("cancel button pushed, quitting") 

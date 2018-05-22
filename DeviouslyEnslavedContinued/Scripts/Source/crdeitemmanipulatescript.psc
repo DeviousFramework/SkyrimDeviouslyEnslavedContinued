@@ -787,6 +787,7 @@ armor function getRandomUniqueCollar(actor actorRef)
       Debug.Notification("Suddenly you notice a strange collar around your neck. What's this letter...?")
     endif
     ;Mods.equipCursedCollar()
+    player.additem(Mods.dcurCursedLetter, 1, false)
     return Mods.dcurCursedCollar
   elseif roll <= weightPetCollar + weightDCURCursedCollar + weightDCURSlave 
     if actorRef != None && actorRef == player
@@ -959,14 +960,15 @@ function equipRandomStuff(actor actorRef, Armor belt, bool punishment = false, b
 endFunction
 
 ; where "stuff" in this context is plug and piercing under a belt
+;  we only take the belt as an argument to know if the rear is open or not
 armor[] function getRandomBeltStuff(actor actorRef, Armor belt,\
-                                    bool punishment = false, bool force = false, bool forceGem = false)
+                                    bool punishment = false, bool forceStuff = false, bool forceGem = false)
   bool has_plug     = actorRef.WornHasKeyword(libs.zad_DeviousPlug) ;TODO extend to other plugs
   bool has_piercing = actorRef.WornHasKeyword(libs.zad_DeviousPiercingsVaginal)
   armor[] stuff = new armor[4] ; enough space for two plugs and a piercing, and the belt one level up
   int stuff_index = 0
   ;PlayerMon.debugmsg("adding candy ... ")
-  if !has_plug && (has_piercing || Utility.Randomint(0, 99) >= (100 - MCM.iWeightPlugs) || force)
+  if !has_plug && (has_piercing || Utility.Randomint(0, 99) >= (100 - MCM.iWeightPlugs) || forceStuff)
     int newSoulGem  = (MCM.iWeightPlugSoulGem / 1 +(punishment as int))
     int newInflate  = (MCM.iWeightPlugInflatable / 1 + (punishment as int))
     int newCharging = (MCM.iWeightPlugCharging / 1 + (punishment as int))
@@ -998,7 +1000,7 @@ armor[] function getRandomBeltStuff(actor actorRef, Armor belt,\
     elseif vRoll < newSoulGem + newInflate + newCharging + newShock + newTraining
       vplug = PlayerMon.randomDDPunishmentVagPlugs[0]
     else;if vRoll < newSoulGem + newInflate + newCharging + newShock + newTraining + newCDEffect
-      if belt.HasKeyword(libs.zad_PermitAnal)  
+      if !belt || belt.HasKeyword(libs.zad_PermitAnal)  
         int pRoll = Utility.RandomInt(1,4)
         ;vag = finisher Mods.cdFinisherPlug
         if pRoll == 1 
@@ -2127,7 +2129,7 @@ function equipFollowerFoundItems(actor actorRef)
   PlayerMon.resetFollowerContainerCount(actorRef)
 endFunction
 
-; this is to apply follower items, and from player if they exist, onto the player from the follower context
+; this is to apply follower items, and from player if they exist, onto the player from the follower adding context
 function equipFollowerAndPlayerItems(actor follower, \
          bool forceBelt = false, bool forceGag = false, \
          bool forceCollar = false, bool forceArmbinder = false, \
@@ -2138,10 +2140,7 @@ function equipFollowerAndPlayerItems(actor follower, \
   ; follower borrows your keys
   ; roll 25% we use what the player or follower has, else we make something new
   
-  ; XXX
-  ;getRandomMultipleDD(player)
-  ; because getRandomMultipleDD equips them too, due to outfits, we have to do all we want here instead
-  
+  ; for now, we don't check if the force* keywords are valid and adjust the remaining items
   int requiredMin = (forceBelt as int) + (forceGag as int) + (forceCollar as int) + (forceArmbinder as int)
   ;int roll = ; 
   int icount = Utility.RandomInt(requiredMin ,4) ; for now, 4 is max because it seems reasonable
@@ -2171,9 +2170,15 @@ function equipFollowerAndPlayerItems(actor follower, \
   endWhile
   
   ; specific items we need to add
-  if forceBelt  && !player.WornHasKeyword(libs.zad_DeviousBelt)  ; *** BELT ***
-    tmp = getRandomBeltAndStuff(player, forceStuff = true)
+  if forceBelt && !player.WornHasKeyword(libs.zad_DeviousBelt)  ; *** BELT ***
+    if MCM.iWeightSingleBelt < 1 ; player has specified no belts
+      ; we add belt items though, because the dialogue to get here mentions "toys"
+      tmp = getRandomBeltStuff(player, NONE, punishment=false, forceStuff=true)
+    else 
+      tmp = getRandomBeltAndStuff(player, forceStuff = true)
+    endif
     int i = 0
+    ; merge the two arrays
     while i < tmp.length
       if tmp[i] == None
         i = 100
@@ -2185,8 +2190,15 @@ function equipFollowerAndPlayerItems(actor follower, \
     endWhile
   endif
   if forceHarness && !player.WornHasKeyword(libs.zad_DeviousHarness) ; *** HARNESS ***
-    tmp = getRandomHarnessAndStuff(player, force_stuff = true) 
+    if MCM.iWeightSingleHarness < 1 ; player has specified no belts
+      ; we add belt items though, because the dialogue to get here mentions "toys"
+      tmp = getRandomBeltStuff(player, NONE, punishment=false, forceStuff=true)
+    else 
+      tmp = getRandomHarnessAndStuff(player, force_stuff = true)
+    endif
+
     int i = 0
+    ; merge the two arrays
     while i < tmp.length
       if tmp[i] == None
         i = 100
@@ -2197,15 +2209,15 @@ function equipFollowerAndPlayerItems(actor follower, \
       i += 1
     endWhile
   endif
-  if forceGag && ! player.WornHasKeyword(libs.zad_DeviousGag)
+  if forceGag && MCM.iWeightSingleGag > 0 && ! player.WornHasKeyword(libs.zad_DeviousGag)
     items[itemsptr] = getRandomGag()
     itemsptr += 1  
   endif
-  if forceArmbinder && ! player.WornHasKeyword(libs.zad_DeviousArmbinder)
+  if forceArmbinder && MCM.iWeightSingleArmbinder > 0 && ! player.WornHasKeyword(libs.zad_DeviousArmbinder)
     items[itemsptr] = getRandomDDArmbinders()
     itemsptr += 1  
   endif
-  if forceCollar && ! player.WornHasKeyword(libs.zad_DeviousCollar)
+  if forceCollar && MCM.iWeightSingleCollar > 0 && ! player.WornHasKeyword(libs.zad_DeviousCollar)
     items[itemsptr] = getRandomGag()
     itemsptr += 1  
   endif

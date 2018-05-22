@@ -150,18 +150,17 @@ Notes:
   
   () set SD limited removal to off, might be the cause of the stack dump
   
-  ;user wants detection for keyword: sexlab::EroticArmor
-  ;user complains that vampire detection is not working, and that approach is complaining about armor keywords
+  ;user thinks DEC interferes with whiterun brothel revamped
+    attempted fix: if player is in cell, or if player is attempting the escape quest, then they are slaves and cannot be re-enslaved
+  ; fixed follower adding items game ignoring sliders set to zero for items
+  
+  ;user found but where sexhook can result in index out of bounds
+  ;user wants truly random SD masters
+  ;DCUR cursed collar doesn't drop/add letter to player's inventory for quest
+  ;workaround for bug where Mods.slaEroticKeyword keyword is NONE, error in playervulnerability (low prio)
+  
+  
   user wants follower dom/sub tendencies to account for sex positions
-  
-  
-  ;recompile all with doplayersexwithbeltreplace ;equipRegularDDItem
-  ;recompile all with equipRegularDDItem ;
-  ;edit the script such that we check against none cell
-  ;make cursed loot leah a non-0 chance
-  ;"lets remove a piece" did nothing
-  ;check that follower key detection is working again; the problem is third party follower mods
-  ;  and consider adding keys to follower game if they don't have some already
   
   naked dungeons has code that can detect when entering dungeons, assuming it would also have code for detecting when the dungeon is over then
     might not be enough, we want to know when the dungeon is CLEARED too
@@ -170,10 +169,7 @@ Notes:
   player approaches follower for sex, follower requires certain items be worn during sex angrim inflence
     need follower is not interested, at all
   
-  unique collar is broken, roll total is zero
-  ;shame belt for follower game, unacceptable
-  ; 200/200, shame was zero, bad rolling
-  ;slaverun dialogue should detect what the player is wearing
+  ;unique collar is broken, roll total is zero
   belt re-equip after a sex does not work, or maybe serana wasn't dom enough?
   slaverun specific dialogue? "not going to unlock your belt here, too many weird people"?
   
@@ -185,15 +181,11 @@ Notes:
   follower approach attempt function needs to be rewritten to make more sense
     if we're going to search through the follower list twice anyway, lets search for BOTH first, then chekc our options
   keep better track of which followers are best for attacking player
-  ;player items are not being updated for item approach
-    NOW IT WORKS I DID NOTHING WHAT THE FUFK
   make sure the new dialogue detects that the mod is turned off, and detects that the follower dialogue is off
   make follower negate work for all attackers too
-  ;fix brawl
   ask for more animations
   can we refresh mods and playermon on update so we have less save cleaning req
   
-  ;plug roll while belted shouldn't happen
   piercing weight starts at zero
   plugs are none, huh?
   

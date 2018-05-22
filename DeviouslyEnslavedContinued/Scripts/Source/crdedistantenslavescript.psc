@@ -65,6 +65,8 @@ bool Property canRunGiven auto conditional
 bool Property hasRunBeforeCD auto conditional
 bool Property hasRunBeforeSS auto conditional
 
+bool Property randomSDMaster auto conditional ; if true, we get new master at call
+
 Event OnInit()
   ; kinda need this, since MCM variables are needed for canRun*()
   Utility.Wait(15)
@@ -325,8 +327,7 @@ function enslaveSD(actor masterRef = none) ; Sanguine's Debaunchery+
 endFunction
 
 ; called by exterior
-; for now, variation does nothing
-function distantSD( actor masterRef = None) ;Int variation,
+function distantSD( actor masterRef = None) 
   ; not sure if I want the mod to remember who was previously the master
   ; if I keep just the last ONE, with a sufficiently large list of possible masters it should reduce the chances
   ; of getting the same master to 0 except for constant enslavement
@@ -334,7 +335,7 @@ function distantSD( actor masterRef = None) ;Int variation,
   if SDNextMaster == Player
     debugmsg(" ERR: Next master is player, shouldn't get this far", 4)
   endIf
-  if masterRef == none && SDNextMaster == None ; shouldn't happen either, but might as well put it here
+  if randomSDMaster || masterRef == none && SDNextMaster == None ; shouldn't happen either, but might as well put it here
     Actor result = selectNextSDMaster()
     if result == player || result == None
       debugmsg(" ERR: made it to distantSD without a valid master alive", 4)

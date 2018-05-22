@@ -476,6 +476,10 @@ keyword property sexybanditGearKeyword auto ;07027A60
 
 keyword property slaEroticKeyword auto
 
+;faction property wwb don't think this works
+quest property wwbEscapeQuest auto
+cell property wwbWhiterunBrothel auto
+
 Event OnInit()
   Debug.Trace("[CRDE] Mods::init() ...")
   dhlpSuspendStatus = false
@@ -1067,7 +1071,7 @@ function updateForms()
   ;dawnguardLordForm =  Game.GetFormFromFile(0x0200283C, "Dawnguard.esm") as MagicEffect 
   dawnguardLordForm =  Game.GetFormFromFile(0x0200283A, "Dawnguard.esm") as Race
 
-  dflowQuest = Quest.GetQuest("_DFlow")
+  dflowQuest = Quest.GetQuest("_DFlow") ; devious followers
   
   dfwFramework = Quest.GetQuest("_dfwDeviousFramework")
   modLoadedDD4 = libs.GetVersion() >= 8.0
@@ -1102,6 +1106,13 @@ function updateForms()
   ;PlayMonScript.ItemScript.player = Game.GetPlayer()
   
   slaEroticKeyword = Game.GetFormFromFile(0x0308c8f6, "SexLabAroused.esm") as keyword
+  
+
+  wwbEscapeQuest = Quest.GetQuest("wwbEscapeQuest")
+  if wwbEscapeQuest
+    wwbWhiterunBrothel = Game.GetFormFromFile(0x0D00CFD3, "WhiterunBrothel.esp") as cell
+  endif
+  
   
   Debug.Trace("[CRDE] ******** ignore any errors between these two messages FINISH ********", 1)
   finishedCheckingMods = true
@@ -1711,20 +1722,18 @@ int function isPlayerEnslaved()
 
   endif
   
-  ;if player.isInFaction(zazFactionSlave) && player.isInFaction(zazFactionSlaveState)
-  ;  setEnslavedLevel(2) 
-  ;  debugmsg("enslaved: in zaz slave faction 2", 3)
-  ;  return iEnslavedLevel 
-  ;endIf
+  if wwbEscapeQuest  
+    if wwbEscapeQuest.isRunning() && wwbEscapeQuest.GetStage() > 0 && wwbEscapeQuest.GetStage() < 50
+      debugmsg("enslaved: slave to whiterun brotel, bottom bitch 1", 3)
+      setEnslavedLevel(1)
+    elseif curCell == wwbWhiterunBrothel
+      debugmsg("enslaved: in whiterun brotel but not a bottom slave, safe 3", 3)
+      setEnslavedLevel(3)
 
-  ;if zazFurnitureMilkOMatic ; moved to playerbusy instead
-  
-  ;if(modLoadedTrappedInRubber == true)
-    ; TODO incomplete? hmm...
-  ;endif
+    endif
+  endif
 
-  ; might add a Mia's lair section here too ; player is rarely the slave
-  
+
   ;Debug.trace("[CRDE] EnslaveLevel " + iEnslavedLevel)
 
   ;if iEnslavedLevel >= 1
