@@ -208,7 +208,7 @@ event OnPageReset(string a_page)
     AddHeaderOption("General lockout")
     bSDGeneralLockoutOID        = AddToggleOption("SD+ General Lockout", bSDGeneralLockout, (!Mods.modLoadedSD) as int)
     bCDSlaveLockoutOID          = AddToggleOption("CD Enslave Lockout", bCDSlaveLockout, (!Mods.modLoadedCD) as int)
-    bDFGeneralLockoutOID        = AddToggleOption("Devious Followers Lockout", bDFGeneralLockout, (Mods.dflowQuest != None) as int)
+    bDFGeneralLockoutOID        = AddToggleOption("Devious Followers Lockout", bDFGeneralLockout, (Mods.dflowQuest == None) as int)
 
     
   elseif a_page == Pages[2] ; items
