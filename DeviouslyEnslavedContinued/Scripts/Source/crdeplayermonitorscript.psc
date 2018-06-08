@@ -627,7 +627,7 @@ function updateEquippedPlayerVulnerability(bool isSlaver = false)
     i += 1
   endWhile
    
-  if num3 + 2*(num2) >= 5
+  if (2*num3) + num2 >= 5
     clothingPlayerVulnerability = 4
     ;return
   else
@@ -2078,11 +2078,12 @@ Event crdeSexHook(int tid, bool HasPlayer);(string eventName, string argString, 
     endif
     if ( sexFromDEC && sexFromDECWithoutAfterAttacks  ) ; specific case
       debugmsg("sexlabhook: sex was specified no attack, leaving", 3)
+      sexFromDECWithoutAfterAttacks = false
       return 
     endif
     
     if Thread.ActorCount <= 1  && wearingBelt  ; we know the player was involved to get this far, lets increase reputation and temporary vulnerability
-      debugmsg("sexlabhook: masterbation detected while belted", 3)
+      debugmsg("sexlabhook: masturbation detected while belted", 3)
       ; mod arousal for all nearby NPCs
       actor[] a = NPCSearchScript.getNearbyFollowers() ;getNearbyActors() 
       ; increment all thinks sub by two
@@ -2951,9 +2952,9 @@ endFunction
 ; generic test button function 7
 function testTestButton7()
 
-  ; start devious followers enslavement to see what happens
-  SendModEvent("DFEnslave")
-  
+  DistanceEnslave.enslaveDFGift()
+
+  ; start devious followers enslavement to see what happens  
   Debug.Notification("Test has completed.")
   ;debugmsg("finished with test time was: " + (Utility.GetCurrentRealTime() - time))
   MCM.bTestButton7 = false

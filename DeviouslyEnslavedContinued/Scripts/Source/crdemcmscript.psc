@@ -35,6 +35,7 @@ int lastChosenFollower
 actor currentFollower 
 string[] property actorNames Auto
 
+
 int function GetVersion()
   return (StartScript.GetVersion() * 10000) as int 
 endFunction
@@ -187,10 +188,14 @@ event OnPageReset(string a_page)
     bUseSexlabGenderOID     = AddToggleOption("Use Sexlab Genders", bUseSexlabGender)
     bAlternateNPCSearchOID  = AddToggleOption("Alternate NPC search", bAlternateNPCSearch)
     bRefreshModDetectOID    = AddToggleOption("Refresh detected mods", Mods.bRefreshModDetect)
-    
     AddEmptyOption() ; spacer
     
     SetCursorPosition(1) ; switched sides
+    
+    AddHeaderOption("Save/Load Settings")
+    bSaveSettingsOID        = AddTextOption("Save current settings", "Push Here")
+    bLoadSettingsOID        = AddTextOption("Load current settings", "Push Here")
+    AddEmptyOption() ; spacer
     
     AddHeaderOption("Sex Events")
     bHookAnySexlabEventOID      = AddToggleOption("Bypass DEC only requirement", bHookAnySexlabEvent)
@@ -492,8 +497,9 @@ event OnPageReset(string a_page)
     iDistanceWeightIOMEnslaveOID    = AddSliderOption("Isle of mara enslavement", iDistanceWeightIOMEnslave, "{0}", (!Mods.modLoadedIsleofMara) as int)
     iDistanceWeightDCLLeonOID       = AddSliderOption("Cursed loot Leon", iDistanceWeightDCLLeon, "{0}", (!Mods.modLoadedCursedLoot) as int)
     iDistanceWeightDCLLeahOID       = AddSliderOption("Cursed loot Leah", iDistanceWeightDCLLeah, "{0}", (!Mods.modLoadedCursedLoot) as int)
-    iDistanceWeightDCVampireOID     = AddSliderOption("Devious Cidhna (Vampires) Weight", iDistanceWeightDCVampire, "{0}", (!Mods.modLoadedDeviousCidhna) as int)
-    iDistanceWeightDCBanditsOID     = AddSliderOption("Devious Cidhna (Bandits) Weight", iDistanceWeightDCBandits, "{0}", (!Mods.modLoadedDeviousCidhna) as int)
+    iDistanceWeightDCVampireOID     = AddSliderOption("Devious Cidhna (Vampires)", iDistanceWeightDCVampire, "{0}", (!Mods.modLoadedDeviousCidhna) as int)
+    iDistanceWeightDCBanditsOID     = AddSliderOption("Devious Cidhna (Bandits)", iDistanceWeightDCBandits, "{0}", (!Mods.modLoadedDeviousCidhna) as int)
+    iDistanceWeightDFGiftOID        = AddSliderOption("Devious Follower Gift", iDistanceWeightDFGift, "{0}", (!Mods.modLoadedDeviousCidhna) as int)
 
     
   elseif a_page == Pages[5] ; Follower 
@@ -661,7 +667,7 @@ event OnPageReset(string a_page)
     bTestButton3OID           = AddToggleOption("DD Key check", bTestButton3);, (!Mods.modLoadedSlaveTats) as int)
     bTestButton4OID           = AddToggleOption("Bed teleport test", bTestButton4, (!Mods.modLoadedCursedLoot) as int)
     bTestButton5OID           = AddToggleOption("Add Item test", bTestButton5);, (!Mods.modLoadedIsleofMara) as int)
-    bCDTestOID                = AddToggleOption("Print Zaz slave status", bCDTest, (!Mods.modLoadedSlaverunR) as int)
+    bCDTestOID                = AddToggleOption("Print Zaz slave status", bCDTest);, (!Mods.modLoadedSlaverunR) as int)
     bTestButton6OID           = AddToggleOption("SD distant start", bTestButton6, (!Mods.modLoadedSD) as int)
     bTestButton7OID           = AddToggleOption("Temporary test", bTestButton7);, (!Mods.modLoadedPrisonOverhaulPatch) as int)
   endIf
@@ -719,6 +725,10 @@ event OnOptionSelect(int a_option)
     ;  testTattoos()
     ;endif
     SetToggleOptionValue(a_option, new_value)
+  elseif a_option == bSaveSettingsOID 
+    SaveConfig()
+  elseif a_option == bLoadSettingsOID 
+    LoadConfig()
   elseIf (a_option == bIsNonChestArmorIgnoredNakedOID) ;bIsNonChestArmorIgnoredNaked
     bIsNonChestArmorIgnoredNaked = !bIsNonChestArmorIgnoredNaked
     SetToggleOptionValue(a_option, bIsNonChestArmorIgnoredNaked)
@@ -1297,8 +1307,13 @@ event OnOptionSliderOpen(int a_option)
     SetSliderDialogDefaultValue(0)
     SetSliderDialogRange(0, 150)
     SetSliderDialogInterval( 1 )
-  elseif a_option == iDistanceWeightDCBanditsOID
+  elseif a_option == iDistanceWeightDCBanditsOID;iDistanceWeightDFGift
     SetSliderDialogStartValue(iDistanceWeightDCBandits)
+    SetSliderDialogDefaultValue(0)
+    SetSliderDialogRange(0, 150)
+    SetSliderDialogInterval( 1 ) 
+  elseif a_option == iDistanceWeightDFGiftOID
+    SetSliderDialogStartValue(iDistanceWeightDFGift)
     SetSliderDialogDefaultValue(0)
     SetSliderDialogRange(0, 150)
     SetSliderDialogInterval( 1 ) 
@@ -2033,8 +2048,11 @@ event OnOptionSliderAccept(int a_option, float a_value)
   elseif a_option == iDistanceWeightDCVampireOID
     iDistanceWeightDCVampire = a_value as int
     SetSliderOptionValue(a_option, a_value, "{0}")
-  elseif a_option == iDistanceWeightDCBanditsOID
+  elseif a_option == iDistanceWeightDCBanditsOID;iDistanceWeightDFGiftOID
     iDistanceWeightDCBandits = a_value as int
+    SetSliderOptionValue(a_option, a_value, "{0}")  
+  elseif a_option == iDistanceWeightDFGiftOID
+    iDistanceWeightDFGift = a_value as int
     SetSliderOptionValue(a_option, a_value, "{0}")  
     
   elseif (a_option == iEnslaveWeightLocalOID)
@@ -2351,8 +2369,8 @@ event OnOptionSliderAccept(int a_option, float a_value)
     SetSliderOptionValue(a_option, a_value, "{0}")
 
   elseif a_option == iVulnerableSexlabEroticOID
-    iVulnerableSexlabErotic = a_option as int
-    SetSliderOptionValue(a_option, a_value, "{0}")
+    iVulnerableSexlabErotic = a_value as int
+    SetSliderOptionValue(a_option, a_value, "Level {0}")
     
   elseif a_option == iNakedReqGagOID
     iNakedReqGag = a_value as int
@@ -2467,7 +2485,7 @@ event OnOptionHighlight(int a_option)
   elseIf (a_option == iNPCSearchCountOID)
     SetInfoText("The number of NPCs the mod will look through to find someone to attack the player")
   elseIf (a_option == fModifierSlaverChancesOID)
-    SetInfoText("Modifier than increases chance Slaver will approach the player (1 is same, 0 is no slaver, 2 is half chance,ect)")
+    SetInfoText("Modifier than increases chance Slaver will approach the player (1 is same, 0.5 is half normal chance, 2 is double chance, ect)")
     
   elseif a_option == bHookAnySexlabEventOID
     SetInfoText("Toggles Deviously enslaved to catch sexlab sessions started by OTHER mods and run events on them (rape, adding DD items, enslave, ect) This is dangerous and should not be used")
@@ -2845,6 +2863,8 @@ event OnOptionHighlight(int a_option)
   elseif a_option == iDistanceWeightDCLLeahOID
     SetInfoText("Chance of getting the Cursed loot Leah enslavement outcome when enslaved. (given)")
 
+
+    
   elseif a_option == bSDGeneralLockoutOID ;
     SetInfoText("Toggles if DEC shouldn't be active during SD+ Enslavement, if ON DEC will do nothing")
   elseif a_option == bCDSlaveLockoutOID ;
@@ -2878,13 +2898,592 @@ event OnOptionHighlight(int a_option)
     SetInfoText("Weight for getting a vaginal piercing")
   elseif a_option == iWeightSingleNipplePiercingsOID
     SetInfoText("Weight for getting a pair of nipple piercings")
-
-    
+  elseif a_option == bSaveSettingsOID
+    SetInfoText("Push this button to save your current setting in a separate file outside of your save. Note: Followers are not saved")
+  elseif a_option == bLoadSettingsOID
+    SetInfoText("Push this button to load your previously saved settings into the mod. NOTE: you may have to refresh the MCM to see them change")
   else ; catch all; the stuff I forgot and then some
     SetInfoText("Catchall tooltip: typing hints is tedious, if you want to know what this does ask in the support thread, and/or report which option is missing the tooltip")
   endIf ; fFollowerItemApproachExpOID
 
 endEvent
+
+; save config settings 
+function SaveConfig()
+  string filePath = "../DEC/DEC_conf.json"
+  debug.Trace("[CRDE] *** Save config called ***")
+  
+  JsonUtil.SetStringValue(filePath, "Meta", Game.GetPlayer().GetLeveledActorBase().GetName() +" at time " + Utility.GetCurrentGameTime()  )
+  JsonUtil.SetIntValue(filePath, "Version", GetVersion())
+
+  JsonUtil.SetIntValue(filePath, "gCRDEEnable", gCRDEEnable.GetValueInt() )
+  JsonUtil.SetIntValue(filePath, "bDebugMode", bDebugMode as int)
+  JsonUtil.SetIntValue(filePath, "bDebugConsoleMode", bDebugConsoleMode as int)
+  JsonUtil.SetFloatValue(filePath, "fEventInterval", fEventInterval)
+  JsonUtil.SetFloatValue(filePath, "fEventTimeout", fEventTimeout)
+  JsonUtil.SetIntValue(filePath, "iGenderPref", iGenderPref)
+  JsonUtil.SetIntValue(filePath, "iGenderPrefMaster", iGenderPrefMaster)
+  JsonUtil.SetIntValue(filePath, "bUseSexlabGender", bUseSexlabGender as int)
+  JsonUtil.SetIntValue(filePath, "iChanceEnslavementConvo", iChanceEnslavementConvo)
+  JsonUtil.SetIntValue(filePath, "iChanceVulEnslavementConvo", iChanceVulEnslavementConvo)
+  JsonUtil.SetIntValue(filePath, "iChanceSexConvo", iChanceSexConvo)
+  JsonUtil.SetIntValue(filePath, "iSexEventKey", iSexEventKey)
+  JsonUtil.SetIntValue(filePath, "iSexEventDevice", iSexEventDevice)
+  JsonUtil.SetIntValue(filePath, "iRapeEventDevice", iRapeEventDevice)
+  JsonUtil.SetIntValue(filePath, "iRapeEventEnslave", iRapeEventEnslave)
+  JsonUtil.SetIntValue(filePath, "iVulnerableNaked", iVulnerableNaked)
+  JsonUtil.SetIntValue(filePath, "bIsNonChestArmorIgnoredNaked", bIsNonChestArmorIgnoredNaked as int)
+  JsonUtil.SetIntValue(filePath, "bHookAnySexlabEvent", bHookAnySexlabEvent as int)
+  JsonUtil.SetIntValue(filePath, "bHookReqVictimStatus", bHookReqVictimStatus as int)
+  JsonUtil.SetIntValue(filePath, "bFxFAlwaysAggressive", bFxFAlwaysAggressive as int)
+  JsonUtil.SetIntValue(filePath, "iWeightSingleDD", iWeightSingleDD)
+  JsonUtil.SetIntValue(filePath, "iWeightMultiDD", iWeightMultiDD)
+  JsonUtil.SetIntValue(filePath, "iWeightPetcollar", iWeightPetcollar)
+  JsonUtil.SetIntValue(filePath, "iWeightCursedCollar", iWeightCursedCollar)
+  JsonUtil.SetIntValue(filePath, "iWeightSlaveCollar", iWeightSlaveCollar)
+  JsonUtil.SetIntValue(filePath, "iWeightSlutCollar", iWeightSlutCollar)
+  JsonUtil.SetIntValue(filePath, "iWeightRubberDollCollar", iWeightRubberDollCollar)
+  JsonUtil.SetFloatValue(filePath, "fModifierSlaverChances", fModifierSlaverChances)
+  JsonUtil.SetIntValue(filePath, "iSearchRange", iSearchRange)
+  JsonUtil.SetIntValue(filePath, "gSearchRange", gSearchRange.GetValueInt() )
+  JsonUtil.SetIntValue(filePath, "iNPCSearchCount", iNPCSearchCount)
+  JsonUtil.SetIntValue(filePath, "iApproachDuration", iApproachDuration)
+  JsonUtil.SetIntValue(filePath, "bAttackersGuards", bAttackersGuards as int)
+  JsonUtil.SetIntValue(filePath, "iMinEnslaveVulnerable", iMinEnslaveVulnerable)
+  JsonUtil.SetIntValue(filePath, "iMinApproachArousal", iMinApproachArousal)
+  JsonUtil.SetIntValue(filePath, "gMinApproachArousal", gMinApproachArousal.GetValueInt() )
+  JsonUtil.SetIntValue(filePath, "iMaxEnslaveMorality", iMaxEnslaveMorality)
+  JsonUtil.SetIntValue(filePath, "iMaxSolicitMorality", iMaxSolicitMorality)
+  JsonUtil.SetIntValue(filePath, "bConfidenceToggle", bConfidenceToggle as int)
+  JsonUtil.SetIntValue(filePath, "bFollowerDialogueToggle", bFollowerDialogueToggle.GetValueInt() )
+  JsonUtil.SetIntValue(filePath, "iReqLevelSLSFExhibIncreaseVulnerable", iReqLevelSLSFExhibIncreaseVulnerable)
+  JsonUtil.SetIntValue(filePath, "iReqLevelSLSFExhibMakeVulnerable", iReqLevelSLSFExhibMakeVulnerable)
+  JsonUtil.SetIntValue(filePath, "iReqLevelSLSFSlutIncreaseVulnerable", iReqLevelSLSFSlutIncreaseVulnerable)
+  JsonUtil.SetIntValue(filePath, "iReqLevelSLSFSlutMakeVulnerable", iReqLevelSLSFSlutMakeVulnerable)
+  JsonUtil.SetIntValue(filePath, "iReqLevelSLSFSlaveIncreaseVulnerable", iReqLevelSLSFSlaveIncreaseVulnerable)
+  JsonUtil.SetIntValue(filePath, "iReqLevelSLSFSlaveMakeVulnerable", iReqLevelSLSFSlaveMakeVulnerable)
+  JsonUtil.SetIntValue(filePath, "iWeaponHoldingProtectionLevel", iWeaponHoldingProtectionLevel)
+  JsonUtil.SetIntValue(filePath, "iWeaponWavingProtectionLevel", iWeaponWavingProtectionLevel)
+  JsonUtil.SetIntValue(filePath, "iRelationshipProtectionLevel", iRelationshipProtectionLevel)
+  JsonUtil.SetIntValue(filePath, "iVulnerableLOS", iVulnerableLOS as int)
+  JsonUtil.SetIntValue(filePath, "iVulnerableFurniture", iVulnerableFurniture)
+  JsonUtil.SetIntValue(filePath, "iVulnerableGag", iVulnerableGag)
+  JsonUtil.SetIntValue(filePath, "iVulnerableCollar", iVulnerableCollar)
+  JsonUtil.SetIntValue(filePath, "iVulnerableArmbinder", iVulnerableArmbinder)
+  JsonUtil.SetIntValue(filePath, "iVulnerableBlindfold", iVulnerableBlindfold)
+  JsonUtil.SetIntValue(filePath, "iVulnerableBukkake", iVulnerableBukkake)
+  JsonUtil.SetIntValue(filePath, "iVulnerableSlaveBoots", iVulnerableSlaveBoots)
+  JsonUtil.SetIntValue(filePath, "iVulnerableHarness", iVulnerableHarness)
+  JsonUtil.SetIntValue(filePath, "iVulnerablePierced", iVulnerablePierced)
+  JsonUtil.SetIntValue(filePath, "iVulnerableSlaveTattoo", iVulnerableSlaveTattoo)
+  JsonUtil.SetIntValue(filePath, "iVulnerableSlutTattoo", iVulnerableSlutTattoo)
+  JsonUtil.SetIntValue(filePath, "iVulnerableAnkleChains", iVulnerableAnkleChains)
+  JsonUtil.SetIntValue(filePath, "iVulnerableSexlabErotic", iVulnerableSexlabErotic)
+  JsonUtil.SetIntValue(filePath, "iNakedReqFurniture", iNakedReqFurniture as int)
+  JsonUtil.SetIntValue(filePath, "iNakedReqGag", iNakedReqGag)
+  JsonUtil.SetIntValue(filePath, "iNakedReqCollar", iNakedReqCollar)
+  JsonUtil.SetIntValue(filePath, "iNakedReqArmbinder", iNakedReqArmbinder)
+  JsonUtil.SetIntValue(filePath, "iNakedReqBlindfold", iNakedReqBlindfold)
+  JsonUtil.SetIntValue(filePath, "iNakedReqBukkake", iNakedReqBukkake)
+  JsonUtil.SetIntValue(filePath, "iNakedReqSlaveBoots", iNakedReqSlaveBoots)
+  JsonUtil.SetIntValue(filePath, "iNakedReqHarness", iNakedReqHarness)
+  JsonUtil.SetIntValue(filePath, "iNakedReqPierced", iNakedReqPierced)
+  JsonUtil.SetIntValue(filePath, "iNakedReqSlaveTattoo", iNakedReqSlaveTattoo)
+  JsonUtil.SetIntValue(filePath, "iNakedReqSlutTattoo", iNakedReqSlutTattoo)
+  JsonUtil.SetIntValue(filePath, "iNakedReqAnkleChains", iNakedReqAnkleChains)
+  JsonUtil.SetIntValue(filePath, "bChastityToggle", bChastityToggle as int)
+  JsonUtil.SetIntValue(filePath, "bChastityGag", bChastityGag as int)
+  JsonUtil.SetIntValue(filePath, "bChastityBra", bChastityBra as int)
+  JsonUtil.SetIntValue(filePath, "bChastityLockingZaz", bChastityLockingZaz as int)
+  JsonUtil.SetIntValue(filePath, "bChastityZazGag", bChastityZazGag as int)
+  JsonUtil.SetIntValue(filePath, "bChastityZazBelt", bChastityZazBelt as int)
+  JsonUtil.SetFloatValue(filePath, "fChastityCompleteModifier", fChastityCompleteModifier)
+  JsonUtil.SetFloatValue(filePath, "fChastityPartialModifier", fChastityPartialModifier)
+  JsonUtil.SetIntValue(filePath, "bEnslaveLockoutDCUR", bEnslaveLockoutDCUR as int)
+  JsonUtil.SetIntValue(filePath, "bEnslaveFollowerLockToggle", bEnslaveFollowerLockToggle as int)
+  JsonUtil.SetIntValue(filePath, "bSexFollowerLockToggle", bSexFollowerLockToggle as int)
+  JsonUtil.SetIntValue(filePath, "bSlaverunEnslaveToggle", bSlaverunEnslaveToggle as int)
+  JsonUtil.SetIntValue(filePath, "bSDEnslaveToggle", bSDEnslaveToggle as int)
+  JsonUtil.SetIntValue(filePath, "bMariaEnslaveToggle", bMariaEnslaveToggle as int)
+  JsonUtil.SetIntValue(filePath, "bWCDistanceToggle", bWCDistanceToggle as int)
+  JsonUtil.SetIntValue(filePath, "bMariaDistanceToggle", bMariaDistanceToggle as int)
+  JsonUtil.SetIntValue(filePath, "bMariaKhajitEnslaveToggle", bMariaKhajitEnslaveToggle as int)
+  JsonUtil.SetIntValue(filePath, "bSDDistanceToggle", bSDDistanceToggle as int)
+  JsonUtil.SetIntValue(filePath, "bSSAuctionEnslaveToggle", bSSAuctionEnslaveToggle as int)
+  JsonUtil.SetIntValue(filePath, "bCDEnslaveToggle", bCDEnslaveToggle as int)
+  JsonUtil.SetIntValue(filePath, "bDCPirateEnslaveToggle", bDCPirateEnslaveToggle as int)
+  JsonUtil.SetIntValue(filePath, "iEnslaveWeightSD", iEnslaveWeightSD)
+  JsonUtil.SetIntValue(filePath, "iEnslaveWeightMaria", iEnslaveWeightMaria)
+  JsonUtil.SetIntValue(filePath, "iEnslaveWeightSlaverun", iEnslaveWeightSlaverun)
+  JsonUtil.SetIntValue(filePath, "iEnslaveWeightCD", iEnslaveWeightCD)
+  JsonUtil.SetIntValue(filePath, "iEnslaveWeightSS", iEnslaveWeightSS)
+  JsonUtil.SetIntValue(filePath, "iEnslaveWeightLocal", iEnslaveWeightLocal)
+  JsonUtil.SetIntValue(filePath, "iEnslaveWeightGiven", iEnslaveWeightGiven)
+  JsonUtil.SetIntValue(filePath, "iEnslaveWeightSold", iEnslaveWeightSold)
+  JsonUtil.SetIntValue(filePath, "iDistanceWeightCD", iDistanceWeightCD)
+  JsonUtil.SetIntValue(filePath, "iDistanceWeightWC", iDistanceWeightWC)
+  JsonUtil.SetIntValue(filePath, "iDistanceWeightMaria", iDistanceWeightMaria)
+  JsonUtil.SetIntValue(filePath, "iDistanceWeightMariaK", iDistanceWeightMariaK)
+  JsonUtil.SetIntValue(filePath, "iDistanceWeightSD", iDistanceWeightSD)
+  JsonUtil.SetIntValue(filePath, "iDistanceWeightSS", iDistanceWeightSS)
+  JsonUtil.SetIntValue(filePath, "iDistanceWeightDCPirate", iDistanceWeightDCPirate)
+  JsonUtil.SetIntValue(filePath, "iDistanceWeightDCLDamsel", iDistanceWeightDCLDamsel)
+  JsonUtil.SetIntValue(filePath, "iDistanceWeightDCLBondageAdv", iDistanceWeightDCLBondageAdv)
+  JsonUtil.SetIntValue(filePath, "iDistanceWeightSlaverunRSold", iDistanceWeightSlaverunRSold)
+  JsonUtil.SetIntValue(filePath, "iDistanceWeightSLUTSEnslave", iDistanceWeightSLUTSEnslave)
+  JsonUtil.SetIntValue(filePath, "iDistanceWeightIOMEnslave", iDistanceWeightIOMEnslave)
+  JsonUtil.SetIntValue(filePath, "iDistanceWeightDCLLeon", iDistanceWeightDCLLeon)
+  JsonUtil.SetIntValue(filePath, "iDistanceWeightDCLLeah", iDistanceWeightDCLLeah)
+  JsonUtil.SetIntValue(filePath, "iDistanceWeightDCVampire", iDistanceWeightDCVampire)
+  JsonUtil.SetIntValue(filePath, "iDistanceWeightDCBandits", iDistanceWeightDCBandits)
+  JsonUtil.SetIntValue(filePath, "bEnslaveLockoutCLDoll", bEnslaveLockoutCLDoll as int)
+  JsonUtil.SetIntValue(filePath, "bEnslaveLockoutSRR", bEnslaveLockoutSRR as int)
+  JsonUtil.SetIntValue(filePath, "bEnslaveLockoutTIR", bEnslaveLockoutTIR as int)
+  JsonUtil.SetIntValue(filePath, "bEnslaveLockoutCD", bEnslaveLockoutCD as int)
+  JsonUtil.SetIntValue(filePath, "bEnslaveLockoutSDDream", bEnslaveLockoutSDDream as int)
+  JsonUtil.SetIntValue(filePath, "bEnslaveLockoutMiasLair", bEnslaveLockoutMiasLair as int)
+  JsonUtil.SetIntValue(filePath, "bEnslaveLockoutAngrim", bEnslaveLockoutAngrim as int)
+  JsonUtil.SetIntValue(filePath, "bEnslaveLockoutFTD", bEnslaveLockoutFTD as int)
+  JsonUtil.SetIntValue(filePath, "bGuardDialogueToggle", bGuardDialogueToggle as int)
+  JsonUtil.SetIntValue(filePath, "gGuardDialogueToggle", gGuardDialogueToggle.GetValueInt() )
+  JsonUtil.SetIntValue(filePath, "bIntimidateToggle", bIntimidateToggle as int)
+  JsonUtil.SetIntValue(filePath, "gIntimidateToggle", gIntimidateToggle.GetValueInt() )
+  JsonUtil.SetIntValue(filePath, "bIntimidateGagFullToggle", bIntimidateGagFullToggle as int)
+  JsonUtil.SetIntValue(filePath, "bIntimidateWeaponFullToggle", bIntimidateWeaponFullToggle as int)
+  JsonUtil.SetIntValue(filePath, "bArousalFunctionWorkaround", bArousalFunctionWorkaround as int)
+  JsonUtil.SetIntValue(filePath, "bSecondBusyCheckWorkaround", bSecondBusyCheckWorkaround as int)
+  JsonUtil.SetIntValue(filePath, "bFollowerRemembersHit", bFollowerRemembersHit as int)
+  JsonUtil.SetIntValue(filePath, "bAltBodySlotSearchWorkaround", bAltBodySlotSearchWorkaround as int)
+  JsonUtil.SetIntValue(filePath, "bIgnoreZazOnNPC", bIgnoreZazOnNPC as int)
+  JsonUtil.SetIntValue(filePath, "bDebugRollVis", bDebugRollVis as int)
+  JsonUtil.SetIntValue(filePath, "bDebugStateVis", bDebugStateVis as int)
+  JsonUtil.SetIntValue(filePath, "bDebugStatusVis", bDebugStatusVis as int)
+  JsonUtil.SetIntValue(filePath, "gUnfinishedDialogueToggle", gUnfinishedDialogueToggle.GetValueInt() )
+  JsonUtil.SetIntValue(filePath, "bDebugLoudApproachFail", bDebugLoudApproachFail as int)
+  JsonUtil.SetIntValue(filePath, "bPrintSexlabStatus", bPrintSexlabStatus as int)
+  JsonUtil.SetIntValue(filePath, "bPrintVulnerabilityStatus", bPrintVulnerabilityStatus as int)
+  JsonUtil.SetIntValue(filePath, "bResetDHLP", bResetDHLP as int)
+  JsonUtil.SetIntValue(filePath, "bRefreshSDMaster", bRefreshSDMaster as int)
+  JsonUtil.SetIntValue(filePath, "bSetValidRace", bSetValidRace as int)
+  JsonUtil.SetIntValue(filePath, "bTestTattoos", bTestTattoos as int)
+  JsonUtil.SetIntValue(filePath, "bTestTimeTest", bTestTimeTest as int)
+  JsonUtil.SetIntValue(filePath, "bTestButton1", bTestButton1 as int)
+  JsonUtil.SetIntValue(filePath, "bTestButton2", bTestButton2 as int)
+  JsonUtil.SetIntValue(filePath, "bTestButton3", bTestButton3 as int)
+  JsonUtil.SetIntValue(filePath, "bTestButton4", bTestButton4 as int)
+  JsonUtil.SetIntValue(filePath, "bTestButton5", bTestButton5 as int)
+  JsonUtil.SetIntValue(filePath, "bTestButton6", bTestButton6 as int)
+  JsonUtil.SetIntValue(filePath, "bTestButton7", bTestButton7 as int)
+  JsonUtil.SetIntValue(filePath, "bAbductionTest", bAbductionTest as int)
+  JsonUtil.SetIntValue(filePath, "bInitTest", bInitTest as int)
+  JsonUtil.SetIntValue(filePath, "bCDTest", bCDTest as int)
+  JsonUtil.SetIntValue(filePath, "bSimpleSlaveryTest", bSimpleSlaveryTest as int)
+  JsonUtil.SetIntValue(filePath, "iWeightSingleCollar", iWeightSingleCollar)
+  JsonUtil.SetIntValue(filePath, "iWeightSingleGag", iWeightSingleGag)
+  JsonUtil.SetIntValue(filePath, "iWeightSingleArmbinder", iWeightSingleArmbinder)
+  JsonUtil.SetIntValue(filePath, "iWeightSingleCuffs", iWeightSingleCuffs)
+  JsonUtil.SetIntValue(filePath, "iWeightSingleBlindfold", iWeightSingleBlindfold)
+  JsonUtil.SetIntValue(filePath, "iWeightSingleHarness", iWeightSingleHarness)
+  JsonUtil.SetIntValue(filePath, "iWeightSingleBelt", iWeightSingleBelt)
+  JsonUtil.SetIntValue(filePath, "iWeightSingleGlovesBoots", iWeightSingleGlovesBoots)
+  JsonUtil.SetIntValue(filePath, "iWeightSingleYoke", iWeightSingleYoke)
+  JsonUtil.SetIntValue(filePath, "iWeightBeltPiercings", iWeightBeltPiercings)
+  JsonUtil.SetIntValue(filePath, "iWeightPlugs", iWeightPlugs)
+  JsonUtil.SetIntValue(filePath, "iWeightEboniteRegular", iWeightEboniteRegular)
+  JsonUtil.SetIntValue(filePath, "iWeightEboniteRed", iWeightEboniteRed)
+  JsonUtil.SetIntValue(filePath, "iWeightEboniteWhite", iWeightEboniteWhite)
+  JsonUtil.SetIntValue(filePath, "iWeightZazMetalBrown", iWeightZazMetalBrown)
+  JsonUtil.SetIntValue(filePath, "iWeightZazMetalBlack", iWeightZazMetalBlack)
+  JsonUtil.SetIntValue(filePath, "iWeightZazLeather", iWeightZazLeather)
+  JsonUtil.SetIntValue(filePath, "iWeightZazRope", iWeightZazRope)
+  JsonUtil.SetIntValue(filePath, "iWeightCDGold", iWeightCDGold)
+  JsonUtil.SetIntValue(filePath, "iWeightCDSilver", iWeightCDSilver)
+  JsonUtil.SetIntValue(filePath, "iWeightDDRegular", iWeightDDRegular)
+  JsonUtil.SetIntValue(filePath, "iWeightDDZazVel", iWeightDDZazVel)
+  JsonUtil.SetIntValue(filePath, "iWeightZazReg", iWeightZazReg)
+  JsonUtil.SetIntValue(filePath, "iWeightMultiPony", iWeightMultiPony)
+  JsonUtil.SetIntValue(filePath, "iWeightMultiRedBNC", iWeightMultiRedBNC)
+  JsonUtil.SetIntValue(filePath, "iWeightMultiSeveral", iWeightMultiSeveral)
+  JsonUtil.SetIntValue(filePath, "iWeightMultiTransparent", iWeightMultiTransparent)
+  JsonUtil.SetIntValue(filePath, "iWeightMultiRubber", iWeightMultiRubber)
+  JsonUtil.SetIntValue(filePath, "iWeightBeltPiercingsSoulGem", iWeightBeltPiercingsSoulGem)
+  JsonUtil.SetIntValue(filePath, "iWeightBeltPiercingsShock", iWeightBeltPiercingsShock)
+  JsonUtil.SetIntValue(filePath, "iWeightPlugSoulGem", iWeightPlugSoulGem)
+  JsonUtil.SetIntValue(filePath, "iWeightPlugWood", iWeightPlugWood)
+  JsonUtil.SetIntValue(filePath, "iWeightPlugInflatable", iWeightPlugInflatable)
+  JsonUtil.SetIntValue(filePath, "iWeightPlugTraining", iWeightPlugTraining)
+  JsonUtil.SetIntValue(filePath, "iWeightPlugCDSpecial", iWeightPlugCDSpecial)
+  JsonUtil.SetIntValue(filePath, "iWeightPlugCDEffect", iWeightPlugCDEffect)
+  JsonUtil.SetIntValue(filePath, "iWeightPlugCharging", iWeightPlugCharging)
+  JsonUtil.SetIntValue(filePath, "iWeightPlugDasha", iWeightPlugDasha)
+  JsonUtil.SetIntValue(filePath, "iWeightBeltPunishment", iWeightBeltPunishment)
+  JsonUtil.SetIntValue(filePath, "iWeightBeltRegular", iWeightBeltRegular)
+  JsonUtil.SetIntValue(filePath, "iWeightBeltShame", iWeightBeltShame)
+  JsonUtil.SetIntValue(filePath, "iWeightBeltCD", iWeightBeltCD)
+  JsonUtil.SetIntValue(filePath, "iWeightBeltRegulationsImperial", iWeightBeltRegulationsImperial)
+  JsonUtil.SetIntValue(filePath, "iWeightBeltRegulationsStormCloak", iWeightBeltRegulationsStormCloak)
+  JsonUtil.SetIntValue(filePath, "iWeightUniqueCollars", iWeightUniqueCollars)
+  JsonUtil.SetIntValue(filePath, "iWeightRandomCD", iWeightRandomCD)
+  JsonUtil.SetIntValue(filePath, "iWeightConfidenceArousalOverride", iWeightConfidenceArousalOverride)
+  JsonUtil.SetIntValue(filePath, "iWeightDeviousPunishEquipmentBannnedCollar", iWeightDeviousPunishEquipmentBannnedCollar)
+  JsonUtil.SetIntValue(filePath, "iWeightDeviousPunishEquipmentProstitutedCollar", iWeightDeviousPunishEquipmentProstitutedCollar)
+  JsonUtil.SetIntValue(filePath, "iWeightDeviousPunishEquipmentNakedCollar", iWeightDeviousPunishEquipmentNakedCollar)
+  JsonUtil.SetIntValue(filePath, "iWeightBeltPadded", iWeightBeltPadded)
+  JsonUtil.SetIntValue(filePath, "iWeightBeltIron", iWeightBeltIron)
+  JsonUtil.SetIntValue(filePath, "iWeightPlugShock", iWeightPlugShock)
+  JsonUtil.SetIntValue(filePath, "iWeightSingleBoots", iWeightSingleBoots)
+  JsonUtil.SetIntValue(filePath, "iWeightSingleAnkleChains", iWeightSingleAnkleChains)
+  JsonUtil.SetIntValue(filePath, "iWeightSingleHood", iWeightSingleHood)
+  JsonUtil.SetIntValue(filePath, "iWeightGagBall", iWeightGagBall)
+  JsonUtil.SetIntValue(filePath, "iWeightGagRing", iWeightGagRing)
+  JsonUtil.SetIntValue(filePath, "iWeightGagPanel", iWeightGagPanel)
+  JsonUtil.SetIntValue(filePath, "iWeightGagPenis", iWeightGagPenis)
+  JsonUtil.SetIntValue(filePath, "iWeightStripCollar", iWeightStripCollar)
+  JsonUtil.SetIntValue(filePath, "iWeightHeavyCollar", iWeightHeavyCollar)
+  JsonUtil.SetIntValue(filePath, "iWeightSlutTattoo", iWeightSlutTattoo)
+  JsonUtil.SetIntValue(filePath, "iWeightSlaveTattoo", iWeightSlaveTattoo)
+  JsonUtil.SetIntValue(filePath, "iWeightWhoreTattoo", iWeightWhoreTattoo)
+  JsonUtil.SetFloatValue(filePath, "fNightReqArousalModifier", fNightReqArousalModifier)
+  JsonUtil.SetFloatValue(filePath, "fNightDistanceModifier", fNightDistanceModifier)
+  JsonUtil.SetFloatValue(filePath, "fNightChanceModifier", fNightChanceModifier)
+  JsonUtil.SetIntValue(filePath, "iNightReqConfidenceReduction", iNightReqConfidenceReduction)
+  JsonUtil.SetIntValue(filePath, "bNightAddsToVulnerable", bNightAddsToVulnerable as int)
+  JsonUtil.SetFloatValue(filePath, "fFollowerSpecEnjoysDom", fFollowerSpecEnjoysDom)
+  JsonUtil.SetFloatValue(filePath, "fFollowerSpecEnjoysSub", fFollowerSpecEnjoysSub)
+  JsonUtil.SetFloatValue(filePath, "fFollowerSpecThinksPlayerDom", fFollowerSpecThinksPlayerDom)
+  JsonUtil.SetFloatValue(filePath, "fFollowerSpecThinksPlayerSub", fFollowerSpecThinksPlayerSub)
+  JsonUtil.SetFloatValue(filePath, "fFollowerSpecContainersCount", fFollowerSpecContainersCount)
+  JsonUtil.SetFloatValue(filePath, "fFollowerSpecFrustration", fFollowerSpecFrustration)
+  JsonUtil.SetIntValue(filePath, "gForceGreetItemFind", gForceGreetItemFind.GetValueInt() )
+  JsonUtil.SetIntValue(filePath, "gFollowerArousalMin", gFollowerArousalMin.GetValueInt() )
+  JsonUtil.SetIntValue(filePath, "bFollowerDungeonEnterRequired", bFollowerDungeonEnterRequired as int)
+  JsonUtil.SetIntValue(filePath, "bFollowerContainerSearch", bFollowerContainerSearch.GetValueInt() )
+  JsonUtil.SetIntValue(filePath, "bFollowerContainerSearchUnknown", bFollowerContainerSearchUnknown as int)
+  JsonUtil.SetFloatValue(filePath, "fFollowerFindMinContainers", fFollowerFindMinContainers)
+  JsonUtil.SetFloatValue(filePath, "fFollowerFindChanceMaxPercentage", fFollowerFindChanceMaxPercentage)
+  JsonUtil.SetIntValue(filePath, "iFollowerFindChanceMaxContainers", iFollowerFindChanceMaxContainers)
+  JsonUtil.SetIntValue(filePath, "iFollowerMinVulnerableApproachable", iFollowerMinVulnerableApproachable)
+  JsonUtil.SetIntValue(filePath, "iFollowerRelationshipLimit", iFollowerRelationshipLimit.GetValueInt() )
+  JsonUtil.SetFloatValue(filePath, "fFollowerItemApproachExp", fFollowerItemApproachExp)
+  JsonUtil.SetFloatValue(filePath, "fFollowerSexApproachExp", fFollowerSexApproachExp)
+  JsonUtil.SetIntValue(filePath, "fFollowerSexApproachChanceMaxPercentage", fFollowerSexApproachChanceMaxPercentage)
+  JsonUtil.SetFloatValue(filePath, "itemParabolicModifier", itemParabolicModifier)
+  JsonUtil.SetFloatValue(filePath, "sexApproachParabolicModifier", sexApproachParabolicModifier)
+  JsonUtil.SetIntValue(filePath, "crdeBDialogueCanBeBeltedToggle", crdeBDialogueCanBeBeltedToggle.GetValueInt() )
+  JsonUtil.SetIntValue(filePath, "bSDGeneralLockout", bSDGeneralLockout as int)
+  JsonUtil.SetIntValue(filePath, "bCDSlaveLockout", bCDSlaveLockout as int)
+  JsonUtil.SetIntValue(filePath, "bDFGeneralLockout", bDFGeneralLockout as int)
+  JsonUtil.SetIntValue(filePath, "bAddFollowerManually", bAddFollowerManually as int)
+  JsonUtil.SetIntValue(filePath, "bAlternateNPCSearch", bAlternateNPCSearch as int)
+  JsonUtil.SetIntValue(filePath, "iWeightSingleElbowbinder", iWeightSingleElbowbinder)
+  JsonUtil.SetIntValue(filePath, "iWeightHobleDress", iWeightHobleDress)
+  JsonUtil.SetIntValue(filePath, "iWeightCatSuitCollar", iWeightCatSuitCollar)
+  JsonUtil.SetIntValue(filePath, "iWeightStraitJacket", iWeightStraitJacket)
+  JsonUtil.SetIntValue(filePath, "iWeightHarnessedGagType", iWeightHarnessedGagType)
+  JsonUtil.SetIntValue(filePath, "iWeightSimpleGagType", iWeightSimpleGagType)
+  JsonUtil.SetIntValue(filePath, "iWeightGagPony", iWeightGagPony)
+  JsonUtil.SetIntValue(filePath, "iWeightSingleVagPiercings", iWeightSingleVagPiercings)
+  JsonUtil.SetIntValue(filePath, "iWeightSingleNipplePiercings", iWeightSingleNipplePiercings)
+
+  ; new iDistanceWeightDFGift
+  JsonUtil.SetIntValue(filePath, "iDistanceWeightDFGift", iDistanceWeightDFGift)
+
+  JsonUtil.Save(filePath, false)
+  debug.Trace("[CRDE] *** Save config finished ***")
+endFunction
+
+function LoadConfig()
+  debug.Trace("[CRDE] *** Load config called ***")
+  String filePath = "../DEC/DEC_conf.json"
+  ; todo add version checking code here
+  if JSonUtil.GetStringValue(filePath, "Meta", "") == "" ; should only happen if no file exists
+    debug.Trace("[CRDE] Err: No settings file found")
+    debug.Messagebox("Err: No settings file found")
+    return
+  endif
+  int curVer = GetVersion()
+  if JsonUtil.GetIntValue(filePath, "Version", curVer) < curVer
+    debug.Notification("DEC warning: This config is from an older version of the mod")
+    debug.Trace("[CRDE] Warning: This config is from an older version of the mod")
+  endif
+  
+  ; why does getintvalue require the value of the var? its a backup, incase it doesn't exist in the filegCRDEEnable.SetValueInt(JsonUtil.GetIntValue(filePath, "gCRDEEnable", gCRDEEnable ))
+  gCRDEEnable.SetValueInt(JsonUtil.GetIntValue(filePath, "gCRDEEnable", gCRDEEnable.GetValueInt() ))
+  bDebugMode = JsonUtil.GetIntValue(filePath, "bDebugMode", bDebugMode as int ) as bool
+  bDebugConsoleMode = JsonUtil.GetIntValue(filePath, "bDebugConsoleMode", bDebugConsoleMode as int ) as bool
+  fEventInterval = JsonUtil.GetFloatValue(filePath, "fEventInterval", fEventInterval )
+  fEventTimeout = JsonUtil.GetFloatValue(filePath, "fEventTimeout", fEventTimeout )
+  iGenderPref = JsonUtil.GetIntValue(filePath, "iGenderPref", iGenderPref )
+  iGenderPrefMaster = JsonUtil.GetIntValue(filePath, "iGenderPrefMaster", iGenderPrefMaster )
+  bUseSexlabGender = JsonUtil.GetIntValue(filePath, "bUseSexlabGender", bUseSexlabGender as int ) as bool
+  iChanceEnslavementConvo = JsonUtil.GetIntValue(filePath, "iChanceEnslavementConvo", iChanceEnslavementConvo )
+  iChanceVulEnslavementConvo = JsonUtil.GetIntValue(filePath, "iChanceVulEnslavementConvo", iChanceVulEnslavementConvo )
+  iChanceSexConvo = JsonUtil.GetIntValue(filePath, "iChanceSexConvo", iChanceSexConvo )
+  iSexEventKey = JsonUtil.GetIntValue(filePath, "iSexEventKey", iSexEventKey )
+  iSexEventDevice = JsonUtil.GetIntValue(filePath, "iSexEventDevice", iSexEventDevice )
+  iRapeEventDevice = JsonUtil.GetIntValue(filePath, "iRapeEventDevice", iRapeEventDevice )
+  iRapeEventEnslave = JsonUtil.GetIntValue(filePath, "iRapeEventEnslave", iRapeEventEnslave )
+  iVulnerableNaked = JsonUtil.GetIntValue(filePath, "iVulnerableNaked", iVulnerableNaked )
+  bIsNonChestArmorIgnoredNaked = JsonUtil.GetIntValue(filePath, "bIsNonChestArmorIgnoredNaked", bIsNonChestArmorIgnoredNaked as int ) as bool
+  bHookAnySexlabEvent = JsonUtil.GetIntValue(filePath, "bHookAnySexlabEvent", bHookAnySexlabEvent as int ) as bool
+  bHookReqVictimStatus = JsonUtil.GetIntValue(filePath, "bHookReqVictimStatus", bHookReqVictimStatus as int ) as bool
+  bFxFAlwaysAggressive = JsonUtil.GetIntValue(filePath, "bFxFAlwaysAggressive", bFxFAlwaysAggressive as int ) as bool
+  iWeightSingleDD = JsonUtil.GetIntValue(filePath, "iWeightSingleDD", iWeightSingleDD )
+  iWeightMultiDD = JsonUtil.GetIntValue(filePath, "iWeightMultiDD", iWeightMultiDD )
+  iWeightPetcollar = JsonUtil.GetIntValue(filePath, "iWeightPetcollar", iWeightPetcollar )
+  iWeightCursedCollar = JsonUtil.GetIntValue(filePath, "iWeightCursedCollar", iWeightCursedCollar )
+  iWeightSlaveCollar = JsonUtil.GetIntValue(filePath, "iWeightSlaveCollar", iWeightSlaveCollar )
+  iWeightSlutCollar = JsonUtil.GetIntValue(filePath, "iWeightSlutCollar", iWeightSlutCollar )
+  iWeightRubberDollCollar = JsonUtil.GetIntValue(filePath, "iWeightRubberDollCollar", iWeightRubberDollCollar )
+  fModifierSlaverChances = JsonUtil.GetFloatValue(filePath, "fModifierSlaverChances", fModifierSlaverChances )
+  iSearchRange = JsonUtil.GetIntValue(filePath, "iSearchRange", iSearchRange )
+  gSearchRange.SetValueInt(JsonUtil.GetIntValue(filePath, "gSearchRange", gSearchRange.GetValueInt() ))
+  iNPCSearchCount = JsonUtil.GetIntValue(filePath, "iNPCSearchCount", iNPCSearchCount )
+  iApproachDuration = JsonUtil.GetIntValue(filePath, "iApproachDuration", iApproachDuration )
+  bAttackersGuards = JsonUtil.GetIntValue(filePath, "bAttackersGuards", bAttackersGuards as int ) as bool
+  iMinEnslaveVulnerable = JsonUtil.GetIntValue(filePath, "iMinEnslaveVulnerable", iMinEnslaveVulnerable )
+  iMinApproachArousal = JsonUtil.GetIntValue(filePath, "iMinApproachArousal", iMinApproachArousal )
+  gMinApproachArousal.SetValueInt(JsonUtil.GetIntValue(filePath, "gMinApproachArousal", gMinApproachArousal.GetValueInt() ))
+  iMaxEnslaveMorality = JsonUtil.GetIntValue(filePath, "iMaxEnslaveMorality", iMaxEnslaveMorality )
+  iMaxSolicitMorality = JsonUtil.GetIntValue(filePath, "iMaxSolicitMorality", iMaxSolicitMorality )
+  bConfidenceToggle = JsonUtil.GetIntValue(filePath, "bConfidenceToggle", bConfidenceToggle as int ) as bool
+  bFollowerDialogueToggle.SetValueInt(JsonUtil.GetIntValue(filePath, "bFollowerDialogueToggle", bFollowerDialogueToggle.GetValueInt() ))
+  iReqLevelSLSFExhibIncreaseVulnerable = JsonUtil.GetIntValue(filePath, "iReqLevelSLSFExhibIncreaseVulnerable", iReqLevelSLSFExhibIncreaseVulnerable )
+  iReqLevelSLSFExhibMakeVulnerable = JsonUtil.GetIntValue(filePath, "iReqLevelSLSFExhibMakeVulnerable", iReqLevelSLSFExhibMakeVulnerable )
+  iReqLevelSLSFSlutIncreaseVulnerable = JsonUtil.GetIntValue(filePath, "iReqLevelSLSFSlutIncreaseVulnerable", iReqLevelSLSFSlutIncreaseVulnerable )
+  iReqLevelSLSFSlutMakeVulnerable = JsonUtil.GetIntValue(filePath, "iReqLevelSLSFSlutMakeVulnerable", iReqLevelSLSFSlutMakeVulnerable )
+  iReqLevelSLSFSlaveIncreaseVulnerable = JsonUtil.GetIntValue(filePath, "iReqLevelSLSFSlaveIncreaseVulnerable", iReqLevelSLSFSlaveIncreaseVulnerable )
+  iReqLevelSLSFSlaveMakeVulnerable = JsonUtil.GetIntValue(filePath, "iReqLevelSLSFSlaveMakeVulnerable", iReqLevelSLSFSlaveMakeVulnerable )
+  iWeaponHoldingProtectionLevel = JsonUtil.GetIntValue(filePath, "iWeaponHoldingProtectionLevel", iWeaponHoldingProtectionLevel )
+  iWeaponWavingProtectionLevel = JsonUtil.GetIntValue(filePath, "iWeaponWavingProtectionLevel", iWeaponWavingProtectionLevel )
+  iRelationshipProtectionLevel = JsonUtil.GetIntValue(filePath, "iRelationshipProtectionLevel", iRelationshipProtectionLevel )
+  iVulnerableLOS = JsonUtil.GetIntValue(filePath, "iVulnerableLOS", iVulnerableLOS as int ) as bool
+  iVulnerableFurniture = JsonUtil.GetIntValue(filePath, "iVulnerableFurniture", iVulnerableFurniture )
+  iVulnerableGag = JsonUtil.GetIntValue(filePath, "iVulnerableGag", iVulnerableGag )
+  iVulnerableCollar = JsonUtil.GetIntValue(filePath, "iVulnerableCollar", iVulnerableCollar )
+  iVulnerableArmbinder = JsonUtil.GetIntValue(filePath, "iVulnerableArmbinder", iVulnerableArmbinder )
+  iVulnerableBlindfold = JsonUtil.GetIntValue(filePath, "iVulnerableBlindfold", iVulnerableBlindfold )
+  iVulnerableBukkake = JsonUtil.GetIntValue(filePath, "iVulnerableBukkake", iVulnerableBukkake )
+  iVulnerableSlaveBoots = JsonUtil.GetIntValue(filePath, "iVulnerableSlaveBoots", iVulnerableSlaveBoots )
+  iVulnerableHarness = JsonUtil.GetIntValue(filePath, "iVulnerableHarness", iVulnerableHarness )
+  iVulnerablePierced = JsonUtil.GetIntValue(filePath, "iVulnerablePierced", iVulnerablePierced )
+  iVulnerableSlaveTattoo = JsonUtil.GetIntValue(filePath, "iVulnerableSlaveTattoo", iVulnerableSlaveTattoo )
+  iVulnerableSlutTattoo = JsonUtil.GetIntValue(filePath, "iVulnerableSlutTattoo", iVulnerableSlutTattoo )
+  iVulnerableAnkleChains = JsonUtil.GetIntValue(filePath, "iVulnerableAnkleChains", iVulnerableAnkleChains )
+  iVulnerableSexlabErotic = JsonUtil.GetIntValue(filePath, "iVulnerableSexlabErotic", iVulnerableSexlabErotic )
+  iNakedReqFurniture = JsonUtil.GetIntValue(filePath, "iNakedReqFurniture", iNakedReqFurniture as int ) as bool
+  iNakedReqGag = JsonUtil.GetIntValue(filePath, "iNakedReqGag", iNakedReqGag )
+  iNakedReqCollar = JsonUtil.GetIntValue(filePath, "iNakedReqCollar", iNakedReqCollar )
+  iNakedReqArmbinder = JsonUtil.GetIntValue(filePath, "iNakedReqArmbinder", iNakedReqArmbinder )
+  iNakedReqBlindfold = JsonUtil.GetIntValue(filePath, "iNakedReqBlindfold", iNakedReqBlindfold )
+  iNakedReqBukkake = JsonUtil.GetIntValue(filePath, "iNakedReqBukkake", iNakedReqBukkake )
+  iNakedReqSlaveBoots = JsonUtil.GetIntValue(filePath, "iNakedReqSlaveBoots", iNakedReqSlaveBoots )
+  iNakedReqHarness = JsonUtil.GetIntValue(filePath, "iNakedReqHarness", iNakedReqHarness )
+  iNakedReqPierced = JsonUtil.GetIntValue(filePath, "iNakedReqPierced", iNakedReqPierced )
+  iNakedReqSlaveTattoo = JsonUtil.GetIntValue(filePath, "iNakedReqSlaveTattoo", iNakedReqSlaveTattoo )
+  iNakedReqSlutTattoo = JsonUtil.GetIntValue(filePath, "iNakedReqSlutTattoo", iNakedReqSlutTattoo )
+  iNakedReqAnkleChains = JsonUtil.GetIntValue(filePath, "iNakedReqAnkleChains", iNakedReqAnkleChains )
+  bChastityToggle = JsonUtil.GetIntValue(filePath, "bChastityToggle", bChastityToggle as int ) as bool
+  bChastityGag = JsonUtil.GetIntValue(filePath, "bChastityGag", bChastityGag as int ) as bool
+  bChastityBra = JsonUtil.GetIntValue(filePath, "bChastityBra", bChastityBra as int ) as bool
+  bChastityLockingZaz = JsonUtil.GetIntValue(filePath, "bChastityLockingZaz", bChastityLockingZaz as int ) as bool
+  bChastityZazGag = JsonUtil.GetIntValue(filePath, "bChastityZazGag", bChastityZazGag as int ) as bool
+  bChastityZazBelt = JsonUtil.GetIntValue(filePath, "bChastityZazBelt", bChastityZazBelt as int ) as bool
+  fChastityCompleteModifier = JsonUtil.GetFloatValue(filePath, "fChastityCompleteModifier", fChastityCompleteModifier )
+  fChastityPartialModifier = JsonUtil.GetFloatValue(filePath, "fChastityPartialModifier", fChastityPartialModifier )
+  bEnslaveLockoutDCUR = JsonUtil.GetIntValue(filePath, "bEnslaveLockoutDCUR", bEnslaveLockoutDCUR as int ) as bool
+  bEnslaveFollowerLockToggle = JsonUtil.GetIntValue(filePath, "bEnslaveFollowerLockToggle", bEnslaveFollowerLockToggle as int ) as bool
+  bSexFollowerLockToggle = JsonUtil.GetIntValue(filePath, "bSexFollowerLockToggle", bSexFollowerLockToggle as int ) as bool
+  bSlaverunEnslaveToggle = JsonUtil.GetIntValue(filePath, "bSlaverunEnslaveToggle", bSlaverunEnslaveToggle as int ) as bool
+  bSDEnslaveToggle = JsonUtil.GetIntValue(filePath, "bSDEnslaveToggle", bSDEnslaveToggle as int ) as bool
+  bMariaEnslaveToggle = JsonUtil.GetIntValue(filePath, "bMariaEnslaveToggle", bMariaEnslaveToggle as int ) as bool
+  bWCDistanceToggle = JsonUtil.GetIntValue(filePath, "bWCDistanceToggle", bWCDistanceToggle as int ) as bool
+  bMariaDistanceToggle = JsonUtil.GetIntValue(filePath, "bMariaDistanceToggle", bMariaDistanceToggle as int ) as bool
+  bMariaKhajitEnslaveToggle = JsonUtil.GetIntValue(filePath, "bMariaKhajitEnslaveToggle", bMariaKhajitEnslaveToggle as int ) as bool
+  bSDDistanceToggle = JsonUtil.GetIntValue(filePath, "bSDDistanceToggle", bSDDistanceToggle as int ) as bool
+  bSSAuctionEnslaveToggle = JsonUtil.GetIntValue(filePath, "bSSAuctionEnslaveToggle", bSSAuctionEnslaveToggle as int ) as bool
+  bCDEnslaveToggle = JsonUtil.GetIntValue(filePath, "bCDEnslaveToggle", bCDEnslaveToggle as int ) as bool
+  bDCPirateEnslaveToggle = JsonUtil.GetIntValue(filePath, "bDCPirateEnslaveToggle", bDCPirateEnslaveToggle as int ) as bool
+  iEnslaveWeightSD = JsonUtil.GetIntValue(filePath, "iEnslaveWeightSD", iEnslaveWeightSD )
+  iEnslaveWeightMaria = JsonUtil.GetIntValue(filePath, "iEnslaveWeightMaria", iEnslaveWeightMaria )
+  iEnslaveWeightSlaverun = JsonUtil.GetIntValue(filePath, "iEnslaveWeightSlaverun", iEnslaveWeightSlaverun )
+  iEnslaveWeightCD = JsonUtil.GetIntValue(filePath, "iEnslaveWeightCD", iEnslaveWeightCD )
+  iEnslaveWeightSS = JsonUtil.GetIntValue(filePath, "iEnslaveWeightSS", iEnslaveWeightSS )
+  iEnslaveWeightLocal = JsonUtil.GetIntValue(filePath, "iEnslaveWeightLocal", iEnslaveWeightLocal )
+  iEnslaveWeightGiven = JsonUtil.GetIntValue(filePath, "iEnslaveWeightGiven", iEnslaveWeightGiven )
+  iEnslaveWeightSold = JsonUtil.GetIntValue(filePath, "iEnslaveWeightSold", iEnslaveWeightSold )
+  iDistanceWeightCD = JsonUtil.GetIntValue(filePath, "iDistanceWeightCD", iDistanceWeightCD )
+  iDistanceWeightWC = JsonUtil.GetIntValue(filePath, "iDistanceWeightWC", iDistanceWeightWC )
+  iDistanceWeightMaria = JsonUtil.GetIntValue(filePath, "iDistanceWeightMaria", iDistanceWeightMaria )
+  iDistanceWeightMariaK = JsonUtil.GetIntValue(filePath, "iDistanceWeightMariaK", iDistanceWeightMariaK )
+  iDistanceWeightSD = JsonUtil.GetIntValue(filePath, "iDistanceWeightSD", iDistanceWeightSD )
+  iDistanceWeightSS = JsonUtil.GetIntValue(filePath, "iDistanceWeightSS", iDistanceWeightSS )
+  iDistanceWeightDCPirate = JsonUtil.GetIntValue(filePath, "iDistanceWeightDCPirate", iDistanceWeightDCPirate )
+  iDistanceWeightDCLDamsel = JsonUtil.GetIntValue(filePath, "iDistanceWeightDCLDamsel", iDistanceWeightDCLDamsel )
+  iDistanceWeightDCLBondageAdv = JsonUtil.GetIntValue(filePath, "iDistanceWeightDCLBondageAdv", iDistanceWeightDCLBondageAdv )
+  iDistanceWeightSlaverunRSold = JsonUtil.GetIntValue(filePath, "iDistanceWeightSlaverunRSold", iDistanceWeightSlaverunRSold )
+  iDistanceWeightSLUTSEnslave = JsonUtil.GetIntValue(filePath, "iDistanceWeightSLUTSEnslave", iDistanceWeightSLUTSEnslave )
+  iDistanceWeightIOMEnslave = JsonUtil.GetIntValue(filePath, "iDistanceWeightIOMEnslave", iDistanceWeightIOMEnslave )
+  iDistanceWeightDCLLeon = JsonUtil.GetIntValue(filePath, "iDistanceWeightDCLLeon", iDistanceWeightDCLLeon )
+  iDistanceWeightDCLLeah = JsonUtil.GetIntValue(filePath, "iDistanceWeightDCLLeah", iDistanceWeightDCLLeah )
+  iDistanceWeightDCVampire = JsonUtil.GetIntValue(filePath, "iDistanceWeightDCVampire", iDistanceWeightDCVampire )
+  iDistanceWeightDCBandits = JsonUtil.GetIntValue(filePath, "iDistanceWeightDCBandits", iDistanceWeightDCBandits )
+  bEnslaveLockoutCLDoll = JsonUtil.GetIntValue(filePath, "bEnslaveLockoutCLDoll", bEnslaveLockoutCLDoll as int ) as bool
+  bEnslaveLockoutSRR = JsonUtil.GetIntValue(filePath, "bEnslaveLockoutSRR", bEnslaveLockoutSRR as int ) as bool
+  bEnslaveLockoutTIR = JsonUtil.GetIntValue(filePath, "bEnslaveLockoutTIR", bEnslaveLockoutTIR as int ) as bool
+  bEnslaveLockoutCD = JsonUtil.GetIntValue(filePath, "bEnslaveLockoutCD", bEnslaveLockoutCD as int ) as bool
+  bEnslaveLockoutSDDream = JsonUtil.GetIntValue(filePath, "bEnslaveLockoutSDDream", bEnslaveLockoutSDDream as int ) as bool
+  bEnslaveLockoutMiasLair = JsonUtil.GetIntValue(filePath, "bEnslaveLockoutMiasLair", bEnslaveLockoutMiasLair as int ) as bool
+  bEnslaveLockoutAngrim = JsonUtil.GetIntValue(filePath, "bEnslaveLockoutAngrim", bEnslaveLockoutAngrim as int ) as bool
+  bEnslaveLockoutFTD = JsonUtil.GetIntValue(filePath, "bEnslaveLockoutFTD", bEnslaveLockoutFTD as int ) as bool
+  bGuardDialogueToggle = JsonUtil.GetIntValue(filePath, "bGuardDialogueToggle", bGuardDialogueToggle as int ) as bool
+  gGuardDialogueToggle.SetValueInt(JsonUtil.GetIntValue(filePath, "gGuardDialogueToggle", gGuardDialogueToggle.GetValueInt() ))
+  bIntimidateToggle = JsonUtil.GetIntValue(filePath, "bIntimidateToggle", bIntimidateToggle as int ) as bool
+  gIntimidateToggle.SetValueInt(JsonUtil.GetIntValue(filePath, "gIntimidateToggle", gIntimidateToggle.GetValueInt() ))
+  bIntimidateGagFullToggle = JsonUtil.GetIntValue(filePath, "bIntimidateGagFullToggle", bIntimidateGagFullToggle as int ) as bool
+  bIntimidateWeaponFullToggle = JsonUtil.GetIntValue(filePath, "bIntimidateWeaponFullToggle", bIntimidateWeaponFullToggle as int ) as bool
+  bArousalFunctionWorkaround = JsonUtil.GetIntValue(filePath, "bArousalFunctionWorkaround", bArousalFunctionWorkaround as int ) as bool
+  bSecondBusyCheckWorkaround = JsonUtil.GetIntValue(filePath, "bSecondBusyCheckWorkaround", bSecondBusyCheckWorkaround as int ) as bool
+  bFollowerRemembersHit = JsonUtil.GetIntValue(filePath, "bFollowerRemembersHit", bFollowerRemembersHit as int ) as bool
+  bAltBodySlotSearchWorkaround = JsonUtil.GetIntValue(filePath, "bAltBodySlotSearchWorkaround", bAltBodySlotSearchWorkaround as int ) as bool
+  bIgnoreZazOnNPC = JsonUtil.GetIntValue(filePath, "bIgnoreZazOnNPC", bIgnoreZazOnNPC as int ) as bool
+  bDebugRollVis = JsonUtil.GetIntValue(filePath, "bDebugRollVis", bDebugRollVis as int ) as bool
+  bDebugStateVis = JsonUtil.GetIntValue(filePath, "bDebugStateVis", bDebugStateVis as int ) as bool
+  bDebugStatusVis = JsonUtil.GetIntValue(filePath, "bDebugStatusVis", bDebugStatusVis as int ) as bool
+  gUnfinishedDialogueToggle.SetValueInt(JsonUtil.GetIntValue(filePath, "gUnfinishedDialogueToggle", gUnfinishedDialogueToggle.GetValueInt() ))
+  bDebugLoudApproachFail = JsonUtil.GetIntValue(filePath, "bDebugLoudApproachFail", bDebugLoudApproachFail as int ) as bool
+  bPrintSexlabStatus = JsonUtil.GetIntValue(filePath, "bPrintSexlabStatus", bPrintSexlabStatus as int ) as bool
+  bPrintVulnerabilityStatus = JsonUtil.GetIntValue(filePath, "bPrintVulnerabilityStatus", bPrintVulnerabilityStatus as int ) as bool
+  bResetDHLP = JsonUtil.GetIntValue(filePath, "bResetDHLP", bResetDHLP as int ) as bool
+  bRefreshSDMaster = JsonUtil.GetIntValue(filePath, "bRefreshSDMaster", bRefreshSDMaster as int ) as bool
+  bSetValidRace = JsonUtil.GetIntValue(filePath, "bSetValidRace", bSetValidRace as int ) as bool
+  bTestTattoos = JsonUtil.GetIntValue(filePath, "bTestTattoos", bTestTattoos as int ) as bool
+  bTestTimeTest = JsonUtil.GetIntValue(filePath, "bTestTimeTest", bTestTimeTest as int ) as bool
+  bTestButton1 = JsonUtil.GetIntValue(filePath, "bTestButton1", bTestButton1 as int ) as bool
+  bTestButton2 = JsonUtil.GetIntValue(filePath, "bTestButton2", bTestButton2 as int ) as bool
+  bTestButton3 = JsonUtil.GetIntValue(filePath, "bTestButton3", bTestButton3 as int ) as bool
+  bTestButton4 = JsonUtil.GetIntValue(filePath, "bTestButton4", bTestButton4 as int ) as bool
+  bTestButton5 = JsonUtil.GetIntValue(filePath, "bTestButton5", bTestButton5 as int ) as bool
+  bTestButton6 = JsonUtil.GetIntValue(filePath, "bTestButton6", bTestButton6 as int ) as bool
+  bTestButton7 = JsonUtil.GetIntValue(filePath, "bTestButton7", bTestButton7 as int ) as bool
+  bAbductionTest = JsonUtil.GetIntValue(filePath, "bAbductionTest", bAbductionTest as int ) as bool
+  bInitTest = JsonUtil.GetIntValue(filePath, "bInitTest", bInitTest as int ) as bool
+  bCDTest = JsonUtil.GetIntValue(filePath, "bCDTest", bCDTest as int ) as bool
+  bSimpleSlaveryTest = JsonUtil.GetIntValue(filePath, "bSimpleSlaveryTest", bSimpleSlaveryTest as int ) as bool
+  iWeightSingleCollar = JsonUtil.GetIntValue(filePath, "iWeightSingleCollar", iWeightSingleCollar )
+  iWeightSingleGag = JsonUtil.GetIntValue(filePath, "iWeightSingleGag", iWeightSingleGag )
+  iWeightSingleArmbinder = JsonUtil.GetIntValue(filePath, "iWeightSingleArmbinder", iWeightSingleArmbinder )
+  iWeightSingleCuffs = JsonUtil.GetIntValue(filePath, "iWeightSingleCuffs", iWeightSingleCuffs )
+  iWeightSingleBlindfold = JsonUtil.GetIntValue(filePath, "iWeightSingleBlindfold", iWeightSingleBlindfold )
+  iWeightSingleHarness = JsonUtil.GetIntValue(filePath, "iWeightSingleHarness", iWeightSingleHarness )
+  iWeightSingleBelt = JsonUtil.GetIntValue(filePath, "iWeightSingleBelt", iWeightSingleBelt )
+  iWeightSingleGlovesBoots = JsonUtil.GetIntValue(filePath, "iWeightSingleGlovesBoots", iWeightSingleGlovesBoots )
+  iWeightSingleYoke = JsonUtil.GetIntValue(filePath, "iWeightSingleYoke", iWeightSingleYoke )
+  iWeightBeltPiercings = JsonUtil.GetIntValue(filePath, "iWeightBeltPiercings", iWeightBeltPiercings )
+  iWeightPlugs = JsonUtil.GetIntValue(filePath, "iWeightPlugs", iWeightPlugs )
+  iWeightEboniteRegular = JsonUtil.GetIntValue(filePath, "iWeightEboniteRegular", iWeightEboniteRegular )
+  iWeightEboniteRed = JsonUtil.GetIntValue(filePath, "iWeightEboniteRed", iWeightEboniteRed )
+  iWeightEboniteWhite = JsonUtil.GetIntValue(filePath, "iWeightEboniteWhite", iWeightEboniteWhite )
+  iWeightZazMetalBrown = JsonUtil.GetIntValue(filePath, "iWeightZazMetalBrown", iWeightZazMetalBrown )
+  iWeightZazMetalBlack = JsonUtil.GetIntValue(filePath, "iWeightZazMetalBlack", iWeightZazMetalBlack )
+  iWeightZazLeather = JsonUtil.GetIntValue(filePath, "iWeightZazLeather", iWeightZazLeather )
+  iWeightZazRope = JsonUtil.GetIntValue(filePath, "iWeightZazRope", iWeightZazRope )
+  iWeightCDGold = JsonUtil.GetIntValue(filePath, "iWeightCDGold", iWeightCDGold )
+  iWeightCDSilver = JsonUtil.GetIntValue(filePath, "iWeightCDSilver", iWeightCDSilver )
+  iWeightDDRegular = JsonUtil.GetIntValue(filePath, "iWeightDDRegular", iWeightDDRegular )
+  iWeightDDZazVel = JsonUtil.GetIntValue(filePath, "iWeightDDZazVel", iWeightDDZazVel )
+  iWeightZazReg = JsonUtil.GetIntValue(filePath, "iWeightZazReg", iWeightZazReg )
+  iWeightMultiPony = JsonUtil.GetIntValue(filePath, "iWeightMultiPony", iWeightMultiPony )
+  iWeightMultiRedBNC = JsonUtil.GetIntValue(filePath, "iWeightMultiRedBNC", iWeightMultiRedBNC )
+  iWeightMultiSeveral = JsonUtil.GetIntValue(filePath, "iWeightMultiSeveral", iWeightMultiSeveral )
+  iWeightMultiTransparent = JsonUtil.GetIntValue(filePath, "iWeightMultiTransparent", iWeightMultiTransparent )
+  iWeightMultiRubber = JsonUtil.GetIntValue(filePath, "iWeightMultiRubber", iWeightMultiRubber )
+  iWeightBeltPiercingsSoulGem = JsonUtil.GetIntValue(filePath, "iWeightBeltPiercingsSoulGem", iWeightBeltPiercingsSoulGem )
+  iWeightBeltPiercingsShock = JsonUtil.GetIntValue(filePath, "iWeightBeltPiercingsShock", iWeightBeltPiercingsShock )
+  iWeightPlugSoulGem = JsonUtil.GetIntValue(filePath, "iWeightPlugSoulGem", iWeightPlugSoulGem )
+  iWeightPlugWood = JsonUtil.GetIntValue(filePath, "iWeightPlugWood", iWeightPlugWood )
+  iWeightPlugInflatable = JsonUtil.GetIntValue(filePath, "iWeightPlugInflatable", iWeightPlugInflatable )
+  iWeightPlugTraining = JsonUtil.GetIntValue(filePath, "iWeightPlugTraining", iWeightPlugTraining )
+  iWeightPlugCDSpecial = JsonUtil.GetIntValue(filePath, "iWeightPlugCDSpecial", iWeightPlugCDSpecial )
+  iWeightPlugCDEffect = JsonUtil.GetIntValue(filePath, "iWeightPlugCDEffect", iWeightPlugCDEffect )
+  iWeightPlugCharging = JsonUtil.GetIntValue(filePath, "iWeightPlugCharging", iWeightPlugCharging )
+  iWeightPlugDasha = JsonUtil.GetIntValue(filePath, "iWeightPlugDasha", iWeightPlugDasha )
+  iWeightBeltPunishment = JsonUtil.GetIntValue(filePath, "iWeightBeltPunishment", iWeightBeltPunishment )
+  iWeightBeltRegular = JsonUtil.GetIntValue(filePath, "iWeightBeltRegular", iWeightBeltRegular )
+  iWeightBeltShame = JsonUtil.GetIntValue(filePath, "iWeightBeltShame", iWeightBeltShame )
+  iWeightBeltCD = JsonUtil.GetIntValue(filePath, "iWeightBeltCD", iWeightBeltCD )
+  iWeightBeltRegulationsImperial = JsonUtil.GetIntValue(filePath, "iWeightBeltRegulationsImperial", iWeightBeltRegulationsImperial )
+  iWeightBeltRegulationsStormCloak = JsonUtil.GetIntValue(filePath, "iWeightBeltRegulationsStormCloak", iWeightBeltRegulationsStormCloak )
+  iWeightUniqueCollars = JsonUtil.GetIntValue(filePath, "iWeightUniqueCollars", iWeightUniqueCollars )
+  iWeightRandomCD = JsonUtil.GetIntValue(filePath, "iWeightRandomCD", iWeightRandomCD )
+  iWeightConfidenceArousalOverride = JsonUtil.GetIntValue(filePath, "iWeightConfidenceArousalOverride", iWeightConfidenceArousalOverride )
+  iWeightDeviousPunishEquipmentBannnedCollar = JsonUtil.GetIntValue(filePath, "iWeightDeviousPunishEquipmentBannnedCollar", iWeightDeviousPunishEquipmentBannnedCollar )
+  iWeightDeviousPunishEquipmentProstitutedCollar = JsonUtil.GetIntValue(filePath, "iWeightDeviousPunishEquipmentProstitutedCollar", iWeightDeviousPunishEquipmentProstitutedCollar )
+  iWeightDeviousPunishEquipmentNakedCollar = JsonUtil.GetIntValue(filePath, "iWeightDeviousPunishEquipmentNakedCollar", iWeightDeviousPunishEquipmentNakedCollar )
+  iWeightBeltPadded = JsonUtil.GetIntValue(filePath, "iWeightBeltPadded", iWeightBeltPadded )
+  iWeightBeltIron = JsonUtil.GetIntValue(filePath, "iWeightBeltIron", iWeightBeltIron )
+  iWeightPlugShock = JsonUtil.GetIntValue(filePath, "iWeightPlugShock", iWeightPlugShock )
+  iWeightSingleBoots = JsonUtil.GetIntValue(filePath, "iWeightSingleBoots", iWeightSingleBoots )
+  iWeightSingleAnkleChains = JsonUtil.GetIntValue(filePath, "iWeightSingleAnkleChains", iWeightSingleAnkleChains )
+  iWeightSingleHood = JsonUtil.GetIntValue(filePath, "iWeightSingleHood", iWeightSingleHood )
+  iWeightGagBall = JsonUtil.GetIntValue(filePath, "iWeightGagBall", iWeightGagBall )
+  iWeightGagRing = JsonUtil.GetIntValue(filePath, "iWeightGagRing", iWeightGagRing )
+  iWeightGagPanel = JsonUtil.GetIntValue(filePath, "iWeightGagPanel", iWeightGagPanel )
+  iWeightGagPenis = JsonUtil.GetIntValue(filePath, "iWeightGagPenis", iWeightGagPenis )
+  iWeightStripCollar = JsonUtil.GetIntValue(filePath, "iWeightStripCollar", iWeightStripCollar )
+  iWeightHeavyCollar = JsonUtil.GetIntValue(filePath, "iWeightHeavyCollar", iWeightHeavyCollar )
+  iWeightSlutTattoo = JsonUtil.GetIntValue(filePath, "iWeightSlutTattoo", iWeightSlutTattoo )
+  iWeightSlaveTattoo = JsonUtil.GetIntValue(filePath, "iWeightSlaveTattoo", iWeightSlaveTattoo )
+  iWeightWhoreTattoo = JsonUtil.GetIntValue(filePath, "iWeightWhoreTattoo", iWeightWhoreTattoo )
+  fNightReqArousalModifier = JsonUtil.GetFloatValue(filePath, "fNightReqArousalModifier", fNightReqArousalModifier )
+  fNightDistanceModifier = JsonUtil.GetFloatValue(filePath, "fNightDistanceModifier", fNightDistanceModifier )
+  fNightChanceModifier = JsonUtil.GetFloatValue(filePath, "fNightChanceModifier", fNightChanceModifier )
+  iNightReqConfidenceReduction = JsonUtil.GetIntValue(filePath, "iNightReqConfidenceReduction", iNightReqConfidenceReduction )
+  bNightAddsToVulnerable = JsonUtil.GetIntValue(filePath, "bNightAddsToVulnerable", bNightAddsToVulnerable as int ) as bool
+  fFollowerSpecEnjoysDom = JsonUtil.GetFloatValue(filePath, "fFollowerSpecEnjoysDom", fFollowerSpecEnjoysDom )
+  fFollowerSpecEnjoysSub = JsonUtil.GetFloatValue(filePath, "fFollowerSpecEnjoysSub", fFollowerSpecEnjoysSub )
+  fFollowerSpecThinksPlayerDom = JsonUtil.GetFloatValue(filePath, "fFollowerSpecThinksPlayerDom", fFollowerSpecThinksPlayerDom )
+  fFollowerSpecThinksPlayerSub = JsonUtil.GetFloatValue(filePath, "fFollowerSpecThinksPlayerSub", fFollowerSpecThinksPlayerSub )
+  fFollowerSpecContainersCount = JsonUtil.GetFloatValue(filePath, "fFollowerSpecContainersCount", fFollowerSpecContainersCount )
+  fFollowerSpecFrustration = JsonUtil.GetFloatValue(filePath, "fFollowerSpecFrustration", fFollowerSpecFrustration )
+  gForceGreetItemFind.SetValueInt(JsonUtil.GetIntValue(filePath, "gForceGreetItemFind", gForceGreetItemFind.GetValueInt() ))
+  gFollowerArousalMin.SetValueInt(JsonUtil.GetIntValue(filePath, "gFollowerArousalMin", gFollowerArousalMin.GetValueInt() ))
+  bFollowerDungeonEnterRequired = JsonUtil.GetIntValue(filePath, "bFollowerDungeonEnterRequired", bFollowerDungeonEnterRequired as int ) as bool
+  bFollowerContainerSearch.SetValueInt(JsonUtil.GetIntValue(filePath, "bFollowerContainerSearch", bFollowerContainerSearch.GetValueInt() ))
+  bFollowerContainerSearchUnknown = JsonUtil.GetIntValue(filePath, "bFollowerContainerSearchUnknown", bFollowerContainerSearchUnknown as int ) as bool
+  fFollowerFindMinContainers = JsonUtil.GetFloatValue(filePath, "fFollowerFindMinContainers", fFollowerFindMinContainers )
+  fFollowerFindChanceMaxPercentage = JsonUtil.GetFloatValue(filePath, "fFollowerFindChanceMaxPercentage", fFollowerFindChanceMaxPercentage )
+  iFollowerFindChanceMaxContainers = JsonUtil.GetIntValue(filePath, "iFollowerFindChanceMaxContainers", iFollowerFindChanceMaxContainers )
+  iFollowerMinVulnerableApproachable = JsonUtil.GetIntValue(filePath, "iFollowerMinVulnerableApproachable", iFollowerMinVulnerableApproachable )
+  iFollowerRelationshipLimit.SetValueInt(JsonUtil.GetIntValue(filePath, "iFollowerRelationshipLimit", iFollowerRelationshipLimit.GetValueInt() ))
+  fFollowerItemApproachExp = JsonUtil.GetFloatValue(filePath, "fFollowerItemApproachExp", fFollowerItemApproachExp )
+  fFollowerSexApproachExp = JsonUtil.GetFloatValue(filePath, "fFollowerSexApproachExp", fFollowerSexApproachExp )
+  fFollowerSexApproachChanceMaxPercentage = JsonUtil.GetIntValue(filePath, "fFollowerSexApproachChanceMaxPercentage", fFollowerSexApproachChanceMaxPercentage )
+  itemParabolicModifier = JsonUtil.GetFloatValue(filePath, "itemParabolicModifier", itemParabolicModifier )
+  sexApproachParabolicModifier = JsonUtil.GetFloatValue(filePath, "sexApproachParabolicModifier", sexApproachParabolicModifier )
+  crdeBDialogueCanBeBeltedToggle.SetValueInt(JsonUtil.GetIntValue(filePath, "crdeBDialogueCanBeBeltedToggle", crdeBDialogueCanBeBeltedToggle.GetValueInt() ))
+  bSDGeneralLockout = JsonUtil.GetIntValue(filePath, "bSDGeneralLockout", bSDGeneralLockout as int ) as bool
+  bCDSlaveLockout = JsonUtil.GetIntValue(filePath, "bCDSlaveLockout", bCDSlaveLockout as int ) as bool
+  bDFGeneralLockout = JsonUtil.GetIntValue(filePath, "bDFGeneralLockout", bDFGeneralLockout as int ) as bool
+  bAddFollowerManually = JsonUtil.GetIntValue(filePath, "bAddFollowerManually", bAddFollowerManually as int ) as bool
+  bAlternateNPCSearch = JsonUtil.GetIntValue(filePath, "bAlternateNPCSearch", bAlternateNPCSearch as int ) as bool
+  iWeightSingleElbowbinder = JsonUtil.GetIntValue(filePath, "iWeightSingleElbowbinder", iWeightSingleElbowbinder )
+  iWeightHobleDress = JsonUtil.GetIntValue(filePath, "iWeightHobleDress", iWeightHobleDress )
+  iWeightCatSuitCollar = JsonUtil.GetIntValue(filePath, "iWeightCatSuitCollar", iWeightCatSuitCollar )
+  iWeightStraitJacket = JsonUtil.GetIntValue(filePath, "iWeightStraitJacket", iWeightStraitJacket )
+  iWeightHarnessedGagType = JsonUtil.GetIntValue(filePath, "iWeightHarnessedGagType", iWeightHarnessedGagType )
+  iWeightSimpleGagType = JsonUtil.GetIntValue(filePath, "iWeightSimpleGagType", iWeightSimpleGagType )
+  iWeightGagPony = JsonUtil.GetIntValue(filePath, "iWeightGagPony", iWeightGagPony )
+  iWeightSingleVagPiercings = JsonUtil.GetIntValue(filePath, "iWeightSingleVagPiercings", iWeightSingleVagPiercings )
+  iWeightSingleNipplePiercings = JsonUtil.GetIntValue(filePath, "iWeightSingleNipplePiercings", iWeightSingleNipplePiercings )
+
+  ; new
+  iDistanceWeightDFGift = JsonUtil.GetIntValue(filePath, "iDistanceWeightDFGift", iDistanceWeightDFGift )
+
+  
+  debug.Trace("[CRDE] *** load config finished ***")
+endFunction
+
 
 
 ;Bool Property bCRDEEnable  Auto  
@@ -3178,6 +3777,9 @@ Int Property  iDistanceWeightDCVampire Auto
 Int iDistanceWeightDCVampireOID
 Int Property  iDistanceWeightDCBandits Auto
 Int iDistanceWeightDCBanditsOID
+int property  iDistanceWeightDFGift auto
+int iDistanceWeightDFGiftOID
+
 
 ; enslave lock-out bEnslaveLockoutSRROID
 bool Property  bEnslaveLockoutCLDoll Auto 
@@ -3513,3 +4115,5 @@ Int iWeightSingleVagPiercingsOID
 Int Property  iWeightSingleNipplePiercings Auto
 Int iWeightSingleNipplePiercingsOID
 
+int bSaveSettingsOID
+int bLoadSettingsOID

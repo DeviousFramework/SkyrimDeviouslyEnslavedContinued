@@ -148,7 +148,17 @@ Notes:
   finish straitjacket and the other item we wanted
   ;turn hoods down
   
-  () set SD limited removal to off, might be the cause of the stack dump
+&&&&&&&&&&&&&&&&&
+
+  user wants to be able to turn off animation filters
+  ;fixed a bug where lvl 2 items were weighted heavier than lvl 3 items (backwards)
+  make it so that horny follower is likely to unlock the player for sex
+  
+  ;currently working on settings save/load using jsonutil
+  if player has had sex with the npc before, different enslave dialogue
+  make a dialogue for "combat plug" and belt
+  when touching the ESP, set starting value for iDistanceWeightDFGift
+  ;add iDistanceWeightDFGift to save/load
   
   ;user thinks DEC interferes with whiterun brothel revamped
     attempted fix: if player is in cell, or if player is attempting the escape quest, then they are slaves and cannot be re-enslaved
@@ -160,7 +170,7 @@ Notes:
   ;workaround for bug where Mods.slaEroticKeyword keyword is NONE, error in playervulnerability (low prio)
   
   
-  user wants follower dom/sub tendencies to account for sex positions
+  user wants follower dom/sub tendencies to account for sex positions; yeah that's gonna happen
   
   naked dungeons has code that can detect when entering dungeons, assuming it would also have code for detecting when the dungeon is over then
     might not be enough, we want to know when the dungeon is CLEARED too

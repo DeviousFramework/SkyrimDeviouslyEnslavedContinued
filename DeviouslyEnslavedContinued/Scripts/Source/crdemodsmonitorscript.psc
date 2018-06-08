@@ -297,7 +297,7 @@ faction    property  mdeviousBusyFaction Auto
 
 ;simple slavery
 Quest Property simpleslaveryQuest Auto
-Cell Property   simpleslaveryCell Auto
+Cell Property simpleslaveryCell Auto
 
 ;MistakenIdentity
 Quest Property mistakenIDQuest Auto
@@ -1105,7 +1105,7 @@ function updateForms()
   ; so I switched to local player, but it alocates on init, which never happens for updating players
   ;PlayMonScript.ItemScript.player = Game.GetPlayer()
   
-  slaEroticKeyword = Game.GetFormFromFile(0x0308c8f6, "SexLabAroused.esm") as keyword
+  slaEroticKeyword = Game.GetFormFromFile(0x0308c7f6, "SexLabAroused.esm") as keyword
   
 
   wwbEscapeQuest = Quest.GetQuest("wwbEscapeQuest")

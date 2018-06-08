@@ -133,7 +133,7 @@ endFunction
 Bool Function PlayerIsInEnforcedLocation()
   if Mods.modLoadedSlaverunR 
     if Mods.slaverunRPeriodicQuest == None
-      Mods.debugmsg("Err: SRR installed but Peroid quest did not load!",4)
+      Mods.debugmsg("Err: SRR installed but period quest did not load!",4)
     else
       return (Mods.slaverunRPeriodicQuest as SLV_EnforcerLocationCheck).PlayerIsInEnforcedLocation()
     endif

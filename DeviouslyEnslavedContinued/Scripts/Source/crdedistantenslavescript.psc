@@ -148,8 +148,9 @@ function enslaveSold(actor actorRef = none)
   int SLUTS       = MCM.iDistanceWeightSLUTSEnslave   * (Mods.modLoadedSLUTS ) as int
   int SRR         = MCM.iDistanceWeightSlaverunRSold  * (Mods.modLoadedSlaverunR ) as int
   int DCBandits   = MCM.iDistanceWeightDCBandits      * (Mods.modLoadedDeviousCidhna ) as int
-
-  int total = SS + Maria + CD + SLUTS + SRR + DCBandits
+  int DFGift      = MCM.iDistanceWeightDFGift         * (Mods.dflowQuest != NONE) as int
+  
+  int total = SS + Maria + CD + SLUTS + SRR + DCBandits + DFGift
   if total == 0 ; stop gap, you shouldn't get this far
     debugmsg("enslaveSold: max roll is zero, no enslave mods?", 4)
     return
@@ -157,19 +158,9 @@ function enslaveSold(actor actorRef = none)
   int roll = Utility.RandomInt(1, total ) ; keep it off zero, since that's a non-case DCVampires
   debugmsg("Sold:khajit/cd/SS/Sluts/SRR("  + Maria + "/" + CD + "/" + SS + "/" + SRR + "/" + DCBandits +")roll/total:(" + roll + "/" + total + ")", 2)
   if roll <= Maria
-    if Mods.modLoadedMariaEden == false
-      debugmsg("Err: reached Maria Eden enslave, but mod is not loaded", 4)
-    else
-      ; enslave khajit
-      defeatKhajit(actorRef)
-    endif
+    defeatKhajit(actorRef)
   elseif roll <= (Maria + CD)
-    if Mods.modLoadedCD == false
-      debugmsg("Err: reached CD enslave, but mod is not loaded", 4)
-    else
-      ; enslave cd
-      enslaveCD()
-    endif
+    enslaveCD()
   elseif roll <= Maria + CD + SS
     ; enslave simple slavery auction
     enslaveSS()
@@ -177,8 +168,10 @@ function enslaveSold(actor actorRef = none)
     enslaveSLUTS()
   elseif roll <= Maria + CD + SS + SLUTS +  SRR 
     enslaveSlaverunRSold()
-  else ; roll <= Maria + CD + SS + SLUTS +  SRR + DCBandits
+  elseif roll <= Maria + CD + SS + SLUTS +  SRR + DCBandits 
     enslaveDCBandits()
+  else;if roll <= Maria + CD + SS + SLUTS +  SRR + DCBandits + DFGift
+    enslaveDFGift()
   endif
 endFunction
 
@@ -471,7 +464,7 @@ function enslaveSS()
   player.equipitem(Mods.zazHood)
   player.equipitem(Mods.zazBindings)
   player.equipitem(Mods.zazCollar)
-  utility.wait(3) 
+  utility.wait(5) 
   Debug.MessageBox("You're dragged off somewhere to be sold")
   BlackFade.Remove()
   Game.EnablePlayerControls()
@@ -641,35 +634,50 @@ function enslaveDCVampires()
   SendModEvent( "DvCidhna_StartVampires" )
 endFunction
 
+function enslaveDFGift()
+  ; current problems with this order: removing items at the messagebox still make too much noise
+  
+  debugmsg(" Starting Simple slavery" , 1)
+  ;Debug.SendAnimationEvent(Game.GetPlayer(), "ZazAPC057") ; bad: animation remains even through motion after the transfer
+  ;add zaz bindings instead, lock controls?
+  Game.DisablePlayerControls()
+  Game.ForceThirdPerson()
+  BlackFade.ApplyCrossFade(3)
+  ; remove items from player
+  ItemScript.unequipAllNonDD()
+  ; additems
+  player.equipitem(Mods.zazHood)
+  player.equipitem(Mods.zazBindings)
+  player.equipitem(Mods.zazCollar)
+  utility.wait(5) 
+  Debug.MessageBox("You're dragged off somewhere in bondage ...")
+  player.removeItem(Mods.zazHood)
+  player.removeItem(Mods.zazBindings)
+  player.removeItem(Mods.zazCollar)
+
+
+
+  SendModEvent("DFEnslave")
+
+  Utility.Wait(1)
+  BlackFade.Remove()
+  Game.EnablePlayerControls()
+
+
+endFunction
+
 
 ; determines if the player can be sold into slavery
-;((DistanceEnslave.canRunGiven() && (MCM.bMariaDistanceToggle || MCM.bWCDistanceToggle || MCM.bSDDistanceToggle || MCM.bDCPirateEnslaveToggle) && (MCM.iDistanceWeightMaria + MCM.iDistanceWeightDCPirate + MCM.iDistanceWeightWC + MCM.iDistanceWeightSD + MCM.iDistanceWeightDCLDamsel >= 1)) as int) * MCM.iEnslaveWeightGiven
 bool function canRunSold()
-  ; ss, maria, cd
-  ; new in 11.0: SLUTS, slaverunR
-  if Mods.modLoadedSimpleSlavery && MCM.bSSAuctionEnslaveToggle && (MCM.iDistanceWeightSS > 0)
-    canRunSold = true
-    return true
-  
-  elseif Mods.modLoadedMariaEden && MCM.bMariaDistanceToggle && (MCM.iDistanceWeightMariaK > 0) 
-  ; we only need is loaded, since you are either a slave or not, and checked before we get here
-    canRunSold = true
-    return true
-  elseif canRunCD()
-    canRunSold = true
-    return true
-  elseif Mods.modLoadedDeviousCidhna && MCM.bDCPirateEnslaveToggle && (MCM.iDistanceWeightDCBandits > 0) 
-    canRunSold = true
-    return true
-  elseif Mods.modLoadedSLUTS && (MCM.iDistanceWeightSLUTSEnslave > 0) ; sluts
-    canRunSold = true
-    return true
-  elseif Mods.modLoadedSlaverunR && (MCM.iDistanceWeightSlaverunRSold > 0) ; slaverunR
-    canRunSold = true
-    return true
-  endif
-  canRunSold = false
-  return false
+  ; one big math op should be faster than 6+ if blocks, especially in code size
+  canRunSold = (Mods.modLoadedSimpleSlavery && MCM.bSSAuctionEnslaveToggle && (MCM.iDistanceWeightSS > 0))\
+            || (Mods.modLoadedMariaEden && MCM.bMariaDistanceToggle && (MCM.iDistanceWeightMariaK > 0) )\
+            || (canRunCD() && MCM.iDistanceWeightCD > 0)\
+            || ( Mods.modLoadedDeviousCidhna && MCM.bDCPirateEnslaveToggle && (MCM.iDistanceWeightDCBandits > 0) )\
+            || ( Mods.modLoadedSLUTS && (MCM.iDistanceWeightSLUTSEnslave > 0) )\
+            || ( Mods.modLoadedSlaverunR && (MCM.iDistanceWeightSlaverunRSold > 0) )\
+            || ( Mods.dflowQuest != NONE && MCM.iDistanceWeightDFGift > 0 ) 
+  return canRunSold
 endFunction
 
 ; determines if player can be given away as slave
@@ -710,6 +718,7 @@ endFunction
 
 ; we need to handle all of the conditions we can't test for at dialog time here
 ; we no longer need to test for WC alone at time, we call canRunGiven
+; when was this last updated? does this even work with the latest wolfclub?
 bool function canRunWC()
   if Mods.modLoadedWolfClub == false || MCM.bWCDistanceToggle == false || (MCM.iDistanceWeightWC <= 0) || Mods.wolfclubQuest == None
     ;canRunWC = false 
@@ -802,7 +811,7 @@ function debugmsg(string msg, int level = 0)
     endif
 endFunction
 
-; at the end only because notepad's syntax parser thinks there's an "if" in "Mod if ier"
+; at the end only because notepad's syntax parser thinks there's an "if" in "Mod-if-ier"
 ImageSpaceModifier property BlackFade auto 
 ImageSpaceModifier property BlackFadeSudden auto 
 ImageSpaceModifier property LightFade auto

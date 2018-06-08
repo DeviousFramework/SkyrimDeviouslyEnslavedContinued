@@ -126,7 +126,7 @@ bool function checkActorBoundInFurniture(actor actorRef)
       return true
     else
       debugmsg("debug: furniture no longer valid, canceling", 3)
-      PlayerMon.releasePlayerSittingStatus()
+      bool status = PlayerMon.releasePlayerSittingStatus()
     endif
   elseif Mods.zazKeywordFurniture != None && actorRef.HasKeyword(Mods.zazKeywordFurniture) ; sitting in furniture and tied up
     debugmsg("debug: " + actorRef.GetDisplayName() + " has zbf furniture keyword", 0)
