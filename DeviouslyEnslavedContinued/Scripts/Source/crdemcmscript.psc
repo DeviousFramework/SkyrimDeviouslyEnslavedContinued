@@ -55,6 +55,10 @@ event OnOptionMenuOpen(int a_option)
     SetMenuDialogStartIndex(0)
     SetMenuDialogDefaultIndex(0)
     SetMenuDialogOptions(actorNames) ; xxx
+  elseif a_option == iAnimationFilterPrefOID
+    SetMenuDialogStartIndex(0)
+    SetMenuDialogDefaultIndex(0)
+    SetMenuDialogOptions(animationFilterList)
   endIf
 endEvent
 ; @implements SKI_ConfigBase
@@ -71,7 +75,32 @@ event OnOptionMenuAccept(int a_option, int a_index)
     ;UpdateFollowerPage()
     ;OnPageReset("Follower dialogue") ; might fix it
     ForcePageReset()
-    ;SetMenuOptionValue(a_option, actorNames[lastChosenFollower])
+  elseif a_option == iAnimationFilterPrefOID
+    bool DDi4 = Mods.modLoadedDD4
+    if a_index == 0     ; AUTO, select one
+      if DDi4
+        a_index = 2
+        Mods.debugmsg("Auto was selected, DD4 is detected, DD filtering is off, but basic filtering is still on",5)
+      else
+        a_index = 3
+        Mods.debugmsg("Auto was selected, DD4 is not detected, DD pre filtering is turned on",5)
+      endif
+    elseif a_index == 1 ; ALL filters off
+      Mods.debugmsg("All filtering turned off, you might get some weird animations",5)
+    elseif a_index == 2 ; DD 4.0+
+      if DDi4
+        Mods.debugmsg("Filtering is set to use DD 4 function to find animations",5)
+      else ; not installed, backing down to no DD filtering and regular animation filtering
+        Mods.debugmsg("This option is not available without DD 4 installed. Reverting to Non-DD ONLY",5)
+        a_index = 4
+      endIf
+    elseif a_index == 3 ; DD 3 and earlier, pre-dd
+      Mods.debugmsg("Filtering Set to pre-check for DD items and pre-filter animations on DEC's end, to prevent DD from sniping",5)
+    else;a_index == 4 ; DD filter off, basic filtering on
+      Mods.debugmsg("DD device filtering is turned off, but basic filtering for animations like \"acrobatic\" and \"Cuddling\" is still turned on",5)
+    endif
+    iAnimationFilterPref = a_index
+    SetMenuOptionValue(a_option, animationFilterList[a_index])
   endIf
 endEvent
 
@@ -185,6 +214,7 @@ event OnPageReset(string a_page)
     iNPCSearchCountOID      = AddSliderOption("NPC Search Count", iNPCSearchCount , "{0} NPCs", (! bAlternateNPCSearch) as int) ; search depth
     iGenderPrefOID          = AddMenuOption("Approacher Gender Preference", genderList[iGenderPref])
     iGenderPrefMasterOID    = AddMenuOption("Master Gender Preference", genderList[iGenderPrefMaster])
+    iAnimationFilterPrefOID = AddMenuOption("Sexlab Animation Filter Preference", animationFilterList[iAnimationFilterPref])
     bUseSexlabGenderOID     = AddToggleOption("Use Sexlab Genders", bUseSexlabGender)
     bAlternateNPCSearchOID  = AddToggleOption("Alternate NPC search", bAlternateNPCSearch)
     bRefreshModDetectOID    = AddToggleOption("Refresh detected mods", Mods.bRefreshModDetect)
@@ -2902,8 +2932,12 @@ event OnOptionHighlight(int a_option)
     SetInfoText("Push this button to save your current setting in a separate file outside of your save. Note: Followers are not saved")
   elseif a_option == bLoadSettingsOID
     SetInfoText("Push this button to load your previously saved settings into the mod. NOTE: you may have to refresh the MCM to see them change")
+  elseif a_option == iAnimationFilterPrefOID
+    SetInfoText("Allows you to select which animation filter DEC uses before calling sexlab.")
+  
   else ; catch all; the stuff I forgot and then some
     SetInfoText("Catchall tooltip: typing hints is tedious, if you want to know what this does ask in the support thread, and/or report which option is missing the tooltip")
+  
   endIf ; fFollowerItemApproachExpOID
 
 endEvent
@@ -2921,7 +2955,7 @@ function SaveConfig()
   JsonUtil.SetIntValue(filePath, "bDebugConsoleMode", bDebugConsoleMode as int)
   JsonUtil.SetFloatValue(filePath, "fEventInterval", fEventInterval)
   JsonUtil.SetFloatValue(filePath, "fEventTimeout", fEventTimeout)
-  JsonUtil.SetIntValue(filePath, "iGenderPref", iGenderPref)
+  JsonUtil.SetIntValue(filePath, "iGenderPref", iGenderPref) ;iAnimationFilterPref
   JsonUtil.SetIntValue(filePath, "iGenderPrefMaster", iGenderPrefMaster)
   JsonUtil.SetIntValue(filePath, "bUseSexlabGender", bUseSexlabGender as int)
   JsonUtil.SetIntValue(filePath, "iChanceEnslavementConvo", iChanceEnslavementConvo)
@@ -3187,7 +3221,9 @@ function SaveConfig()
 
   ; new iDistanceWeightDFGift
   JsonUtil.SetIntValue(filePath, "iDistanceWeightDFGift", iDistanceWeightDFGift)
+  JsonUtil.SetIntValue(filePath, "iAnimationFilterPref", iAnimationFilterPref) ;iAnimationFilterPrefOID
 
+  
   JsonUtil.Save(filePath, false)
   debug.Trace("[CRDE] *** Save config finished ***")
 endFunction
@@ -3213,7 +3249,7 @@ function LoadConfig()
   bDebugConsoleMode = JsonUtil.GetIntValue(filePath, "bDebugConsoleMode", bDebugConsoleMode as int ) as bool
   fEventInterval = JsonUtil.GetFloatValue(filePath, "fEventInterval", fEventInterval )
   fEventTimeout = JsonUtil.GetFloatValue(filePath, "fEventTimeout", fEventTimeout )
-  iGenderPref = JsonUtil.GetIntValue(filePath, "iGenderPref", iGenderPref )
+  iGenderPref = JsonUtil.GetIntValue(filePath, "iGenderPref", iGenderPref ) ;iAnimationFilterPref
   iGenderPrefMaster = JsonUtil.GetIntValue(filePath, "iGenderPrefMaster", iGenderPrefMaster )
   bUseSexlabGender = JsonUtil.GetIntValue(filePath, "bUseSexlabGender", bUseSexlabGender as int ) as bool
   iChanceEnslavementConvo = JsonUtil.GetIntValue(filePath, "iChanceEnslavementConvo", iChanceEnslavementConvo )
@@ -3479,6 +3515,7 @@ function LoadConfig()
 
   ; new
   iDistanceWeightDFGift = JsonUtil.GetIntValue(filePath, "iDistanceWeightDFGift", iDistanceWeightDFGift )
+  iAnimationFilterPref = JsonUtil.GetIntValue(filePath, "iAnimationFilterPref", iAnimationFilterPref ) ;iAnimationFilterPref
 
   
   debug.Trace("[CRDE] *** load config finished ***")
@@ -3506,6 +3543,8 @@ Int Property iGenderPref  Auto
 int iGenderPrefOID
 Int Property iGenderPrefMaster Auto  
 int iGenderPrefMasterOID
+int Property iAnimationFilterPref Auto
+int iAnimationFilterPrefOID
 bool Property bUseSexlabGender Auto  
 int bUseSexlabGenderOID
 int aFollowerSelectOID 
@@ -3545,7 +3584,7 @@ bool Property bFxFAlwaysAggressive Auto
 int bFxFAlwaysAggressiveOID ;bFxFAlwaysAggressive
 
 string[] Property genderList Auto
-;string[] Property genderListMaster Auto ;can reuse
+string[] Property animationFilterList Auto 
 
 Int Property iWeightSingleDD Auto
 int iWeightSingleDDOID 

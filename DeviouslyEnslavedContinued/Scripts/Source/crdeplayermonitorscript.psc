@@ -1857,11 +1857,15 @@ function doPlayerSex(actor actorRef, actor actorRef2 = none, bool rape = false, 
   clear_force_variables() ; handles forceGreetIncomplete = false
   Mods.dhlpResume()
     
+  debugmsg("animaiton filter at: " + MCM.animationFilterList[MCM.iAnimationFilterPref])
+    
   String threesomeTag = ""
   actor[] sexActors
   if actorRef2 != None
-   sexActors = new actor[3]
-   threesomeTag = "FMM," ; we use this tag because the others put player in a non-sub position I think...
+    sexActors = new actor[3]
+    if MCM.iAnimationFilterPref != 1
+     threesomeTag = "FMM," ; we use this tag because the others put player in a non-sub position I think...
+    endIf
   else
    sexActors = new actor[2] 
   endif
@@ -1870,9 +1874,10 @@ function doPlayerSex(actor actorRef, actor actorRef2 = none, bool rape = false, 
   if actorRef2 != none
     sexActors[2] = actorRef2
   endif
+  
+  ; One user wanted to set gender through sexlab
   int actorGender  = 0
   int playerGender = 0
-
   if MCM.bUseSexlabGender
     actorGender     = SexLab.GetGender(actorRef)
     playerGender    = SexLab.GetGender(player) ; we call these enough save as var
@@ -1882,29 +1887,28 @@ function doPlayerSex(actor actorRef, actor actorRef2 = none, bool rape = false, 
   endif   
   
   if PlayerScript.sittingInZaz ; if player is tied up in furniture, move the player to the attacker, so sex doesn't clip
+    ; TODO shouldn't we reset the sitting variable?
     player.moveTo(actorRef)
   endif
 
-  debugmsg("doPlayerSex, before sexstart prepare function, time: " + (Utility.GetCurrentRealTime() - startingTime), 1)
-
-  
+  ;debugmsg("doPlayerSex, before sexstart prepare function, time: " + (Utility.GetCurrentRealTime() - startingTime), 1)
   string animationTags = "";
-  int preSex = prepareForDoPlayerSex(actorRef, skip_oral = oral_only)
-  debugmsg("prepare result: "+ preSex)
-  ; if we removed something, we might as well sex in that area
-  if preSex == 2 && Utility.RandomInt(0,100) < 65 
-    animationTags = "Vaginal"
-  elseif preSex== 2 ; roll failed  
-    animationTags = "Anal"
-  ;elseif actorGender == 1 && (preSex == 1 || oral_only)
-  ;  animationTags = "Cunnilingus"
-  elseif preSex == 1 || oral_only
-    animationTags = "Oral"
+  int presex = 0
+  if MCM.iAnimationFilterPref == 3 ; if DD filter is on
+    preSex = prepareForDoPlayerSex(actorRef, skip_oral = oral_only)
+    debugmsg("prepare result: "+ preSex)
+    ; if we removed something, we might as well sex in that area
+    if preSex == 2 && Utility.RandomInt(0,100) < 65 
+      animationTags = "Vaginal"
+    elseif preSex== 2 ; roll failed  
+      animationTags = "Anal"
+      ;elseif actorGender == 1 && (preSex == 1 || oral_only)
+      ;  animationTags = "Cunnilingus"
+    elseif preSex == 1 || oral_only
+      animationTags = "Oral"
+    endif
   endif
   
-  ; changed in 13
-  ; lets try removing this, 13.13testing
-  ;Utility.Wait(0.5) ; hopefully long enough for DD to work
   
   ; if both female, no aggressive req, too few animations, annoying
   ;debugmsg("genders are player,attacker: " + player.GetActorBase().GetSex() + "," + actorGender)
@@ -1921,33 +1925,70 @@ function doPlayerSex(actor actorRef, actor actorRef2 = none, bool rape = false, 
   endif 
   
   string supressTags = "Solo"
-  if soft == false
-    ;supressTags  += ",Cuddling,Acrobat,Petting,Foreplay"
-    supressTags  += ",Cuddling,Acrobat,Petting,"
+  if MCM.iAnimationFilterPref != 1 ; if ALL filter, or Not-DD is on , which is the same as !all off
+    if soft == false
+      ;supressTags  += ",Cuddling,Acrobat,Petting,Foreplay"
+      supressTags  += ",Cuddling,Acrobat,Petting,"
+    endif
+
+    if playerGender == 1 && actorGender == 1 ; both girls
+      supressTags += ",handjob,footjob,boobjob" ; seriously now
+      ; even oral on a dildo has some embarrassment value, but handjob on dildo is just silly, same with foot and boob, especially since they are kinda... woman focused
+      ; TODO: remove this and check what animations are being dumped because 1/5 stages has one of these
+    endif
   endif
-  
-  if playerGender == 1 && actorGender == 1 ; both girls
-    supressTags += ",handjob,footjob,boobjob" ; seriously now
-    ; even oral on a dildo has some embarrassment value, but handjob on dildo is just silly, same with foot and boob, especially since they are kinda... woman focused
-    ; TODO: remove this and check what animations are being dumped because 1/5 stages has one of these
-  endif
-  
   ; we can optimize this out with a variable, since we have to check this earlier when we start the dialogue anyway
+  
+  if MCM.iAnimationFilterPref == 3 ; pre-DD selected
+    ; we can optimize this out with a variable, since we have to check this earlier when we start the dialogue anyway
+    if player.wornHasKeyword(libs.zad_DeviousBelt) 
+      ; actor has a key, will use ;zzz key
+      
+      ; we know the player is belted, now check if their belt permits vag (are there even any?) and check for female attacker
+      ;  problem we're trying to avoid: suppress tags are both ways, we can't suppress vag for just player
+      ;  we don't want to block vag tag if the player can perform cunnilingus on female attacker though, so we can't block vag tag there or we block vag on both
+      ; preSex != 1 for now we're including the possibility of the player using strapon against attacker who needs service
+      if  (actorRef.WornHasKeyword(libs.zad_DeviousBelt) && !player.wornhaskeyword(libs.zad_PermitVaginal)) 
+        supressTags += ",Vaginal,Pussy,Tribadism,BlowJob"
+      elseif actorGender == 1
+        ; if they too are a woman, keep pussy it shows up on licking animations
+        supressTags += ",Vaginal"
+      endif
+      if !player.wornhaskeyword(libs.zad_PermitAnal) && actorGender == 0 || ( (actorRef.WornHasKeyword(libs.zad_DeviousBelt) && !actorRef.wornhaskeyword(libs.zad_PermitAnal)))
+        supressTags += ",Anal"
+      endif
+    elseif player.wornHasKeyword(Mods.zazKeywordWornBelt) && actorGender == 0 || ( actorRef.wornHasKeyword(Mods.zazKeywordWornBelt))
+      supressTags += ",Vaginal,Anal"
+    endif
+    if (player.wornhaskeyword(libs.zad_DeviousGag) && !(player.wornhaskeyword(libs.zad_PermitOral) || player.wornhaskeyword(libs.zad_DeviousGagPanel) )) ||\
+        (!player.wornhaskeyword(libs.zad_DeviousGag) && player.wornHasKeyword(Mods.zazKeywordWornGag) && !player.wornHasKeyword(Mods.zazKeywordPermitOral))
+      if actorRef.wornhaskeyword(libs.zad_DeviousBra)
+        supressTags += ",Breastfeeding"
+      endif
+      supressTags += ",Oral,Mouth"
+      if actorGender == 0
+        supressTags += ",Blowjob"
+      endif
+    endif
+    if player.wornhaskeyword(libs.zad_DeviousBra) && actorGender == 0
+      supressTags += ",Boobjob"
+    endif
+  endif
+
   
   debugmsg("doPlayerSex, before the animation search through DDi, time: " + (Utility.GetCurrentRealTime() - startingTime), 1)
 
-  ; this whole slaw is here to help us find enough animations to throw into sexlab
-  ; but should really be re-thought a bit..
+  ; user can specify if they want DD filterd through DEC or through DD, like in DD4
+  ;  but we should still try to get available animations through DDi if DDi4 is installed
   String newAnimationTags = threesomeTag + animationTags
   bool DDi3 = ! Mods.modLoadedDD4 ; probably break the game if you tried to use a function like that on the older DDI
-  sslBaseAnimation[] animations = new sslBaseAnimation[1] ; ignore this, this is just a declare for papyrus compiler
-  if actorRef2 != None || DDi3
+  sslBaseAnimation[] animations = new sslBaseAnimation[1] ; this is just a dummy declare for papyrus compiler
+  if DDi3 || MCM.iAnimationFilterPref == 1 || MCM.iAnimationFilterPref == 3 ; HUH? why don't we want to use DDi4 if threesom? actorRef2 != None ||
     animations = SexLab.GetAnimationsByTag(2 + ((actorRef2 != None) as int), newAnimationTags, TagSuppress = supressTags)
   else
     animations = libs.SelectValidDDAnimations(sexActors, 2 + ((actorRef2 != None) as int), forceaggressive = !soft, includetag = newAnimationTags, suppresstag = supressTags )
   endif
   
-  ;    SexLab.StartSex(sexActors, animations);
 
   debugmsg(("anim:'" + animationTags +"',supp:'" + supressTags+ "',animsize:" + animations.length), 3)
   

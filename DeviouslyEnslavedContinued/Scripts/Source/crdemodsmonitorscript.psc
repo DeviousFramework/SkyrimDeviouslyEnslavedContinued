@@ -1825,9 +1825,13 @@ Int function metReqFrameworkIncreaseVuln()
   int[] fame_values = (SLSF_Quest as SLSF_CompatibilityScript).GetCurrentFameValues()
   if fame_values.Length > 1
     debugmsg("current fame nums:(slut, slave, exhi) " + fame_values[17] + "/" + fame_values[18] + "/" + fame_values[4],1)
-    return ((fame_values[17] >= MCM.iReqLevelSLSFSlutMakeVulnerable) as int) \
-         + ((fame_values[18] >= MCM.iReqLevelSLSFSlaveMakeVulnerable) as int) \
-         + ((fame_values[4] >= MCM.iReqLevelSLSFExhibMakeVulnerable) as int) 
+    ; return ((fame_values[17] >= MCM.iReqLevelSLSFSlutMakeVulnerable) as int) \
+         ; + ((fame_values[18] >= MCM.iReqLevelSLSFSlaveMakeVulnerable) as int) \
+         ; + ((fame_values[4] >= MCM.iReqLevelSLSFExhibMakeVulnerable) as int) 
+    return ((fame_values[17] >= MCM.iReqLevelSLSFSlutIncreaseVulnerable) as int) \
+         + ((fame_values[18] >= MCM.iReqLevelSLSFSlaveIncreaseVulnerable) as int) \
+         + ((fame_values[4] >= MCM.iReqLevelSLSFExhibIncreaseVulnerable) as int) 
+
   else
     debugmsg("fame system didn't return enough stats. size " + fame_values.Length)
   endif
@@ -1843,9 +1847,13 @@ Int function metReqFrameworkMakeVuln()
   int[] fame_values = (SLSF_Quest as SLSF_CompatibilityScript).GetCurrentFameValues()
   if fame_values.Length > 16
     ;debugmsg("current fame nums:(slut, slave, exhi) " + fame_values[17] + "/" + fame_values[18] + "/" + fame_values[4],1)
-    return ((fame_values[17] >= MCM.iReqLevelSLSFSlutIncreaseVulnerable) as int) \
-         + ((fame_values[18] >= MCM.iReqLevelSLSFSlaveIncreaseVulnerable) as int) \
-         + ((fame_values[4] >= MCM.iReqLevelSLSFExhibIncreaseVulnerable) as int) 
+    return ((fame_values[17] >= MCM.iReqLevelSLSFSlutMakeVulnerable) as int) \
+         + ((fame_values[18] >= MCM.iReqLevelSLSFSlaveMakeVulnerable) as int) \
+         + ((fame_values[4] >= MCM.iReqLevelSLSFExhibMakeVulnerable) as int) 
+    ; return ((fame_values[17] >= MCM.iReqLevelSLSFSlutIncreaseVulnerable) as int) \
+         ; + ((fame_values[18] >= MCM.iReqLevelSLSFSlaveIncreaseVulnerable) as int) \
+         ; + ((fame_values[4] >= MCM.iReqLevelSLSFExhibIncreaseVulnerable) as int) 
+
   else
     debugmsg("fame system didn't return enough stats. size " + fame_values.Length)
   endif
