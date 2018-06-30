@@ -1094,8 +1094,6 @@ bool function attemptApproach()
         debugmsg(("Player is not vulnerable enough for enslave, MCM:" + MCM.iMinEnslaveVulnerable + ", Player:" + playerVulnerability), 3)
       elseif ((actorMorality > MCM.iMaxEnslaveMorality) && isSlaver == false)
         debugmsg("Attacker is not slaver and Morality is not low enough, Attacker:" + actorMorality + ", Req:" + MCM.iMaxEnslaveMorality, 3)
-      ;elseif isWeaponProtected() == true && isSlaver == false ; moved further up
-      ;  debugmsg("Player is protected by weapon (has weapon and MCM option is selected)", 3)    
       elseif enslavedLevel > 0
         debugmsg("Player is un-enslaveable, cannot re-enslave yet: level " + enslavedLevel, 3)
       elseif MCM.bEnslaveFollowerLockToggle && hasFollowers  
@@ -1104,7 +1102,6 @@ bool function attemptApproach()
         debugmsg("Cannot run any enslavement options, no enslave mods found?", 3) 
       else  
         busyGameTime = CurrentGameTime + ( approach_duration * (1.0/1400.0)) ; 24 * 60 minutes in a day
-        ;1.0/48.0 ;(24 hours 2 half hours per hour); 30 in-game minutes
         checkPersuationIntimidateRequirements()
         attemptEnslavementConvo(nearest[0])
         return true ; TODO change attemptEnslave to a true/false return, so we can return that
@@ -2489,9 +2486,9 @@ function checkPersuationIntimidateRequirements()
     ; using bollean modifiers because the math is faster than a bunch of condition checks if we have a lot of these
     float roll = Utility.RandomInt(1, 100) as float ; where < 50 is safe
     float oroll = roll as int
-    if playerIsNotArmed() == false && MCM.bIntimidateWeaponFullToggle ; for now, can always intimidate with weapon
-      hasMetIntimidateReq = true
-    elseif playerVulnerability >= 4 || (wearingGag && MCM.bIntimidateGagFullToggle) 
+    ;if playerIsNotArmed() == false && MCM.bIntimidateWeaponFullToggle ; for now, can always intimidate with weapon
+    ;  hasMetIntimidateReq = true
+    if playerVulnerability >= 4 || (wearingGag && MCM.bIntimidateGagFullToggle) 
       hasMetIntimidateReq = false
     else
       if wearingGag        
@@ -2504,6 +2501,9 @@ function checkPersuationIntimidateRequirements()
       roll = roll * (1 + (0.5 * isNude as int))  ; if the player has no clothes on: chance is / 1.5
       ; we still need to modify the chance with gag presence here because there will be two possibilities
       
+      if playerIsNotArmed() == false && MCM.bIntimidateWeaponFullToggle
+        roll += 15
+      endif
       
       if playerVulnerability == 2 ; if the player has playerVulnerability 2, / 2
         roll = roll * 2
@@ -3290,8 +3290,8 @@ function refreshSDMaster()
       else
         actor_sex     = tmp.GetActorBase().getSex()
       endif   
-      if( actor_sex == 0 && gender_pref == 2) || (actor_sex == 1 && gender_pref == 1)
-        ; wrong gender
+      if ( actor_sex == 0 && gender_pref == 2) || (actor_sex == 1 && gender_pref == 1)
+        ; wrong gender, don't add
       else
         a[a_index] = tmp
         a_index += 1

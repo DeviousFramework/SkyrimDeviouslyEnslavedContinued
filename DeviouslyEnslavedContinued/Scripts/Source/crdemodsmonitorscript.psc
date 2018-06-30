@@ -480,6 +480,8 @@ keyword property slaEroticKeyword auto
 quest property wwbEscapeQuest auto
 cell property wwbWhiterunBrothel auto
 
+keyword property LocTypeJail auto
+
 Event OnInit()
   Debug.Trace("[CRDE] Mods::init() ...")
   dhlpSuspendStatus = false
@@ -1295,8 +1297,6 @@ bool function isSlaveTrader(actor actorRef)
 endFunction
 
 
-; If there was a place to put "abused in sight of master" it would go here
-; even if that's more of something that should be handled by the slave mods
 ; is player busy with mod, also determined here often
 int function isPlayerEnslaved()
 
@@ -1733,7 +1733,10 @@ int function isPlayerEnslaved()
     endif
   endif
 
-
+  if LocTypeJail && curLocation.HasKeyword(LocTypeJail); keyword isn't none
+    debugmsg("enslaved: in jail, assuming even if player isn't in jail themselves we don't want prisoners to attack 3", 3)
+    setEnslavedLevel(3)
+  endif
   ;Debug.trace("[CRDE] EnslaveLevel " + iEnslavedLevel)
 
   ;if iEnslavedLevel >= 1

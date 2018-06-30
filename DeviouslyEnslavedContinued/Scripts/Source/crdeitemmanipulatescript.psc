@@ -1291,9 +1291,11 @@ endFunction
 
 ; modified to return regular collar or return unique collar, random
 armor function getRandomDDCollars(actor actorRef)
-  bool collarBlocked     = collar != None && actorRef.WornHasKeyword(libs.zad_DeviousCollar) && collar.HasKeyword(libs.zad_BlockGeneric) ;PlayerMon.knownCollar != None && PlayerMon.knownCollar.HasKeyword(libs.zad_BlockGeneric)
-  int isCollarable        = (!(actorRef.WornHasKeyword(Mods.zazKeywordWornYoke) || collarBlocked || Mods.iEnslavedLevel > 0)) as int
-  int weightUniqueCollars   = MCM.iWeightUniqueCollars * ( isCollarable )
+  armor collar = actorRef.GetWornForm(0x00008000) as armor ; collar 45 
+  bool collarBlocked     = collar && (actorRef.WornHasKeyword(libs.zad_DeviousCollar) && collar.HasKeyword(libs.zad_BlockGeneric)) ;PlayerMon.knownCollar != None && PlayerMon.knownCollar.HasKeyword(libs.zad_BlockGeneric)
+  int isCollarable        = (!(actorRef.WornHasKeyword(Mods.zazKeywordWornYoke) || collarBlocked )) as int ; || Mods.iEnslavedLevel > 0
+  PlayerMon.debugmsg("blocked, collarable, device: (" + collarBlocked +", " + isCollarable +", " + collar + ")" , 4)
+  int weightUniqueCollars   = MCM.iWeightUniqueCollars * ( isCollarable ) * (Mods.iEnslavedLevel > 0 ) as int
   int weightRegularCollars  = MCM.iWeightSingleCollar * ( isCollarable )
   
   int weightTotal = weightUniqueCollars + weightRegularCollars
@@ -1303,7 +1305,6 @@ armor function getRandomDDCollars(actor actorRef)
   endif
   int roll = Utility.RandomInt(1, weightTotal)
 
-  armor collar
   if roll <= weightUniqueCollars 
     collar = getRandomUniqueCollar(actorRef)
   else
@@ -2074,7 +2075,7 @@ function rollFollowerFoundItems(actor actorRef)
     armorKeyword = libs.zad_DeviousArmbinder 
   endif     
   
-  PlayerMon.debugmsg("collar/randomPlug/belt/glovesandboots/cuffs/randomGag/harness/armbinder/randomCD/nipplePiercings/petcollar/uniqueCollar/elbowbinder/gemplug("  \
+  PlayerMon.debugmsg("collar/randomPlug/belt/glovesandboots/cuffs/randomGag/harness/armbinder/randomCD/nipplePiercings/petcollar/uniqueCollar/elbowbinder("  \
                     + collar + "/" + randomPlug + "/" + belt + "/" + glovesandboots + "/" + cuffs + "/" \
                     + randomGag + "/"  + harness + "/"  + armbinder + "/"  + randomCD + "/" + nipplePiercings \
                     + "/" + petCollar + "/" + uniqueCollar + "/" + elbowbinder \

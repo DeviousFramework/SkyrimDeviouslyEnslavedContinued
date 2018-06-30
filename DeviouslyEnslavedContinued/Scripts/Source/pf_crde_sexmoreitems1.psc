@@ -8,6 +8,7 @@ Actor akSpeaker = akSpeakerRef as Actor
 ;BEGIN CODE
 ;crdePlayerMonitorScript monitorScript = GetOwningQuest() as crdeItemManipulateScript
 (GetOwningQuest() as crdeItemManipulateScript).equipRandomDD(Game.GetPlayer())
+StorageUtil.SetFloatValue(akSpeaker, "crdeNPCApproachTimeout", Utility.GetCurrentGameTime() + 1.0/12.0) 
 ;END CODE
 EndFunction
 ;END FRAGMENT

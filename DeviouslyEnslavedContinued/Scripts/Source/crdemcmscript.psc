@@ -645,7 +645,7 @@ event OnPageReset(string a_page)
   elseif a_page == Pages[6]  ; dialogue guard/intimidation, and now confidence
     AddHeaderOption("Confidence options")
     bConfidenceToggleOID                  = AddToggleOption("Confidence Check", bConfidenceToggle)
-    iWeightConfidenceArousalOverrideOID   = AddSliderOption("Confidence Override Arousal", iWeightConfidenceArousalOverride, "{0}")
+    iWeightConfidenceArousalOverrideOID   = AddSliderOption("Arousal Overrides Confidence", iWeightConfidenceArousalOverride, "{0}")
   
     AddHeaderOption("Intimidate options")
     bIntimidateToggleOID              = AddToggleOption("Intimidate", gIntimidateToggle.GetValueInt()) ; intimidation main toggle
@@ -653,6 +653,9 @@ event OnPageReset(string a_page)
     bIntimidateWeaponFullToggleOID    = AddToggleOption("Intimidate Weapon Block", bIntimidateWeaponFullToggle, 1);
     ; gag prevention
     ; weapon protects 100% toggle
+    
+    AddHeaderOption("Morality options")
+    iWeightMoralityArousalOverrideOID   = AddSliderOption("Arousal Overrides Morality", iWeightMoralityArousalOverride, "{0}")
     
     AddHeaderOption("Modifiers ")
     ; more to come here later
@@ -1204,9 +1207,13 @@ event OnOptionSliderOpen(int a_option)
     SetSliderDialogRange(-3, 4)
     SetSliderDialogInterval(1)
   
-  elseif a_option == iWeightConfidenceArousalOverrideOID
+  elseif a_option == iWeightConfidenceArousalOverrideOID 
     SetSliderDialogStartValue(iWeightConfidenceArousalOverride)
-    SetSliderDialogRange(0, 150)
+    SetSliderDialogRange(0, 100)
+    SetSliderDialogInterval( 1 )
+  elseif a_option == iWeightMoralityArousalOverrideOID 
+    SetSliderDialogStartValue(iWeightMoralityArousalOverride)
+    SetSliderDialogRange(0, 100)
     SetSliderDialogInterval( 1 )
   elseif a_option == iReqLevelSLSFExhibIncreaseVulnerableOID
     SetSliderDialogStartValue(iReqLevelSLSFExhibIncreaseVulnerable)
@@ -1989,8 +1996,11 @@ event OnOptionSliderAccept(int a_option, float a_value)
     iRelationshipProtectionLevel = a_value as int
     SetSliderOptionValue(a_option, a_value, "Level {0}")
   
-  elseif a_option == iWeightConfidenceArousalOverrideOID
+  elseif a_option == iWeightConfidenceArousalOverrideOID;
     iWeightConfidenceArousalOverride = a_value as int
+    SetSliderOptionValue(a_option, a_value, "{0}")
+  elseif a_option == iWeightMoralityArousalOverrideOID;
+    iWeightMoralityArousalOverride = a_value as int
     SetSliderOptionValue(a_option, a_value, "{0}")
     
   elseif a_option == iReqLevelSLSFExhibIncreaseVulnerableOID
@@ -2787,8 +2797,10 @@ event OnOptionHighlight(int a_option)
     SetInfoText("Weight for getting a collection of CD items")
 
   
-  elseif a_option == iWeightConfidenceArousalOverrideOID
-    SetInfoText("The NPC arousal required to bypass the confidence requirement")
+  elseif a_option == iWeightConfidenceArousalOverrideOID;
+    SetInfoText("The NPC arousal required to bypass the Confidence requirement")
+  elseif a_option == iWeightMoralityArousalOverrideOID;
+    SetInfoText("The NPC arousal required to bypass the Morality requirement")
     
   elseif a_option == iWeightDeviousPunishEquipmentBannnedCollarOID
     SetInfoText("Weight for getting the Force nude and punishment Banned Collar")
@@ -3221,7 +3233,9 @@ function SaveConfig()
 
   ; new iDistanceWeightDFGift
   JsonUtil.SetIntValue(filePath, "iDistanceWeightDFGift", iDistanceWeightDFGift)
-  JsonUtil.SetIntValue(filePath, "iAnimationFilterPref", iAnimationFilterPref) ;iAnimationFilterPrefOID
+  JsonUtil.SetIntValue(filePath, "iAnimationFilterPref", iAnimationFilterPref) ;
+  JsonUtil.SetIntValue(filePath, "iWeightConfidenceArousalOverride", iWeightConfidenceArousalOverride) ;
+  JsonUtil.SetIntValue(filePath, "iWeightMoralityArousalOverride", iWeightMoralityArousalOverride) ;
 
   
   JsonUtil.Save(filePath, false)
@@ -3516,7 +3530,8 @@ function LoadConfig()
   ; new
   iDistanceWeightDFGift = JsonUtil.GetIntValue(filePath, "iDistanceWeightDFGift", iDistanceWeightDFGift )
   iAnimationFilterPref = JsonUtil.GetIntValue(filePath, "iAnimationFilterPref", iAnimationFilterPref ) ;iAnimationFilterPref
-
+  iWeightConfidenceArousalOverrideOID = JsonUtil.GetIntValue(filePath, "iWeightConfidenceArousalOverride", iWeightConfidenceArousalOverride )
+  iWeightMoralityArousalOverrideOID = JsonUtil.GetIntValue(filePath, "iWeightMoralityArousalOverride", iWeightMoralityArousalOverride )
   
   debug.Trace("[CRDE] *** load config finished ***")
 endFunction
@@ -4020,8 +4035,11 @@ Int Property  iWeightUniqueCollars Auto
 Int  iWeightUniqueCollarsOID
 Int Property iWeightRandomCD Auto
 Int  iWeightRandomCDOID
-Int Property  iWeightConfidenceArousalOverride Auto
+Int Property  iWeightConfidenceArousalOverride Auto ; 
 Int  iWeightConfidenceArousalOverrideOID
+Int Property  iWeightMoralityArousalOverride Auto ; 
+Int  iWeightMoralityArousalOverrideOID
+
 
 
 Int Property  iWeightDeviousPunishEquipmentBannnedCollar Auto

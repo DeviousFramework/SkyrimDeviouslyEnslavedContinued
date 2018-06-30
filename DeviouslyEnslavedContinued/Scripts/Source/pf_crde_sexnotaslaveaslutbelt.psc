@@ -18,6 +18,9 @@ Actor akSpeaker = akSpeakerRef as Actor
   if ! player.WornHasKeyword((GetOwningQuest() as crdePlayerMonitorScript).libs.zad_DeviousHeavyBondage)
     Debug.SendAnimationEvent(player, "ZaZAPCSHFOFF")  ; shame pose 
   endif
+  
+StorageUtil.SetFloatValue(akSpeaker, "crdeNPCApproachTimeout", Utility.GetCurrentGameTime() + 1.0) 
+
 ;END CODE
 EndFunction
 ;END FRAGMENT

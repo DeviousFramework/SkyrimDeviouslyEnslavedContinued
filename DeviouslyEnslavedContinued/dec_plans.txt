@@ -127,13 +127,6 @@ Notes:
   add alt for "what is it" if they are your master
     could really use a lot of these, but each one needs its own script and we keep crashing when working on these... why?
   if we keep the dispositions of the master on the master quest, can we detect that during dialogue condition time?
-  ;on sex with player, drop frustration
-  ;swap in doplayersexwithbeltreplace 
-    ; feel like I missed some, hard to tell
-  ;more gagged alt for "oh you like this interesting"
-  ;  follower should comment on how it looks
-  ;  follower should lament if they want to try it on after seeing you in it
-  ;  follower should comment on how they would like to add more?
   more of the dialogue should increase follower dom tendency
   some items aren't restting follower roll chances
   if gagged and shakes head, at home or with really dom follower, good chance they do it anyway
@@ -142,33 +135,35 @@ Notes:
   if follower finds a petcollar, they don't always put it on themselves it seems
     make sure pet collar is working
     pet collar isn't installed, so why do we roll true for pet collar when it isn't installed?
-  ;users think we shouldn't get belt with plugs always
-    could have sworn I had belt OR harness setup, but guess not?  
   also add unique collars to post sex, meaning single item detection
   finish straitjacket and the other item we wanted
-  ;turn hoods down
   
 &&&&&&&&&&&&&&&&&
 
-  user wants to be able to turn off animation filters
-  ;fixed a bug where lvl 2 items were weighted heavier than lvl 3 items (backwards)
-  make it so that horny follower is likely to unlock the player for sex
+
+  > user wants morality bypass for arousal
+  ;user wants intimidation timer
+  ;  need to set it in some spots
+  ;    until night for intimidation, 1 day for belt, 6 hours for master, 6 hours for rest?
+  user wants weapon spooking timer
+  ;user discovered that dialogue points at vulnerability instead of playerVulnerability
+    can't use grep on a binary without losing multi-line detection, which is needed
+    use vim instead, search actually works
+  ;user was attacked through bars in prison
+    loctypejail
+  ;collar double adding ontop of collar not detecting harness and not removing? at least the collar test doesn't catch that a new collar is possible
+  maybe add some color sliders
   
-  ;currently working on settings save/load using jsonutil
+  
+  for now, lets make it so that item are never swapped if the player has a blocking keyword on their person
+  collars are never swapped if the player is wearing a harness... huh
+
+  make it so that horny follower is likely to unlock the player for sex
+    remove and replace belt seems broken, even broke the armbinder (might have been a beta issue though)
+  
+  
   if player has had sex with the npc before, different enslave dialogue
   make a dialogue for "combat plug" and belt
-  when touching the ESP, set starting value for iDistanceWeightDFGift
-  ;add iDistanceWeightDFGift to save/load
-  
-  ;user thinks DEC interferes with whiterun brothel revamped
-    attempted fix: if player is in cell, or if player is attempting the escape quest, then they are slaves and cannot be re-enslaved
-  ; fixed follower adding items game ignoring sliders set to zero for items
-  
-  ;user found but where sexhook can result in index out of bounds
-  ;user wants truly random SD masters
-  ;DCUR cursed collar doesn't drop/add letter to player's inventory for quest
-  ;workaround for bug where Mods.slaEroticKeyword keyword is NONE, error in playervulnerability (low prio)
-  
   
   user wants follower dom/sub tendencies to account for sex positions; yeah that's gonna happen
   
@@ -179,10 +174,8 @@ Notes:
   player approaches follower for sex, follower requires certain items be worn during sex angrim inflence
     need follower is not interested, at all
   
-  ;unique collar is broken, roll total is zero
   belt re-equip after a sex does not work, or maybe serana wasn't dom enough?
   slaverun specific dialogue? "not going to unlock your belt here, too many weird people"?
-  
   
   ;follower test for if they can remove belt needs fixing
     fixed but needs testing

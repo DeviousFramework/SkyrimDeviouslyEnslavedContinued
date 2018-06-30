@@ -344,6 +344,7 @@ endFunction
 
 ; this might become obsolete if I can move some/al of them to the quest alias conditions
 ; I haven't changed this since I switched over to isActorRefIneligable, however I made fixes to isActorRefIneligable, keep that in mind
+; TODO what I SHOULD have done is make one of these that calls the other, then adds a few checks instead of making just a second one
 bool function isActorIneligable(actor actorRef, bool includeSlaveTraders = false)
 
   ; things checked by the ESP conditions for isActorRefIneligable:
@@ -388,14 +389,15 @@ bool function isActorIneligable(actor actorRef, bool includeSlaveTraders = false
   endif
   
   float arousal_modifier = (1 + ((PlayerMon.isNight() as int) * (MCM.fNightReqArousalModifier - 1)) )
+  int arousal = 0
   if !MCM.bArousalFunctionWorkaround
-    int arousal = actorRef.GetFactionRank(Mods.sexlabArousedFaction)
+    arousal = actorRef.GetFactionRank(Mods.sexlabArousedFaction)
     if arousal < MCM.gMinApproachArousal.GetValueInt() / arousal_modifier ;&& !isSlaver ;aroused enough?
       debugmsg("invalid: " + actorRef.GetDisplayName() + " arousal too low (faction): " + arousal + "/" + (MCM.gMinApproachArousal.GetValueInt() / arousal_modifier) as int, 3)
       return true
     Endif
   elseif MCM.bArousalFunctionWorkaround 
-    int arousal = Aroused.GetActorArousal(actorRef) 
+    arousal = Aroused.GetActorArousal(actorRef) 
     if arousal < MCM.gMinApproachArousal.GetValueInt() / arousal_modifier  
       debugmsg("invalid: " + actorRef.GetDisplayName() + " arousal too low (function): " + arousal + "/" + (MCM.gMinApproachArousal.GetValueInt() / arousal_modifier) as int , 3)
       return true  
@@ -421,7 +423,8 @@ bool function isActorIneligable(actor actorRef, bool includeSlaveTraders = false
     return true
     
     
-  elseif ((MCM.iMaxEnslaveMorality as float) < actorMorality) && ((MCM.iMaxSolicitMorality as float) < actorMorality) && !Mods.isSlaveTrader(actorRef)
+  elseif ((MCM.iMaxEnslaveMorality as float) < actorMorality) && ((MCM.iMaxSolicitMorality as float) < actorMorality) && !Mods.isSlaveTrader(actorRef) \
+    && arousal < MCM.iWeightMoralityArousalOverride 
     debugmsg("invalid: " + actorRef.GetDisplayName() + " has too high of a morality ", 3)
     return true
 
@@ -462,12 +465,18 @@ bool function isActorIneligable(actor actorRef, bool includeSlaveTraders = false
     return true
 
   elseif(actorRef.getAV("Aggression") > 2)
-    debugmsg("invalid: " + actorRef.GetDisplayName() + " is aggressive? inactive", 3) ; this one might be needed for stealth after all
+    debugmsg("invalid: " + actorRef.GetDisplayName() + " is aggressive?", 3) ; this one might be needed for stealth after all
     return true
   elseif actorRef.IsDisabled()
     debugmsg("invalid: " + actorRef.GetDisplayName() + " is disabled and does not exist", 3) ; this one might be needed for stealth after all
     return true
   endif
+  
+  ; last because it might be kinda expensive, all of storageutil is in papyrus land right?
+  if StorageUtil.GetFloatValue(actorRef, "crdeNPCApproachTimeout") > Utility.GetCurrentGameTime()
+    debugmsg("invalid: " + actorRef.GetDisplayName() + " is still on cooldown from last attempted approach", 3) ; this one might be needed for stealth after all
+    return true
+  endIf
   
   return false
 endFunction
@@ -583,6 +592,12 @@ bool function isActorRefIneligable(actor actorRef, bool includeSlaveTraders = fa
   ;  return true
   endif
   
+  ; last because it might be kinda expensive
+  if StorageUtil.GetFloatValue(actorRef, "crdeNPCApproachTimeout") > Utility.GetCurrentGameTime()
+    debugmsg("invalid: " + actorRef.GetDisplayName() + " is still on cooldown from last attempted approach", 3) ; this one might be needed for stealth after all
+    return true
+  endIf
+
   return false
 endFunction
 
