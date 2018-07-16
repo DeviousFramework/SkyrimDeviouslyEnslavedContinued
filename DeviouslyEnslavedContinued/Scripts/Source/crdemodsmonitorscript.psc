@@ -1733,7 +1733,7 @@ int function isPlayerEnslaved()
     endif
   endif
 
-  if LocTypeJail && curLocation.HasKeyword(LocTypeJail); keyword isn't none
+  if LocTypeJail && curLocation && curLocation.HasKeyword(LocTypeJail); keyword isn't none
     debugmsg("enslaved: in jail, assuming even if player isn't in jail themselves we don't want prisoners to attack 3", 3)
     setEnslavedLevel(3)
   endif

@@ -3368,7 +3368,7 @@ function StartBrawl(actor Attacker)
   ;BrawlKeyword.SendStoryEvent(None, pTarget, pTargetFriend)
   BrawlKeyword.SendStoryEvent(None, Attacker, None)
   currentBrawler = Attacker
-  brawlStartGameTime = Utility.GetCurrentGameTime() + (3/48) ; in days, 3 * half hour or 1.5 hours
+  brawlStartGameTime = Utility.GetCurrentGameTime() + (1.0/12.0) ; in days, 2 hours, or 1/12th day
   debugmsg("a brawl was started with attacker: " + attacker.GetDisplayName())
 
 endFunction

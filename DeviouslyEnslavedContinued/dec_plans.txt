@@ -140,8 +140,9 @@ Notes:
   
 &&&&&&&&&&&&&&&&&
 
+  intimidation skill
 
-  > user wants morality bypass for arousal
+  ; user wants morality bypass for arousal
   ;user wants intimidation timer
   ;  need to set it in some spots
   ;    until night for intimidation, 1 day for belt, 6 hours for master, 6 hours for rest?

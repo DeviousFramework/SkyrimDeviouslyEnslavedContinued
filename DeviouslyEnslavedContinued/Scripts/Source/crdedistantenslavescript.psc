@@ -105,7 +105,7 @@ bool function enslavePlayer(actor attacker = None)
   ;int newTrainingWeight = (DistanceEnslave.canRunTraining() * 50)
   int weightTotal       = newLocalWeight + newGivenWeight + newSoldWeight 
   if weightTotal == 0 
-    debugmsg("enslvePlayer ERR: weightTotal is 0, no mods?")
+    debugmsg("enslvePlayer ERR: no mods available?")
     return false
   endif
   int roll = Utility.RandomInt(1, weightTotal )
