@@ -529,7 +529,7 @@ event OnPageReset(string a_page)
     iDistanceWeightDCLLeahOID       = AddSliderOption("Cursed loot Leah", iDistanceWeightDCLLeah, "{0}", (!Mods.modLoadedCursedLoot) as int)
     iDistanceWeightDCVampireOID     = AddSliderOption("Devious Cidhna (Vampires)", iDistanceWeightDCVampire, "{0}", (!Mods.modLoadedDeviousCidhna) as int)
     iDistanceWeightDCBanditsOID     = AddSliderOption("Devious Cidhna (Bandits)", iDistanceWeightDCBandits, "{0}", (!Mods.modLoadedDeviousCidhna) as int)
-    iDistanceWeightDFGiftOID        = AddSliderOption("Devious Follower Gift", iDistanceWeightDFGift, "{0}", (!Mods.modLoadedDeviousCidhna) as int)
+    iDistanceWeightDFGiftOID        = AddSliderOption("Devious Follower Gift", iDistanceWeightDFGift, "{0}", (!(Mods.dflowQuest != NONE)) as int)
 
     
   elseif a_page == Pages[5] ; Follower 

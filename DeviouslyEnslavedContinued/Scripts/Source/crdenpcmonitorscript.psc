@@ -307,7 +307,10 @@ endFunction
 ; moved to separate because it got complicated when playable race wasn't enough
 bool function isInvalidRace(actor actorRef)
   Race actorRace =  actorRef.getRace()
-  if actorRace == None || actorRace.isPlayable() == true
+  if actorRace == None ; has this happened before now? can an actor have a null race?
+    return true
+  endif
+  if actorRace.isPlayable() == true 
     return false
   endif
   race current_race_test

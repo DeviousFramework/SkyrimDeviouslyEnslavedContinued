@@ -141,7 +141,13 @@ Notes:
 &&&&&&&&&&&&&&&&&
 
   intimidation skill
-
+  ;user found bug where devious followers esnalvement was a greyed out option
+  
+  DD double belt animation
+  DD animation for tight dress organsm?
+  DF: mod won't remove harness before sex, broken animations because of DD animation filter
+  
+  
   ; user wants morality bypass for arousal
   ;user wants intimidation timer
   ;  need to set it in some spots
