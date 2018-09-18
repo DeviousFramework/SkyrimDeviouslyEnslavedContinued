@@ -520,7 +520,8 @@ function enslaveDCLDamsel()
   ; no waiting, this event takes a long time to start on its own
   ;Game.EnablePlayerControls() ;I don't think this is required at all, actually for damsel
   if Mods.modLoadedCursedLoot
-    (Mods.dcurDamselQuest as dcur_lbquestScript).StartQuest()
+    ;(Mods.dcurDamselQuest as dcur_lbquestScript).StartQuest()
+    Mods.dcurDamselQuest.Start()
   else
     debugmsg("Error: Cursed loot is not installed")
   endif

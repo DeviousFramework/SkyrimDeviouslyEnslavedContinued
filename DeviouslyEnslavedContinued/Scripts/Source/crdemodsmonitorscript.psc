@@ -1518,6 +1518,7 @@ int function isPlayerEnslaved()
     endif
   endif
   
+  
   if modLoadedMariaEden == true
     if(player.IsInFaction(MariaEdensSlaveFaction))
       if(meSlaveOnAStroll.isRunning() && meSlaveOnAStroll.GetStage() != 0)
@@ -2007,3 +2008,4 @@ function debugmsg(string msg, int level = 0)
       endif
     endif
 endFunction
+
