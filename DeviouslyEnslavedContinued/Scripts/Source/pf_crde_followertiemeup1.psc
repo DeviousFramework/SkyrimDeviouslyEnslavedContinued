@@ -23,6 +23,7 @@ else
   PlayerMon.ItemScript.equipFollowerAndPlayerItems(akSpeaker, forceCollar = true , forceArmbinder = true)
 endif
 
+PlayerMon.setFollowerGameState(True)
 
 ;END CODE
 EndFunction

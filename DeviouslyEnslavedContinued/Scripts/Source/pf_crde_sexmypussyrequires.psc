@@ -8,6 +8,8 @@ Actor akSpeaker = akSpeakerRef as Actor
 ;BEGIN CODE
 crdePlayerMonitorScript monitorScript = GetOwningQuest() as crdePlayerMonitorScript
 monitorScript.forceGreetSex = 0
+monitorScript.refreshHasFollowers()
+
 ;monitorScript.timeoutEnslaveGameTime = Utility.GetCurrentGameTime() + monitorScript.MCM.fEventTimeout
 ;END CODE
 EndFunction

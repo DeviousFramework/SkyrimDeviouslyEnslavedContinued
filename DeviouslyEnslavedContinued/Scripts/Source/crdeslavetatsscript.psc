@@ -35,7 +35,6 @@ Scriptname crdeSlaveTatsScript extends Quest ;conditional ;extends ReferenceAlia
 ; definitions
 crdeModsMonitorScript   Property  Mods auto
 crdePlayerMonitorScript Property  PlayerMon auto
-;import                           SlaveTats
 Quest                   Property  SlaveTatsQuest auto
 Keyword                 Property  ClothingCirclet Auto
 actor                             player 
@@ -91,7 +90,7 @@ Event OnInit()
   EndIf
 EndEvent
 
-; too lazy to look up the details of the tattoo, especially when we don't care
+; this catches tattoo events in the game, we need to listen for and catch these to test if changes were made to the player
 Event TattooUpdate( String s1, String s2, Form f1)
   debug.trace("[CRDE] *** Tattoo update detected ***")
   ; this is saving the status for future, assuming we shouldn't do any work right now

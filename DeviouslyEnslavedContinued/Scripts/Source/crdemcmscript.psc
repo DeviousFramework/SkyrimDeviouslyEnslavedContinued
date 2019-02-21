@@ -54,7 +54,12 @@ event OnOptionMenuOpen(int a_option)
   elseif a_option == aFollowerSelectOID
     SetMenuDialogStartIndex(0)
     SetMenuDialogDefaultIndex(0)
-    SetMenuDialogOptions(actorNames) ; xxx
+    SetMenuDialogOptions(actorNames) 
+  elseif a_option == bSelectVulnerableArmorOID
+    SetMenuDialogStartIndex(0)
+    SetMenuDialogDefaultIndex(0)
+    SetMenuDialogOptions(Mods.getUniqueVulnerableArmorNames()) 
+  
   elseif a_option == iAnimationFilterPrefOID
     SetMenuDialogStartIndex(0)
     SetMenuDialogDefaultIndex(0)
@@ -75,6 +80,8 @@ event OnOptionMenuAccept(int a_option, int a_index)
     ;UpdateFollowerPage()
     ;OnPageReset("Follower dialogue") ; might fix it
     ForcePageReset()
+  elseif a_option == bSelectVulnerableArmorOID
+    debug.notification("you forgot the thing")
   elseif a_option == iAnimationFilterPrefOID
     bool DDi4 = Mods.modLoadedDD4
     if a_index == 0     ; AUTO, select one
@@ -385,12 +392,13 @@ event OnPageReset(string a_page)
     iWeaponWavingProtectionLevelOID   = AddSliderOption("Waving weapon Protection", iWeaponWavingProtectionLevel, "Level {0}")
     iRelationshipProtectionLevelOID   = AddSliderOption("Relationship Protection Level", iRelationshipProtectionLevel, "Level {0}")
     iVulnerableFurnitureOID           = AddToggleOption("Xaz Furniture", iVulnerableFurniture)
-    bAttackersGuardsOID               = AddToggleOption("Guards Toggle",  bAttackersGuards)
+    bAttackersGuardsOID               = AddToggleOption("Guards Toggle", bAttackersGuards)
+    bGhostDialogueToggleOID           = AddToggleOption("Ghosts Toggle", bGhostDialogueToggle)
     bAltBodySlotSearchWorkaroundOID   = AddToggleOption("Alternate body slot search", bAltBodySlotSearchWorkaround)
     bEnslaveFollowerLockToggleOID     = AddToggleOption("Follower locks enslave attempt", bEnslaveFollowerLockToggle)
     bSexFollowerLockToggleOID         = AddToggleOption("Follower locks sex attempt", bSexFollowerLockToggle)
     
-    AddEmptyOption() ; spacer
+    ;AddEmptyOption() ; spacer
     AddHeaderOption("Nighttime Options")
     fNightReqArousalModifierOID      = AddSliderOption("Night Arousal Modifier", fNightReqArousalModifier, "{1}", 0)
     fNightDistanceModifierOID        = AddSliderOption("Night Distance Modifier", fNightDistanceModifier, "{1}", 1)
@@ -398,7 +406,6 @@ event OnPageReset(string a_page)
     iNightReqConfidenceReductionOID  = AddSliderOption("iNightReqConfidenceReduction", iNightReqConfidenceReduction, "{0}", 0)
     bNightAddsToVulnerableOID        = AddToggleOption("Night Makes More Vulnerable", bNightAddsToVulnerable, 0)
     
-    ;AddEmptyOption() ; spacer ; there may be extra spacers here to equalize vulnerable items and the oposite side cosmetically
 
     
     AddEmptyOption() ; spacer
@@ -415,6 +422,9 @@ event OnPageReset(string a_page)
     iVulnerableSlutTattooOID    = AddSliderOption("Slut Tattoos", iVulnerableSlutTattoo, "Level {0}")
     iVulnerableAnkleChainsOID   = AddSliderOption("Ankle Chains", iVulnerableAnkleChains, "Level {0}")
     iVulnerableSexlabEroticOID  = AddSliderOption("Sexlab \"Erotic\" armor", iVulnerableSexlabErotic , "Level {0}")
+    
+    AddEmptyOption() ; spacer
+
     
     SetCursorPosition(1) ; switch sides
     
@@ -446,8 +456,13 @@ event OnPageReset(string a_page)
     iReqLevelSLSFExhibMakeVulnerableOID  = AddSliderOption("SLSF Exhibition Makes vulnerable", iReqLevelSLSFExhibMakeVulnerable, "{0}", (!Mods.modLoadedFameFramework) as int)
     iReqLevelSLSFSlutMakeVulnerableOID   = AddSliderOption("SLSF Slut Makes vulnerable", iReqLevelSLSFSlutMakeVulnerable, "{0}", (!Mods.modLoadedFameFramework) as int)
 
-    AddEmptyOption() ; spacer ; there may be extra spacers here to equalize vulnerable items and the oposite side cosmetically
-    AddEmptyOption() ; spacer
+    ;AddEmptyOption() ; spacer ; there may be extra spacers here to equalize vulnerable items and the oposite side cosmetically
+    AddHeaderOption("Unique items") 
+    ; select available
+    ;bSelectVulnerableArmorOID = AddMenuOption("Unique:", "Select here", 0)
+    bSetVulnerableArmorOID    = AddTextOption("Add Unique Item", "Click Here") 
+    bRemoveVulnerableArmorOID = AddTextOption("Remove Unique Item", "Click Here")
+
     AddEmptyOption() ; spacer
     AddHeaderOption("Vulnerable only while naked")
     iNakedReqGagOID           = AddSliderOption("Gag", iNakedReqGag, "Level {0}");(!Mods.iNakedReqGag) as int)
@@ -655,9 +670,10 @@ event OnPageReset(string a_page)
     ; weapon protects 100% toggle
     
     AddHeaderOption("Morality options")
-    iWeightMoralityArousalOverrideOID   = AddSliderOption("Arousal Overrides Morality", iWeightMoralityArousalOverride, "{0}")
+    iWeightMoralityArousalOverrideOID = AddSliderOption("Arousal Overrides Morality", iWeightMoralityArousalOverride, "{0}")
     
-    AddHeaderOption("Modifiers ")
+    AddHeaderOption("General Gag Dialogue ")
+    bRegularGagDialogueOID            = AddToggleOption("Gag dialogue Toggle", bRegularGagDialogue.GetValueInt() as bool)
     ; more to come here later
     
   elseif a_page == Pages[7] ; debug
@@ -695,7 +711,7 @@ event OnPageReset(string a_page)
     AddHeaderOption("building/testing, not meant for regular use")
     bAbductionTestOID         = AddToggleOption("Pony Button", bAbductionTest);, (!Mods.modLoadedMariaEden) as int)
     bInitTestOID              = AddToggleOption("SD Dream test", bInitTest, (!Mods.modLoadedSD) as int)
-    bTestButton1OID           = AddToggleOption("Remove Broken Item Test", bTestButton1)
+    bTestButton1OID           = AddToggleOption("Test button 1", bTestButton1)
     bTestButton2OID           = AddToggleOption("Broken DDi NPC reset test", bTestButton2)
     bTestButton3OID           = AddToggleOption("DD Key check", bTestButton3);, (!Mods.modLoadedSlaveTats) as int)
     bTestButton4OID           = AddToggleOption("Bed teleport test", bTestButton4, (!Mods.modLoadedCursedLoot) as int)
@@ -820,6 +836,9 @@ event OnOptionSelect(int a_option)
   elseif (a_option == bAttackersGuardsOID)
     bAttackersGuards = ! bAttackersGuards
     SetToggleOptionValue(a_option, bAttackersGuards)
+  elseif a_option == bGhostDialogueToggleOID
+    bGhostDialogueToggle = ! bGhostDialogueToggle
+    SetToggleOptionValue(a_option, bGhostDialogueToggle)
   elseif (a_option == bEnslaveFollowerLockToggleOID) 
     bEnslaveFollowerLockToggle = ! bEnslaveFollowerLockToggle
     SetToggleOptionValue(a_option, bEnslaveFollowerLockToggle)
@@ -948,6 +967,10 @@ event OnOptionSelect(int a_option)
   elseif a_option == bSetValidRaceOID
     Mods.PlayMonScript.appointValidRace()
     ;SetToggleOptionValue(a_option, bSetValidRace)
+  elseif a_option == bSetVulnerableArmorOID
+    Mods.addPointedVulnerableArmor()
+  elseif a_option == bRemoveVulnerableArmorOID
+    Mods.removePointedVulnerableArmor()
   elseif a_option == bToggleNeverFollowerOID
     Mods.PlayMonScript.toggleNeverFollower()
   elseif a_option == bTestTattoosOID 
@@ -1038,6 +1061,10 @@ event OnOptionSelect(int a_option)
     bFollowerContainerSearch.SetValueInt( (bFollowerContainerSearch.GetValueInt() == 0) as int )
     SetToggleOptionValue(a_option, bFollowerContainerSearch.GetValueInt() as bool)
     
+  elseif a_option == bRegularGagDialogueOID
+    bool toggle = bRegularGagDialogue.GetValueInt()
+    bRegularGagDialogue.SetValueInt( (!toggle) as int )
+    SetToggleOptionValue(a_option, !toggle)
   elseif a_option == bFollowerContainerSearchUnknownOID
     bFollowerContainerSearchUnknown = ! bFollowerContainerSearchUnknown
     SetToggleOptionValue(a_option, bFollowerContainerSearchUnknown)
@@ -2608,6 +2635,10 @@ event OnOptionHighlight(int a_option)
     
   elseIf a_option == bGuardDialogueToggleOID
     SetInfoText("Toggles whether the guard dialogue shows, and if they will approach the player")
+  elseIf a_option == bGhostDialogueToggleOID
+    SetInfoText("Toggles whether the ghosts can approach the player with demands")
+    
+    
   elseif a_option == bEnslaveLockoutDCUROID
     SetInfoText("Toggles whether certain Cursed loot items, that have block genetic keywords, but are also removable, prevent the player from being enslaved. If off, these items will be removed and enslavement will commence as normal instead.")
     
@@ -2801,6 +2832,8 @@ event OnOptionHighlight(int a_option)
     SetInfoText("The NPC arousal required to bypass the Confidence requirement")
   elseif a_option == iWeightMoralityArousalOverrideOID;
     SetInfoText("The NPC arousal required to bypass the Morality requirement")
+  elseif a_option == bRegularGagDialogueOID
+    SetInfoText("Turns ON/OFF the gagged dialogue that shows when the gagged player appraoches a former friend/ally")
     
   elseif a_option == iWeightDeviousPunishEquipmentBannnedCollarOID
     SetInfoText("Weight for getting the Force nude and punishment Banned Collar")
@@ -3091,6 +3124,7 @@ function SaveConfig()
   JsonUtil.SetIntValue(filePath, "bEnslaveLockoutAngrim", bEnslaveLockoutAngrim as int)
   JsonUtil.SetIntValue(filePath, "bEnslaveLockoutFTD", bEnslaveLockoutFTD as int)
   JsonUtil.SetIntValue(filePath, "bGuardDialogueToggle", bGuardDialogueToggle as int)
+  JsonUtil.SetIntValue(filePath, "bGhostDialogueToggleOID", bGhostDialogueToggle as int)
   JsonUtil.SetIntValue(filePath, "gGuardDialogueToggle", gGuardDialogueToggle.GetValueInt() )
   JsonUtil.SetIntValue(filePath, "bIntimidateToggle", bIntimidateToggle as int)
   JsonUtil.SetIntValue(filePath, "gIntimidateToggle", gIntimidateToggle.GetValueInt() )
@@ -3236,11 +3270,23 @@ function SaveConfig()
   JsonUtil.SetIntValue(filePath, "iAnimationFilterPref", iAnimationFilterPref) ;
   JsonUtil.SetIntValue(filePath, "iWeightConfidenceArousalOverride", iWeightConfidenceArousalOverride) ;
   JsonUtil.SetIntValue(filePath, "iWeightMoralityArousalOverride", iWeightMoralityArousalOverride) ;
-
+  JsonUtil.SetIntValue(filePath, "bRegularGagDialogue", bRegularGagDialogue.GetValueInt()) ;
+  
+  ; need to load an array of armors and ints for uniqueVulnerableItems
+  ; cache first, we don't need to do 100 propgets
+  armor[] localUniqueVulnerableArmors = Mods.pointedVulnerableArmors
+  int[] localUniqueVulnerableValues = Mods.pointedVulnerableArmorsValues
+  int i = 0
+  while i < localUniqueVulnerableArmors.length
+    JsonUtil.SetFormValue(filePath, "pointedVulnerableArmors" + i, localUniqueVulnerableArmors[i])
+    JsonUtil.SetIntValue(filePath, "pointedVulnerableArmorsValues" + i, localUniqueVulnerableValues[i])
+    i += 1
+  endWhile
+  
   
   JsonUtil.Save(filePath, false)
   debug.Trace("[CRDE] *** Save config finished ***")
-endFunction
+endFunction ; end save
 
 function LoadConfig()
   debug.Trace("[CRDE] *** Load config called ***")
@@ -3387,6 +3433,7 @@ function LoadConfig()
   bEnslaveLockoutAngrim = JsonUtil.GetIntValue(filePath, "bEnslaveLockoutAngrim", bEnslaveLockoutAngrim as int ) as bool
   bEnslaveLockoutFTD = JsonUtil.GetIntValue(filePath, "bEnslaveLockoutFTD", bEnslaveLockoutFTD as int ) as bool
   bGuardDialogueToggle = JsonUtil.GetIntValue(filePath, "bGuardDialogueToggle", bGuardDialogueToggle as int ) as bool
+  bGhostDialogueToggle = JsonUtil.GetIntValue(filePath, "bGhostDialogueToggle", bGhostDialogueToggle as int ) as bool
   gGuardDialogueToggle.SetValueInt(JsonUtil.GetIntValue(filePath, "gGuardDialogueToggle", gGuardDialogueToggle.GetValueInt() ))
   bIntimidateToggle = JsonUtil.GetIntValue(filePath, "bIntimidateToggle", bIntimidateToggle as int ) as bool
   gIntimidateToggle.SetValueInt(JsonUtil.GetIntValue(filePath, "gIntimidateToggle", gIntimidateToggle.GetValueInt() ))
@@ -3530,11 +3577,49 @@ function LoadConfig()
   ; new
   iDistanceWeightDFGift = JsonUtil.GetIntValue(filePath, "iDistanceWeightDFGift", iDistanceWeightDFGift )
   iAnimationFilterPref = JsonUtil.GetIntValue(filePath, "iAnimationFilterPref", iAnimationFilterPref ) ;iAnimationFilterPref
-  iWeightConfidenceArousalOverrideOID = JsonUtil.GetIntValue(filePath, "iWeightConfidenceArousalOverride", iWeightConfidenceArousalOverride )
-  iWeightMoralityArousalOverrideOID = JsonUtil.GetIntValue(filePath, "iWeightMoralityArousalOverride", iWeightMoralityArousalOverride )
+  iWeightConfidenceArousalOverride = JsonUtil.GetIntValue(filePath, "iWeightConfidenceArousalOverride", iWeightConfidenceArousalOverride )
+  iWeightMoralityArousalOverride = JsonUtil.GetIntValue(filePath, "iWeightMoralityArousalOverride", iWeightMoralityArousalOverride )
+  bRegularGagDialogue.SetValueInt(JsonUtil.GetIntValue(filePath, "bRegularGagDialogue", bRegularGagDialogue.GetValueInt() ))
+  
+  ; can we add forms to the file?
+  ;Form test = JsonUtil.GetFormValue(filePath, "testForm", Mods.zazLegCuffs )
+  ;debug.Trace("[CRDE]Result of attempted form load:" + test != Mods.zazLegCuffs)
+  ;debug.Trace("[CRDE]item:" + test.GetName())
+
+
+  ; need to load an array of armors and ints for uniqueVulnerableItems
+  ; cache first, we don't need to do 100 propgets
+  armor[] localUniqueVulnerableArmors = new armor[16]
+  int[] localUniqueVulnerableArmorsValues = new Int[16]
+
+  int i = 0 ; search index
+  int x = 0 ; successfully loaded index
+  ; its possible forms won't load because they don't exist in the load order anymore,
+  ;  we need two indexes to follow, one for traversing the json, one for keeping a gapless array 
+  form tmpArmor = None
+  int   tmpVulnLVL = 0
+  ; for some annoying reason papyrus wont let me pass a NONE as form parameter to this function as backup, 
+  ;  lets assume users will not assign an already vulnerable item to the list and use that as a baseline
+  while i < localUniqueVulnerableArmors.length
+    tmpArmor = JsonUtil.GetFormValue(filePath, "pointedVulnerableArmors" + i, Mods.zazCollar)
+    tmpVulnLVL = JsonUtil.GetIntValue(filePath, "pointedVulnerableArmorsValues" + i, 0)
+    if tmpArmor && tmpArmor != Mods.zazCollar
+      localUniqueVulnerableArmors[x] = tmpArmor as armor
+      localUniqueVulnerableArmorsValues[x] = tmpVulnLVL
+      debug.trace("[CRDE] valid armor loaded: " + tmpArmor.GetName())
+      x += 1
+    ;else
+    ;  Mods.PlayMonScript.debugmsg("")
+    endif
+    i += 1
+  endWhile
+
+  ; assign Mods arrays to new arrays
+  Mods.pointedVulnerableArmors = localUniqueVulnerableArmors
+  Mods.pointedVulnerableArmorsValues = localUniqueVulnerableArmorsValues
   
   debug.Trace("[CRDE] *** load config finished ***")
-endFunction
+endFunction ; end load
 
 
 
@@ -3855,7 +3940,9 @@ bool Property  bEnslaveLockoutFTD Auto
 Int  bEnslaveLockoutFTDOID
 
 ;guard dialogue 
-bool Property bGuardDialogueToggle Auto Conditional           ; deprecated
+bool Property bGuardDialogueToggle Auto Conditional           
+bool Property bGhostDialogueToggle Auto Conditional
+int bGhostDialogueToggleOID 
 GlobalVariable Property gGuardDialogueToggle Auto Conditional
 int bGuardDialogueToggleOID
 
@@ -3905,6 +3992,9 @@ bool Property bSetValidRace Auto
 int bSetValidRaceOID;
 int bToggleNeverFollowerOID;
 
+int bSelectVulnerableArmorOID
+int bSetVulnerableArmorOID
+int bRemoveVulnerableArmorOID
 
 int bRefreshModDetectOID 
 int bRefreshFollowersOID 
@@ -4039,7 +4129,8 @@ Int Property  iWeightConfidenceArousalOverride Auto ;
 Int  iWeightConfidenceArousalOverrideOID
 Int Property  iWeightMoralityArousalOverride Auto ; 
 Int  iWeightMoralityArousalOverrideOID
-
+GlobalVariable Property bRegularGagDialogue auto
+int bRegularGagDialogueOID
 
 
 Int Property  iWeightDeviousPunishEquipmentBannnedCollar Auto

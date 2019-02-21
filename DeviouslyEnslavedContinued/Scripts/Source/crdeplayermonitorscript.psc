@@ -116,7 +116,10 @@ MagicEffect Property SexLabCumVaginalEffect Auto
 MagicEffect Property SexLabCumAnalEffect Auto   
 bool        Property sexFromDEC Auto ; was DEC what called this sexlab session?
 bool        Property sexFromDECWithoutAfterAttacks Auto ; but do we not want attackers afterwards? (friendly?)
+; the first of these is for between pre-and post sex
 bool        Property sexFromDECWithBeltReapplied Auto
+; this second one is for pre-check to pre-sex
+bool        Property sexRemoveItemsFirst Auto
 armor[]     Property itemsSavedForAfterSex Auto
 
 int   Property playerContainerOpenCount Auto
@@ -178,8 +181,9 @@ FormList property permanentFollowers Auto
 ;   50 is random plug, 51 is random plug and more, 52 is random gem plug and more
 ;   55 is random belt and more, 56 is random harness and more
 
-int Property followerItemsCombination   Auto Conditional
-int Property followerItemsWhichOneFree  Auto Conditional
+int  Property followerItemsCombination   Auto Conditional
+int  Property followerItemsWhichOneFree  Auto Conditional
+bool Property followerAddItemGameStarted Auto Conditional ; is the follower playing a game on the player
 
 Float           CurrentGameTime         = 0.0
 float           onupdatetimeteststart   = 0.0       ; for testing how long things take per loop
@@ -308,8 +312,8 @@ function Maintenance()
   ;cdGeneralFactionAlias = Mods.cdGeneralFaction as Alias
   RegisterForModEvent("HookAnimationStart", "crdeSexStartCatch")
   RegisterForModEvent("HookAnimationEnd", "crdeSexHook")
-  RegisterForModEvent("DeviceActorOrgasm", "playerOrgasmsFromDD") ; orgasm
-  RegisterForModEvent("DeviceEdgedActor", "playerEdgedFromDD") ; edged? meaning halfway?
+  RegisterForModEvent("DeviceActorOrgasm", "playerOrgasmsFromDD") ; DD orgasm only
+  RegisterForModEvent("DeviceEdgedActor", "playerEdgedFromDD") ; 
   RegisterForModEvent("DeviceEvent", "playerHornyFromDD")
   followerFoundDDItems = new form[32]
   followerFoundDDItemsContainers = new objectReference[32]
@@ -383,6 +387,8 @@ endEvent
 
 Function clear_force_variables(bool resetAttacker = false)
   ;crdeFGreetStatus.SetValue(0)
+  ;Armor notreal 
+  ;debugmsg("Printing debug log from clear_force_variables -^ " + notreal.GetName())
   if MCM.bDebugLoudApproachFail && (forceGreetSex || forceGreetSlave)
     debugmsg("cancel approach called, resetting",1)
   endif
@@ -390,6 +396,7 @@ Function clear_force_variables(bool resetAttacker = false)
   forceGreetSlave       = 0 ; and player is NOW busy, try using these variables as a cancel
   isIndecent            = false
   isLocallyWanted       = false
+  debugmsg("sexRemoveItemsFirst changed to false: clear_force_variables")
   ;sexFromDEC            = false ; removed in 13.13.1 because it would flush at "player busy with sexlab"
   ;debugmsg("resetting sexFromDEC @ 3")
 
@@ -399,6 +406,7 @@ Function clear_force_variables(bool resetAttacker = false)
     ;attackerRefAlias.ForceRefTo(player)
     attackerRefAlias.Clear()
     setCRDEBusyVariable(false)  
+    sexRemoveItemsFirst   = false
   endif
   
   if resetAttacker
@@ -420,6 +428,8 @@ Function clear_force_variables(bool resetAttacker = false)
     forceGreetFollower    = 0
 
   endif
+  
+  followerAddItemGameStarted = false
   
 endfunction
 
@@ -489,7 +499,7 @@ bool function isPlayerBusy()
     return true
   elseif player.GetRace() == WerewolfBeastRace
     debugmsg("Player is Werewolf currently, busy", 1)
-    return true
+    return true    
   endif
   return false ; for now
 endfunction
@@ -578,15 +588,15 @@ endFunction
 ; only checks the vulnerability of the player on part of what they wear, 
 ;  we can separate this part because we can detect when the player's clothes change dynamically
 ; TODO this needs to be updated after we switched from vulnerability toggle to levels
+;tags clothedvulnerability clothed wearing
 function updateEquippedPlayerVulnerability(bool isSlaver = false)
   debugmsg("updating clothing vulnerability ...", 1) ; too often used, spam; not anymore, less used
   
   ;CheckDevices()
   updateWornDD()
       
-      
   ; regular first, then non-naked sensitive
-  int[] vulnerableValues = new int[32] ; depends on how many we have
+  int[] vulnerableValues = new int[64] ; depends on how many we have
   vulnerableValues[0]  = MCM.iVulnerableNaked * ((isNude || isSlaver) as int) 
   vulnerableValues[1]  = MCM.iVulnerableCollar * (wearingCollar as int)          
   vulnerableValues[2]  = MCM.iNakedReqCollar * (wearingCollar && (isNude || isSlaver)) as int
@@ -607,11 +617,37 @@ function updateEquippedPlayerVulnerability(bool isSlaver = false)
     vulnerableValues[16] = MCM.iVulnerableSexlabErotic * (player.WornHasKeyword( Mods.slaEroticKeyword) as int)
   endif
   
+  int i = 0
+  int vulnLvl
+  armor tmpArmor 
+  armor[] uniqueVulnArmors      = Mods.pointedVulnerableArmors             ; if we don't cache locally it propgets every time
+  int[] uniqueVulnArmorsVLevels = Mods.pointedVulnerableArmorsValues
+  ;debugmsg("unique armor: " + uniqueVulnArmors)
+  ;debugmsg("unique armor: " + uniqueVulnArmorsVLevels)
+  ;if uniqueVulnArmors == NONE ;&&uniqueVulnArmors.length > 5
+  ;  debugmsg("Mods unique armor array is empty, cannot search")
+  ;else
+  while i < 16
+      tmpArmor = uniqueVulnArmors[i]
+      if tmpArmor
+        bool isWearingArmor = tmpArmor == player.GetWornForm(tmpArmor.GetSlotMask()) as armor
+        vulnLvl = uniqueVulnArmorsVLevels[i]
+        if tmpArmor && isWearingArmor
+          debugmsg("Found armor with vulnerability: " + tmpArmor + " with vulnerability: " + vulnLvl)
+          vulnerableValues[17 + i] = isWearingArmor as int * vulnLvl
+        endIf
+      else ; assuming our array is null terminated
+        i = 5000
+      endif
+      i += 1
+  endWhile
+  ;endif
+  
   int largest = 0
   int num2    = 0
   int num3    = 0
-  int i = 0
-  while i < 17 ;vulnerableValues.length
+  i = 0
+  while i < 64 ;vulnerableValues.length
     if vulnerableValues[i] > 0
       if vulnerableValues[i] == 2
         num2 += 1
@@ -621,12 +657,12 @@ function updateEquippedPlayerVulnerability(bool isSlaver = false)
       debugmsg ("vul #" + i + " is currently:" + vulnerableValues[i])
       if vulnerableValues[i] > largest
         largest = vulnerableValues[i]
-        debugmsg ("new big: " + vulnerableValues[i])
+        ;debugmsg ("new big: " + vulnerableValues[i])
       endif
     endif
     i += 1
   endWhile
-   
+  
   if (2*num3) + num2 >= 5
     clothingPlayerVulnerability = 4
     ;return
@@ -635,20 +671,6 @@ function updateEquippedPlayerVulnerability(bool isSlaver = false)
     ;return
   endif
    
-  ; int heavyItemCount =  (((wearingArmbinder == true && MCM.iVulnerableArmbinder) as int) * 2) + \
-                        ; ((wearingBlindfold && MCM.iVulnerableBlindfold) as int) + \
-                        ; (( wearingGag && MCM.iVulnerableGag  ) as int) +\
-                        ; ((wearingBlockingFull && isNude) as int) +\
-                        ; ((MCM.iVulnerableSlaveBoots && wearingSlaveBoots)as int) +\
-                        ; (player.HasKeyword(Mods.zazKeywordEffectOffsetAnim) as int) +\
-                        ; ((isTattooVulnerable && (isNude || !MCM.iNakedReqSlaveTattoo || isSlaver)) as int) +\
-                        ; (wearingAnkleChains as int) 
-
-  ;if heavyItemCount >= 3
-  ;  clothingPlayerVulnerability = 4
-  ;  return 
-  ;endif
- 
 endFunction 
 
 ; 0 not vulnerable, range: 1 - 4 are levels of vulnerable for clothing, where several factors can make it rise
@@ -864,6 +886,7 @@ bool function attemptApproach()
   ; roll is fastest, busy is second fastest. nearest is slowest. Nearest before roll only because we need nearest for follower,
   ; this function should be reorganized so that roll is first or second, it's massively faster, no point searching for NPCs if we roll too low.
   
+  ; check if DEC is in timeout
   if( CurrentGameTime <= timeoutGameTime) ; TODO: Move this further up, we shouldn't check if the player is timed out AFTER doing everything that is expensive
     debugmsg("dec is in timeout, going back to sleep for " + (timeoutGameTime - CurrentGameTime) + " mins",1)
     return false
@@ -872,7 +895,7 @@ bool function attemptApproach()
   ; test if player is busy
   isPlayerBusy  = isPlayerBusy()
   if isPlayerBusy ; lets test this sooner, fewer moot cycles
-    clear_force_variables(true) 
+    ;clear_force_variables(true) 
     return false ; if busy, nothing else to do here, leave
     
   ; while currently being approached, look for stuff to make sure we haven't broken approach
@@ -886,10 +909,16 @@ bool function attemptApproach()
         clear_force_variables(true)
         return false 
       else
+        ; we moved this to the dialogue fragments, so we can check last second without spamming over and over
+        ;  might bring it back though, because theres a visible hickup on dialogue, think maybe that papyrus has higher priority
+        ;refreshHasFollowers()
+
+        
         debugmsg("ForceGreet incomplete, " + timeLeft + " GMins remaining, approached by " + tmp.GetDisplayName() ,1)
       endif
-    elseif followerRefAlias01.GetActorRef()
-      debugmsg("ForceGreet incomplete, " + timeLeft + " GMins remaining, approached by " + followerRefAlias01.GetActorRef().GetDisplayName() ,1)
+    ; I think this might be redundant, and there are other actors too
+    ;elseif followerRefAlias01.GetActorRef()
+    ;  debugmsg("ForceGreet incomplete, " + timeLeft + " GMins remaining, approached by " + followerRefAlias01.GetActorRef().GetDisplayName() ,1)
     else
       debugmsg("ForceGreet incomplete, " + timeLeft + " GMins remaining, approached by NULL actor"  ,1)
     endif
@@ -914,13 +943,14 @@ bool function attemptApproach()
     debugmsg("Rolled too low (pre-check with modifier), stopping",3)
   endif
   
+
   enslavedLevel  = Mods.isPlayerEnslaved() ; run this early so we know to quit early, without resetting the NPC quest so no aliases hopefully
   if enslavedLevel >= 3
     debugmsg("Player is busy slave, cannot be approached, leaving early",1)
     ; maybe stop the NPC quest if this happens? but we only want to stop it once, which means detecting it the first time only
     return false
   endif
-
+  
   ;clear_force_variables(); not sure this is needed anymore
   forceGreetSex     = 0
   forceGreetSlave   = 0
@@ -946,7 +976,6 @@ bool function attemptApproach()
   actor[] followers = NPCSearchScript.getNearbyFollowers()
   debugmsg("time after NPC search: " + (Utility.GetCurrentRealTime() - onupdatetimeteststart)) 
 
-  
   location player_loc = player.GetCurrentLocation()
   ; if player has followers
   if  MCM.bFollowerDialogueToggle.GetValueInt() == 1 \
@@ -954,9 +983,12 @@ bool function attemptApproach()
     && (nearest[0] == None || player_loc && player_loc.haskeyword(LocTypePlayerHouse)) 
     ; && (nearest.length <= 1 || player_loc && player_loc.haskeyword(LocTypePlayerHouse)) 
 
-    return attemptFollowerApproach(followers)
-    
-    ; changed in 13.12
+    ; if player is alone, aliases were empty, we should have gotten a size 1 array back, telling us we are alone
+    if nearest.length < 1
+      debugmsg("nearby NPC are not able to approach player, but player is not alone, cannot do follower approach")
+    else
+      return attemptFollowerApproach(followers)
+    endif
   elseif followers[0] == None ; no followers nearby
     if forceGreetFollower
       clear_force_variables(true)
@@ -967,19 +999,10 @@ bool function attemptApproach()
     ; STOP the item approach, probably sex approach too
     forceGreetFollower = 0
   endif  
-    
-  int i = 0
-  hasFollowers = false
-  actor tmp = None
-  while i < followers.length && hasFollowers == false
-    tmp = followers[i]
-    if tmp != None && NPCSearchScript.actorIsFollower(tmp) && \
-     !NPCMonitorScript.isWearingSlaveDD(tmp) && !Mods.isSlave(tmp) ; 13.11: we don't count followers if they are slaves
-      hasFollowers = true
-    endif
-    i += 1
-  endWhile
-  ;hasFollowers  = NPCSearchScript.getNearbyFollowersInFaction(followers) ; unnecessary, we aren't saving variables here
+  
+  
+  ; used as dialogue condition if player has follower/master/bodyguard
+  refreshHasFollowers()
   
   ; TODO move this up to the nearest and side checks, no reason to let it sit here this long when we can leave earlier
   if nearest[0] == None
@@ -1003,7 +1026,7 @@ bool function attemptApproach()
   ; if wearingPartialChasity
   ; use two variables set by the full check function, then you can test either or
   ; partial results in some increase?
-  ; bool isWearingChastity = isWearingChastity()
+  bool isWearingChastity = isWearingChastity()
   if MCM.bChastityToggle
     ; if attacker has keys, increase all chances
     ; else, no keys, sex = 0
@@ -1032,7 +1055,6 @@ bool function attemptApproach()
 
   debugmsg("approachroll enslave: " + rollEnslave + " / sex: " + rollSex + " / a: " + nearest[0].GetDisplayName(), 2)
   
-  
   ;old isplayerenslaved location
   debugmsg("slave lvl: " + enslavedLevel + " weapon: " + weaponProtected as int , 3) 
   
@@ -1046,37 +1068,50 @@ bool function attemptApproach()
   
   debugmsg("time after vulnerability checking: " + (Utility.GetCurrentRealTime() - onupdatetimeteststart)) 
 
+  ; we can tell from debug above if we are too enslaved or not vulnerable enough, end quietly here 
   if enslavedLevel != 3 && (playerVulnerability > 0 || enslavedLevel == 1) && \
      forceGreetIncomplete == false 
     
+    ; second NPC check, confidence requires knowing player vulnerability so we have to check late or waste cpu
+    ;  this is also where we check for keys the NPC might have, and if they do have keys we'll keep them as best, end early
     ;updateMaster()
+    int restraintKeyCount = 0
+    int chastityKeyCount = 0
     float actorMorality   
     float reqConfidence
     float actorConfidence
     int isNightReduction  = (isNight as int) * MCM.iNightReqConfidenceReduction
-    ; second NPC check, confidence requires knowing player vulnerability so we have to check late or waste cpu
-    i = 0
+    int i = 0 ; traverse pointer of NPC array
+    int j = 0 ; write pointer to NPC array
     while i < nearest.length && nearest[i] != None
       actorConfidence   = nearest[i].GetActorValue("Confidence")
       actorMorality     = nearest[i].GetActorValue("Morality") 
       isSlaver          = Mods.isSlaveTrader(nearest[i])
+      chastityKeyCount  = nearest[i].GetItemCount(libs.chastityKey)
+      restraintKeyCount = nearest[i].GetItemCount(libs.chastityKey)
       
       ; reasons confidence can be lower: Actor is really aroused, player has reputation as local whore
       reqConfidence   = 4 - playerVulnerability - isNightReduction
                           ;- ( nearest[i].GetFactionRank(Mods.sexlabArousedFaction) > 80 ) as int
-    
       if ( !MCM.bConfidenceToggle || (actorConfidence >= reqConfidence) || isSlaver \
            || nearest[0].GetFactionRank(Mods.sexlabArousedFaction) >= MCM.iWeightConfidenceArousalOverride) ;|| ( isNight && actorConfidence >= reqConfidence - MCM.iNightReqConfidenceReduction ) 
-        debugmsg("Found NPC confident enough: " + nearest[i].GetDisplayName(),3)
-        nearest[0] = nearest[i] ; lazy hack
-        i = 1000
+        if chastityKeyCount + restraintKeyCount > 0
+          nearest[j] = nearest[0] ; juggle, our previous best should get saved lower
+          nearest[0] = nearest[i]
+          i = 1000
+          debugmsg("NPC has key, stopping early: " + nearest[i])
+        else
+          nearest[j] = nearest[i] 
+          j = j + 1 
+          i += 1
+        endif
       else
         debugmsg(nearest[i].GetDisplayName() + " is not slaver and Confidence isn't high enough for the vulnerability, Attacker:" + (actorConfidence as int) + ", Req:" + (reqConfidence as int), 3)
         i += 1
       endif
     endwhile
-    if i != 1000
-      ; no need for debug here, since the log will be full of "is not slaver and not confident" we can infer
+    if nearest[0] == NONE
+      debugmsg("No good NPCs, stopping early: ")
       return false; didn't find a confident actor, leaving
     endif
 
@@ -1108,16 +1143,42 @@ bool function attemptApproach()
       endif
     endif  
 
+    
     ; sex attempt
     ;if(playerVulnerability > 0   && CurrentGameTime >= timeoutEnslaveGameTime) && \
     if (actorMorality > MCM.iMaxSolicitMorality) && !isSlaver
       debugmsg("Attacker is not slaver and Morality is not low enough, Attacker:" + actorMorality + ", Req:" + MCM.iMaxEnslaveMorality, 3)
-    ;elseif  nearest[0].GetFactionRank(Mods.sexlabArousedFaction) < MCM.iMinApproachArousal && !isSlaver
     elseif rollSex > MCM.iChanceSexConvo
       debugmsg("rolled too low for sex or enslavement, exiting...", 3)
     elseif MCM.bSexFollowerLockToggle && hasFollowers
       debugmsg("player protected from sex approach by follower " + followers, 3)
-    else
+    ;elseif ;isWearingChastity ; any chast, trying to remove branches
+    elseif wearingBlockingFull && restraintKeyCount + chastityKeyCount == 0 && player.GetItemCount(libs.chastityKey) == 0 && player.GetItemCount(libs.restraintsKey) == 0
+      debugmsg("player is wearing full chastity and attacker has no keys ", 3)
+      ; else
+        ; if ! player.WornHasKeyword(libs.zad_BlockGeneric) 
+          ; debugmsg("after block keyword check");
+
+          ; if   wearingBlockingGag && ((restraintKeyCount > 0  || player.GetItemCount(libs.restraintsKey) > 0)) \
+            ; || wearingBlockingAnal || wearingBlockingVaginal && (chastityKeyCount || player.GetItemCount(libs.chastityKey) > 0) \
+            ; || (isSlaver && wearingBlockingGag || wearingBlockingVaginal)
+            ; sexRemoveItemsFirst = true
+            ; busyGameTime = CurrentGameTime + (approach_duration * (1.0/1400.0)) ; in-game minutes
+            ; checkPersuationIntimidateRequirements()
+            ; trySexConvo(nearest[0]) 
+            ; return true
+          ; else 
+            ; debugmsg("did not pass remove requirements")
+          ; endif
+          ; we need to start sex with the expectation that an item would be removed, possible replaced
+            ; if attacker has the req key to remove items, temp remove items and sex appraoch
+            ; ?if and player is blockingkeyword, stop, unless you want to make crazy key/dcur thing
+            ; if attacker does NOT have key, but is slaver, temp remove items and sex approach   
+            ; if attacker does NOT have key, and we don't want them to add one, we need to roll animations NOW to check if it would just drop out
+           
+      ;endif
+    else 
+      debugmsg("ready to start approach")
       ;busyGameTime = Utility.GetCurrentRealTime() + 20 ;(20 * 24) ; 20 seconds? give it some time to work
       busyGameTime = CurrentGameTime + (approach_duration * (1.0/1400.0)) ; in-game minutes
       checkPersuationIntimidateRequirements()
@@ -1141,6 +1202,14 @@ bool function attemptFollowerApproach(actor[] followers)
   timeoutFollowerNag      = 0
   actor slave             = None
   actor tmp_follower      = None
+  
+  ; extra conditions to stop early for follower approach that don't matter for regular approach
+  ; so we put them here separate from isPlayerBusy
+  
+  ;is the player sneaking?
+  if player.isSneaking()
+    return False
+  endif
   
   ; look for slave followers
   int i = 0
@@ -1724,9 +1793,9 @@ function doFollowerRapeSlave(actor actorRef)
 
 endFunction
 
-
+; for player-slave situations, or where player wants to be belted for protection
+; considered soft, we replace items but dont add any, and no aggressive enslavement
 function doPlayerSexAndReplaceBelt(actor actorRef, bool forcePenetrate = false)
-  ; for now, just trigger an extra variable and call the regular function
   string supressTags = "solo,Breastfeeding,blowjob,"
   string animationTags
   actor[] sexActors = new actor[2] ; only 3 if we ever decide to have threesomes and such
@@ -1735,12 +1804,19 @@ function doPlayerSexAndReplaceBelt(actor actorRef, bool forcePenetrate = false)
   itemsSavedForAfterSex = new armor[5]
   int itemsSavedIndex = 0
   
-  if wearingBelt 
-    debugmsg("removing belt and starting sex")
-    sexFromDECWithBeltReapplied = true
-    itemsSavedForAfterSex[itemsSavedIndex] = knownBelt
+  armor belt = player.GetWornForm(0x00080000) as armor
+  ;armor harness = player.GetWornForm(0x10000000) as armor ; these turned out to be the same for harnesses... I guess they fit both slots?
+  if (belt && belt.HasKeyword(libs.zad_DeviousBelt)) ;||  \
+     ;(harness && harness.HasKeyword(libs.zad_DeviousBelt))
+     
+
+    itemsSavedForAfterSex[itemsSavedIndex] = belt
     itemsSavedIndex += 1
-    ItemScript.removeDDbyKWD(player, libs.zad_DeviousBelt)
+    
+    ; for some reason this doesn't work with the default DD harness, maybe broken code?
+    ;ItemScript.removeDDbyKWD(player, libs.zad_DeviousBelt)
+    
+    ItemScript.removeDDbyArmor(player, belt)
     
     ; our own sex start, since we know what's happening exactly
 
@@ -1749,28 +1825,21 @@ function doPlayerSexAndReplaceBelt(actor actorRef, bool forcePenetrate = false)
     elseif forcePenetrate
       animationTags += "anal"
     endif
-
-    SendModEvent("crdePlayerSexConsentStarting")  
     
-    sexFromDEC = true
-    ;debugmsg("doPlayersex with belt actors: player " + player.GetDisplayName() +" and " + actorRef.GetDisplayName())
-    ;sslBaseAnimation[] animations = SexLab.GetAnimationsByTag(2, animationTags, TagSuppress = supressTags)
-    ;SexLab.StartSex(sexActors, animations, player, None, false)
   endif
+  
   if wearingGag
     debugmsg("no belt, bug gag, removing gag and starting sex")
-    sexFromDECWithBeltReapplied = true
 
     itemsSavedForAfterSex[itemsSavedIndex] = knownGag
     itemsSavedIndex += 1
     
-    sexFromDEC = true
-    ;animationTags += "anal" ; nah, oral is a murky keyword
-
-  ; else
-    ; debugmsg("cannot remove belt and start sex, not wearing supposedly")
-    ; doPlayerSex(actorRef, none, rape = false, soft = true)
   endif
+  sexFromDECWithBeltReapplied = true
+
+  sexFromDEC = true
+  SendModEvent("crdePlayerSexConsentStarting")  
+  ; XXX
   
   sslBaseAnimation[] animations = SexLab.GetAnimationsByTag(2, animationTags, TagSuppress = supressTags)
   SexLab.StartSex(sexActors, animations, player, None, false)
@@ -1778,17 +1847,20 @@ function doPlayerSexAndReplaceBelt(actor actorRef, bool forcePenetrate = false)
   
 endFunction
 
+; removes an item with keyword from actor, saves it for later post-sex adding to player
+function saveRemovedItemByKeyword(actor actorRef, keyword kw)
+  armor deviousDevice = libs.GetWornDevice(actorRef, kw)
+  itemsSavedForAfterSex = new armor[5]      ; lets leave this on for a few versions, so users don't complain its broken
+  itemsSavedForAfterSex[1] = None           ; maybe a bit lighter than re-allocating memory
+  itemsSavedForAfterSex[0] = deviousDevice
+  ;ItemScript.removeDDbyKWD(player, libs.zad_DeviousGag)
+  ItemScript.removeDDbyArmor(player, deviousDevice)
+  sexFromDECWithBeltReapplied = true
+endFunction
+
 ; remove blocking items if the NPC or player have keys
 ; return: 0 nothing, 1 gag, 2 belt, 3 both?
-; for now, both doesn't work
 int function prepareForDoPlayerSex(actor actorRef, bool both = false, bool skip_oral = false)
-  float startingTime = Utility.GetCurrentRealTime()
-  ; HOLY SHIT THIS TAKES > 25 SECONDS, how the fuck
-  ;knownGag = libs.GetWornDeviceFuzzyMatch(player, libs.zad_DeviousGag) 
-  ;debugmsg("gag we see: " + knownGag.GetName()) ; whoa! forget the none check did we?
-
-  ;debugmsg("prepare for sex, after worndevicefuzzymatch, time: " + (Utility.GetCurrentRealTime() - startingTime))
-
   
   ; if the attacker is belted, and they have their own key, they should remove their belt.
   form belt = actorRef.GetWornForm(0x00080000)
@@ -1802,19 +1874,16 @@ int function prepareForDoPlayerSex(actor actorRef, bool both = false, bool skip_
       debugmsg("gag is panel or permiting",3)
     elseif actorRef.getItemCount(libs.restraintsKey) > 0
       Debug.Notification(actorRef.GetDisplayName() + " had a key to remove your gag!")
-      ItemScript.removeDDbyKWD(player, libs.zad_DeviousGag)
+      saveRemovedItemByKeyword(player, libs.zad_DeviousGag)
       return 1; done, set var and leave?
     elseif player.getItemCount(libs.restraintsKey) > 0 ; for now no RNG
       ; for now, no stealing (key is around neck, free to leave)
       ; in the future: make it so that the chastity key stays on the player if armbound, belted slut with key out of their reach kind of thing
       Debug.Notification(actorRef.GetDisplayName() + " found a key on you and unlocks you!")
-      ItemScript.removeDDbyKWD(player, libs.zad_DeviousGag)
+      saveRemovedItemByKeyword(player, libs.zad_DeviousGag)
       return 1; done, set var and leave?
     endif
   endif
-
-  ;debugmsg("prepare for sex, after gag check, time: " + (Utility.GetCurrentRealTime() - startingTime))
-
 
   ; male attacker, check if they can unlock you
   ; skip oral was here, huh?
@@ -1823,36 +1892,35 @@ int function prepareForDoPlayerSex(actor actorRef, bool both = false, bool skip_
     ;&& !libs.GetWornDeviceFuzzyMatch(player, libs.zad_DeviousBelt).HasKeyword(libs.zad_BlockGeneric)
     if actorRef.getItemCount(libs.chastityKey) > 0
       Debug.Notification(actorRef.GetDisplayName() + " had a chastity key to unlock you!")
-      ItemScript.removeDDbyKWD(player, libs.zad_DeviousBelt)
+      saveRemovedItemByKeyword(player, libs.zad_DeviousBelt)
       return 2; done, set var and leave?
     elseif player.getItemCount(libs.chastityKey) > 0 ; for now no RNG
       ; for now, no stealing (key is around neck, free to leave)
       ; in the future: make it so that the chastity key stays on the player if armbound, belted slut with key out of their reach kind of thing
       Debug.Notification(actorRef.GetDisplayName() + " found a key on you and unlocks you!")
-      ItemScript.removeDDbyKWD(player, libs.zad_DeviousBelt)
+      saveRemovedItemByKeyword(player, libs.zad_DeviousBelt)
       return 2; done, set var and leave?
     endif
   endif
 
-  ;debugmsg("prepare for sex exiting, after belt, result 0 time: " + (Utility.GetCurrentRealTime() - startingTime))
-  
   return 0  
 EndFunction
 
-; this exists because I don't want to recompile > 40 fragments to update to threesome.
-; just keep this as a pointer to the other one, at least until I have another reason to change it then update it
-;function doPlayerSex(actor actorRef, bool rape = false, bool soft = false, bool oral_only = false)
-;  doPlayerSexFull(actorRef, none, rape, soft, oral_only )
-;endFunction
-;;
-;
-; soft specifies if the sex can allow for softer sexual animations, like cuddling
-;function doPlayerSexFull(actor actorRef, actor actorRef2 = none, bool rape = false, bool soft = false, bool oral_only = false)
+; starts sex with player with DEC effects, handles animation filtering
+;  soft specifies if the sex can allow for softer sexual animations, like cuddling
 function doPlayerSex(actor actorRef, actor actorRef2 = none, bool rape = false, bool soft = false, bool oral_only = false)
   float startingTime = Utility.GetCurrentRealTime() 
   Debug.SendAnimationEvent(actorRef, "IdleNervous") ; should work well enough; no longer works...what
-  clear_force_variables() ; handles forceGreetIncomplete = false
   Mods.dhlpResume()
+    
+  debugmsg("doplayersex: removeitemsfirst is " + sexRemoveItemsFirst)
+  if sexRemoveItemsFirst  ; our variable is set, we should divert to the other function
+    doPlayerSexAndReplaceBelt(actorRef)
+    sexRemoveItemsFirst = false ; reset
+    return 
+  endif
+    
+  clear_force_variables() ; handles forceGreetIncomplete = false
     
   debugmsg("animaiton filter at: " + MCM.animationFilterList[MCM.iAnimationFilterPref])
     
@@ -1872,7 +1940,7 @@ function doPlayerSex(actor actorRef, actor actorRef2 = none, bool rape = false, 
     sexActors[2] = actorRef2
   endif
   
-  ; One user wanted to set gender through sexlab
+  ; Some users want gender set for NPC/Player through sexlab instead of base game
   int actorGender  = 0
   int playerGender = 0
   if MCM.bUseSexlabGender
@@ -1938,9 +2006,7 @@ function doPlayerSex(actor actorRef, actor actorRef2 = none, bool rape = false, 
   
   if MCM.iAnimationFilterPref == 3 ; pre-DD selected
     ; we can optimize this out with a variable, since we have to check this earlier when we start the dialogue anyway
-    if player.wornHasKeyword(libs.zad_DeviousBelt) 
-      ; actor has a key, will use ;zzz key
-      
+    if player.wornHasKeyword(libs.zad_DeviousBelt)    
       ; we know the player is belted, now check if their belt permits vag (are there even any?) and check for female attacker
       ;  problem we're trying to avoid: suppress tags are both ways, we can't suppress vag for just player
       ;  we don't want to block vag tag if the player can perform cunnilingus on female attacker though, so we can't block vag tag there or we block vag on both
@@ -2034,19 +2100,11 @@ function doPlayerSex(actor actorRef, actor actorRef2 = none, bool rape = false, 
   ;  why does sorting the actors do this? no fucking clue. this code was used in petcollar, maybe it's placebo who knows ¯\_(ツ)_/¯
   ;  unless oral was chosen, then we want the player to 'give' oral, rather than recieve
   ; TODO: does the oral thing work for oral on strapon AND oral on vag? if not, we should move this after the following animation test and sort there
+  ; TODO there is at least one animation for which this is broken, where if the player gives oral they end the animation on the other end, which is backwards
   if (playerGender == 1 && actorGender == 1 && preSex != 1)
     sexActors = SexLab.SortActors(sexActors)
   endif
-  
-  
-  ;this was removed in 13.13.9 because I'm tired of only having one animation that I can't change through sexlab
-  ;and we shouldn't need to get around the filter anymore since we now USE the filter
-  ; attempting to get around DDi animation filter based on kimy's advice
-  ;sslBaseAnimation[]  single_animation = new sslBaseAnimation[1]
-  ;int l = animations.length - 1
-  ;single_animation[0] = animations[Utility.RandomInt(0,l)]
-  ;debugmsg("Animation chosen is: " + single_animation[0].name, 3)
-  
+    
   debugmsg("doPlayerSex, before starting sexlab, time: " + (Utility.GetCurrentRealTime() - startingTime), 1)
 
   
@@ -2056,7 +2114,7 @@ function doPlayerSex(actor actorRef, actor actorRef2 = none, bool rape = false, 
     ;SexLab.StartSex(sexActors, single_animation, player);, None, false);
     SexLab.StartSex(sexActors, animations, player);, None, false);
   else
-    if soft
+    if soft || Mods.IsSlave(actorRef)
       sexFromDECWithoutAfterAttacks = true
     endif
     sexFromDEC = true
@@ -2065,29 +2123,52 @@ function doPlayerSex(actor actorRef, actor actorRef2 = none, bool rape = false, 
   endif
 
   debugmsg("doPlayerSex finished, time: " + (Utility.GetCurrentRealTime() - startingTime), 1)
-endFunction
+endFunction ; doPlayerSex()
+
 
 ; this is the hook called after sexlab is finished
-; now called always after all sexlab, so we must check if it was started by CRDE or not
-; tag:postsex <- for searching 
+; gets called always after all sexlab, so we must check if it was started by CRDE or not
+; tag:postsex post-sex <- for searching 
 Event crdeSexHook(int tid, bool HasPlayer);(string eventName, string argString, float argNum, form sender)
   ;debugmsg("crdeSexHook reached, running post-sex", 1)
-  sslThreadController Thread = SexLab.GetController(tid)
   
-  ; mod must be active, 
-  ;  sex must have come from DEC or we don't care,
-  ;  and the player must be involved in sex from this side
-  Actor[] actorList = SexLab.HookActors(tid as string)
-
-  if MCM.gCRDEEnable.GetValueInt() != 1 
+  if MCM.gCRDEEnable.GetValueInt() != 1 || Mods.dhlpSuspendStatus
     ; do nothing, mod is off lets not flood the log
-    debugmsg("err: sex ended but DEC is turned off")
-  elseif !(sexFromDEC || MCM.bHookAnySexlabEvent) 
-    debugmsg("err: sex ended but DEC was not the starting mod, and override is not set, ignoring")
-  elseif !Thread.HasPlayer() 
-    debugmsg("err: sex ended but the sexlab thread that finished does not have player as an participant, actors:" + actorList)
-   
-  else ; sex was started by dec
+  else ; Mod is active, keep working
+  
+    sslThreadController Thread = SexLab.GetController(tid)
+    Actor[] actorList = SexLab.HookActors(tid as string)
+  
+    ; reset follower frustration
+    ; we want to do this even if the player isn't taking part, and whether DEC started it or not
+    ; (if our follower fucks something else we want them to get relief)
+    if actorList && actorList.length > 0
+      actor a
+      int i = 0
+      While i < actorList.length ; for now assume threesome only, more is infrequent
+        a = actorList[i]
+        if a != None
+          float frustration = StorageUtil.GetFloatValue(a, "crdeFollowerFrustration")
+          if frustration >= 5
+            StorageUtil.SetFloatValue(a, "crdeFollowerFrustration", (frustration - 5))
+          elseif frustration > 0
+            StorageUtil.SetFloatValue(a, "crdeFollowerFrustration", 0)
+          endif
+        endif
+        i += 1
+      endWhile
+    endif
+
+    if !(sexFromDEC || MCM.bHookAnySexlabEvent) 
+      debugmsg("note: sex finished, DEC was NOT the starting mod, and override is not set, ignoring")
+      return
+    endif
+    if !Thread.HasPlayer() 
+      debugmsg("note: sex ended but the sexlab thread that finished does not have player as an participant, actors:" + actorList)
+      return
+    endif
+  
+    ; at this point we know DEC started sex
   
     setPreviousPlayerHome() ; here because we want the last home the player wanted to have sex in
     
@@ -2096,15 +2177,18 @@ Event crdeSexHook(int tid, bool HasPlayer);(string eventName, string argString, 
     timeoutFollowerApproach = Utility.GetCurrentGameTime() + (120 * (1.0/1400.0)) 
   
     actor victim = Thread.getVictim()
-    if  sexFromDECWithBeltReapplied ; victim == None &&
+    
+    
+    if  sexFromDECWithBeltReapplied ; player used to be belted, we need to add it after again
       ; put the player back into their belt
+      
       debugmsg("sexlabhook: belt returned is set true, attempting armor returning", 3)
-
       int i = 0
       armor arm
-      while i < itemsSavedForAfterSex.length
+      while i < itemsSavedForAfterSex.length 
         arm = itemsSavedForAfterSex[i] 
         if arm != NONE
+          debugmsg("Item to re-add: " + arm.GetName())
           ItemScript.equipRegularDDItem(player, arm)          
           i += 1
         else 
@@ -2112,9 +2196,13 @@ Event crdeSexHook(int tid, bool HasPlayer);(string eventName, string argString, 
         endif
       endWhile
       sexFromDECWithBeltReapplied = false
-      return ; done here
+      sexFromDEC = false
+      if sexFromDECWithoutAfterAttacks
+        sexFromDECWithoutAfterAttacks = false
+        return ; done here
+      endif
     endif
-    if ( sexFromDEC && sexFromDECWithoutAfterAttacks  ) ; specific case
+    if sexFromDEC && sexFromDECWithoutAfterAttacks   ; do not add items, no enslave chance either
       debugmsg("sexlabhook: sex was specified no attack, leaving", 3)
       sexFromDECWithoutAfterAttacks = false
       return 
@@ -2133,7 +2221,7 @@ Event crdeSexHook(int tid, bool HasPlayer);(string eventName, string argString, 
       return
     endif
     
-    ; if the player does not have to be a victim, and they aren't, set them to keep going
+    ; if the player is not required to be a victim, and they aren't, set them to keep going
     if victim == None && !MCM.bHookReqVictimStatus
       victim = player 
       debugmsg("sexlabhook: setting player as victim", 3)
@@ -2191,22 +2279,6 @@ Event crdeSexHook(int tid, bool HasPlayer);(string eventName, string argString, 
     ;debugmsg("crdeSexhook ERR: sexlab doesn't have player controller or mod is turned off", 2)
   endif
   
-  if actorList && actorList.length > 0
-    actor a
-    int i = 0
-    While i < actorList.length ; for now assume threesome only, more is infrequent
-      a = actorList[i]
-      if a != None
-        float frustration = StorageUtil.GetFloatValue(a, "crdeFollowerFrustration")
-        if frustration >= 5
-          StorageUtil.SetFloatValue(a, "crdeFollowerFrustration", (frustration - 5))
-        elseif frustration > 0
-          StorageUtil.SetFloatValue(a, "crdeFollowerFrustration", 0)
-        endif
-      endif
-      i += 1
-    endWhile
-  endif
   
 endEvent
 
@@ -2321,33 +2393,37 @@ endFunction
 ; xaz detection incomplete
 ; we don't check for visibility of items here, we do that up above in the vulnerability detection
 ; remember, blocking needs to be true if MCM is off, since we test here
-bool function isWearingChastity();actor actorRef)
-  ;wearingBlockingGag      = false 
-  wearingBlockingAnal     = false 
+bool function isWearingChastity()
+  wearingBlockingAnal     = false ; these wouldn't get reset otherwise, reset now
   wearingBlockingVaginal  = false 
-  ;wearingBlockingBra      = false 
-  ;wearingBlockingFull     = false 
 
   if wearingBelt
-    if !knownBelt.HasKeyword(libs.zad_PermitVaginal)
+    if knownBelt && knownBelt.HasKeyword(Mods.zazKeywordWornBelt) && MCM.bChastityZazBelt; make a MCM option for this one later
+      wearingBlockingAnal       = true
+      wearingBlockingVaginal    = true
+    elseif !knownBelt.HasKeyword(libs.zad_PermitVaginal)
       wearingBlockingVaginal  = true
-    endif
-    if !knownBelt.HasKeyword(libs.zad_PermitAnal)
+    elseif !knownBelt.HasKeyword(libs.zad_PermitAnal)
       wearingBlockingAnal     = true
     endif 
-  elseif knownBelt.HasKeyword(Mods.zazKeywordWornBelt) && MCM.bChastityZazBelt; make a MCM option for this one later
-    wearingBlockingAnal       = true
-    wearingBlockingVaginal    = true
   endif
   
-  wearingBlockingBra =  !MCM.bChastityBra || (player.getWornForm(0x02000000 ).HasKeyword(libs.zad_DeviousBra)); && MCM.bChastityBra)  ; bra
+  armor knownbra = player.getWornForm(0x02000000 ) as armor
+  wearingBlockingBra =  !MCM.bChastityBra || (knownbra && knownbra.HasKeyword(libs.zad_DeviousBra)); && MCM.bChastityBra)  ; bra
   
-  wearingBlockingGag = MCM.bChastityGag && (knownGag.HasKeyword( libs.zad_DeviousGag ) && !(knownGag.HasKeyword( libs.zad_PermitOral ) || knownGag.HasKeyword( libs.zad_DeviousGagPanel ))) || \ 
-     (MCM.bChastityZazGag && (knownGag.HasKeyword( Mods.zazKeywordWornGag ) && !knownGag.HasKeyword( libs.zad_DeviousGag ) && !knownGag.HasKeyword( Mods.zazKeywordPermitOral ) ))
+  wearingBlockingGag = MCM.bChastityGag && knownGag && ((knownGag.HasKeyword( libs.zad_DeviousGag ) && \
+     !(knownGag.HasKeyword( libs.zad_PermitOral ) || knownGag.HasKeyword( libs.zad_DeviousGagPanel ))) || \ 
+     (MCM.bChastityZazGag && Mods.zazKeywordWornGag && (knownGag.HasKeyword( Mods.zazKeywordWornGag ) \
+     && !knownGag.HasKeyword( libs.zad_DeviousGag ) && Mods.zazKeywordPermitOral && !knownGag.HasKeyword( Mods.zazKeywordPermitOral ) )))
         
   wearingBlockingFull = wearingBlockingAnal && wearingBlockingVaginal && wearingBlockingBra && wearingBlockingGag
+  ;debugmsg("Belt Vag: " + wearingBlockingVaginal + " ," \
+  ;        +"Belt Anal: " + wearingBlockingAnal + " ," \
+  ;        +"Gag: " + wearingBlockingGag + " ," \
+  ;        +"Bra: " + wearingBlockingBra + " ," \
+  ;        +"Full: " + wearingBlockingFull )
   
-  return                wearingBlockingAnal || wearingBlockingVaginal || wearingBlockingBra || wearingBlockingGag 
+  return                wearingBlockingAnal || wearingBlockingVaginal  || wearingBlockingGag ;|| wearingBlockingBra
 endfunction
 
 ; we need to do more here 
@@ -2419,15 +2495,14 @@ endFunction
 bool function isWeaponProtected()
   ; so long as we are not hands out while armed, and we do not have
   ;debugmsg("Rechecking weapon protection")
-  bool notArmed = playerIsNotArmed()
-  bool notRobed = playerIsNotWearingWizRobes()
-  if (MCM.iWeaponHoldingProtectionLevel < playerVulnerability || notArmed) && \
-      ( notRobed ) 
-    weaponProtected = false
-    return false
+  bool Armed = ! playerIsNotArmed()
+  bool Robed = ! playerIsNotWearingWizRobes()
+  if !(MCM.iWeaponHoldingProtectionLevel < playerVulnerability) && (Armed || Robed )
+    weaponProtected = true
+    return true
   endif 
-  weaponProtected = true
-  return true
+  weaponProtected = false
+  return false
 endFunction
   
 ; is the player armed? can't remember why I set it to default negative
@@ -2813,7 +2888,14 @@ endFunction
 ; testing: if we can remove blocking dcur items
 function testTestButton1()
   
-  player.unequipall()
+  ;player.unequipall()
+  ;if Mods.dfwLeashMEF
+  ;  debugmsg("DWF thinks master is: " + Mods.GetDFWMaster().GetDisplayName())
+  ;  debugmsg("do they have the leash magif effect: " + Mods.GetDFWMaster().HasMagicEffect(Mods.dfwLeashMEF))
+  ;  
+  ;endif
+  ;debugmsg("does the player have a leash effect: " + player.HasMagicEffect(Mods.dfwLeashMEF))
+  
   MCM.bTestButton1 = false
 
 endFunction
@@ -2989,14 +3071,101 @@ function testTestButton6()
   ;Mods.dhlpSuspend()
 endFunction
 
+; I'm sure this already exists in a library somewhere but quick google missed it so I'm writing from scratch
+String function base10to16(int total)
+  
+  debugmsg("input int was: " + total)
+  int[] bits = new int[32] ; auto all false
+  int exp = 31
+  int temp_2power
+  while exp > 0
+    temp_2power = Math.Pow(2, exp) as int
+    if total >= temp_2power
+      bits[exp] = 1
+      total -= temp_2power
+    Endif  
+    exp -= 1
+  endWhile
+  
+  string text = ""
+  ;string char = ""
+  exp = 31
+  int temp_add
+  while exp > 0
+    temp_add = 0 ; reset
+    temp_add += 8 * bits[exp]
+    temp_add += 4 * bits[exp - 1]
+    temp_add += 2 * bits[exp - 2]
+    temp_add += 1 * bits[exp - 3]
+    if temp_add <= 9
+      text += temp_add as int
+    else
+      ;text += ((temp_add + 55) as char) as string ; NO THAT WOULD BE TOO EASY, WHATS A BYTE BETHESDA
+      if temp_add == 10
+        text += "A"
+      elseif temp_add == 11
+        text += "B"
+      elseif temp_add == 12
+        text += "C"
+      elseif temp_add == 13
+        text += "D"
+      elseif temp_add == 14
+        text += "E"
+      elseif temp_add == 15
+        text += "F"
+      endif
+    endif
+    exp -= 4
+  EndWhile
+  
+  return text
+endFunction
+
+function debug_CheckAIPackageNearbyNPC()
+  ; get all Nearby NPC and check what their top level ai package is 
+  actor[] a = NPCSearchScript.getNearbyActors()
+  
+  Package temp_package
+  Quest temp_quest
+  int index = 0
+  while index < a.length
+    if a[index] != None
+      ; we have an NPC
+      temp_package = a[index].GetCurrentPackage()
+      temp_quest   = temp_package.GetOwningQuest()
+      string quest_text = " with no attached quest"
+      if temp_quest != None
+        quest_text = "attached to quest named: [" + temp_quest.Getname() + "] " + \
+               "and ID: [" + base10to16(temp_quest.GetFormID()) + "] " + \
+               "with priority: [" + temp_quest.GetPriority() + "] " \
+
+      endif
+      debugmsg("NPC: [" + a[index].GetDisplayName() + "] " + \
+               "has package with name: [" + temp_package.Getname() + "] " + \
+               "and ID: [" + base10to16(temp_package.GetFormID()) + "] " + \
+                quest_text , 5)
+    endif
+    index += 1
+  endWhile
+  
+endFunction
+
 ; old:test PO arrest
 ; generic test button function 7
 function testTestButton7()
 
-  DistanceEnslave.enslaveDFGift()
+  Armor[] beltandstuff = new Armor[10]
 
+  debugmsg("regular belt test")
+  beltandstuff = ItemScript.getRandomBeltAndStuff(player)
+  debugmsg("Items: " + beltandstuff[0])
+
+  debugmsg("punishment belt test")
+  beltandstuff = ItemScript.getRandomBeltAndStuff(player,punishment=true)
+  debugmsg("Items: " + beltandstuff[0])
+  
   ; start devious followers enslavement to see what happens  
-  Debug.Notification("Test has completed.")
+  ;Debug.Notification("Test has completed.")
   ;debugmsg("finished with test time was: " + (Utility.GetCurrentRealTime() - time))
   MCM.bTestButton7 = false
 endFunction
@@ -3199,10 +3368,7 @@ function timeTest()
     rollSex       = (rollSex          / MCM.fModifierSlaverChances)
   endif
   
-  ; if wearingPartialChasity
-  ; use two variables set by the full check function, then you can test either or
-  ; partial results in some increase?
-  ;bool isWearingChastity = isWearingChastity()
+  bool isWearingChastity = isWearingChastity() ; we don't actually use the local, its there for error supression
   if MCM.bChastityToggle
     ; if attacker has keys, increase all chances
     ; else, no keys, sex = 0
@@ -3211,8 +3377,6 @@ function timeTest()
     ; all items
       if (nearest[0].GetItemCount(libs.restraintsKey) > 0) || (nearest[0].GetItemCount(libs.chastityKey) > 0)
         rollSex     = rollSex     /  MCM.fChastityCompleteModifier
-      else 
-        rollSex     = 101         ; impossible
       endif
       ;rollTalk       = rollTalk    /  MCM.fChastityCompleteModifier
       rollEnslave   = rollEnslave /  MCM.fChastityCompleteModifier
@@ -3433,6 +3597,13 @@ function reshuffleFollowerAliases(actor mostRecent)
 
 endFunction
 
+; let's just make it a global here, we don't need to import globalvariable library everywhere
+function setFollowerGameState(bool gameState)
+  debugmsg("Setting game state: " + gameState)
+  crdeFollowerItemGameState.SetValueInt(gameState as int)
+endFunction
+
+
 ; form rather than armor because we use this same function for keys
 ; this is called by the container perk
 ; TODO: if this is too heavy, turn it into a modevent, which offloads it onto a different thread, might be nicer to the engine
@@ -3471,6 +3642,33 @@ function addToFollowerFoundItems(form[] foundItems, objectReference itemContaine
   ;debugmsg("releasing semiphore")
 
 endFunction
+
+; sets bool property:hasFollowers based on if we have any followers that don't look like slaves
+function refreshHasFollowers()
+  ; don't set hasFollowers until the last second, the game can check it any time as dialogue condition
+  ;  we don't want it to have a known wrong value (false) for any time
+  ;  when the alternative is an unknown value (previous value) which is probably more accurate
+  Actor[] followers = NPCSearchScript.getNearbyFollowers() 
+  
+  actor tmp = None 
+  bool follower_found = false 
+  int i = 0
+  ;debugmsg("Followers: " + followers)
+  while i < followers.length && follower_found == false
+    tmp = followers[i]
+    if tmp != None
+      follower_found = (NPCSearchScript.actorIsFollower(tmp) && \
+         !NPCMonitorScript.isWearingSlaveDD(tmp) && !Mods.isSlave(tmp))
+      ;debugmsg("Follower " + tmp.GetDisplayName() + " is a follower:"  + follower_found)
+    endif
+    i += 1
+  endWhile
+  
+  ;debugmsg("follower found is: " + tmp.GetDisplayName())
+  hasFollowers = follower_found
+  
+endFunction
+
 
 Armor[] Property ponyGearDD  Auto 
 Armor[] Property ponyGearZaz  Auto 
@@ -3530,3 +3728,5 @@ Quest Property DGIntimidateQuest Auto
 
 Faction Property crdeFormerFollowerFaction Auto
 Faction Property crdeNeverFollowerFaction Auto
+
+GlobalVariable Property crdeFollowerItemGameState Auto

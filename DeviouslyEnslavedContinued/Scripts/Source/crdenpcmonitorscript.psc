@@ -150,6 +150,7 @@ actor[] function getClosestActor(actor actorRef, bool skipSlavers = false)
   actor npcActor    = none
   Actor[] validNpcs = new Actor[10]
   Cell c = actorRef.GetParentCell()
+  ; TODO this fails if the player is in a boring area of the overworld, we should fallback to linear search
   if c == NONE
     debug.trace("[CRDE] Err: Cannot search this area for NPCs using getClosestActor because cell is NONE")
     return validNpcs
@@ -161,20 +162,26 @@ actor[] function getClosestActor(actor actorRef, bool skipSlavers = false)
     ;npcActor = Game.FindRandomActorFromRef(actorRef, MCM.iSearchRange) ;200.0)  ; old method, full of holes (lots of actor=player and actor=follower most of the time)
     npcActor = c.GetNthRef(searchIndex, 43) as actor
     if npcActor == None ; if we get a none, then there are no actors nearby, might as well quit early
-      return validNpcs
-    elseif isActorIneligable(npcActor, skipSlavers) == false 
+      if npcIndex == 0 ; we found no one, lets assume player is alone with followers
+        return new Actor[1]
+      else 
+        return validNpcs
+      endif
+    elseif !isActorIneligable(npcActor, skipSlavers)
       validNpcs[npcIndex] = npcActor ; elegible, return now, we don't need anything more from this function
       npcIndex += 1
     endif
     searchIndex += 1
   endWhile
-  return validNpcs ; passed through the whole loop, no valid actors
+  return new Actor[1] ; passed through the whole loop, no valid actors
   
 endFunction
 
 ; searches through the the quest ReferenceAlias' for a match
 ; should be faster than above since we can let the engine run some of these basic checks for us
-; in reality though, actor selection seems to lag behind the game
+; we either return: an array of size 1 (player has no surounding NPCs)
+;                   an array full of NPC
+;                   an empty array of size > 1, signifying that the player is NOT alone, but that none were valid.
 actor[] function getClosestRefActor(actor actorRef)
   Actor closest = None
   Actor[] valid = new Actor[10]
@@ -191,7 +198,7 @@ actor[] function getClosestRefActor(actor actorRef)
   elseif !isActorRefIneligable(closest, false)
     valid[index] = closest
     ValidAttacker1.Clear()
-    index += 1
+    index += 1    
   endif
   closest = ValidAttacker2.GetActorRef()
   if closest == None 
@@ -363,8 +370,7 @@ bool function isActorIneligable(actor actorRef, bool includeSlaveTraders = false
   if actorRef == None || actorRef == player ; should be taken care of before this, but might as well play with save variables
     return true
   endif
-  
-  
+    
   if(SexLab.IsActorActive(actorRef))
     debugmsg("invalid: " + actorRef.GetDisplayName() + " actor is 'sexlab active', busy", 3)
   ; don't need to check distance if the search function is based on search
@@ -481,6 +487,15 @@ bool function isActorIneligable(actor actorRef, bool includeSlaveTraders = false
     return true
   endIf
   
+  if actorRef.GetActorValue("Invisibility") > 0
+    debugmsg("invalid: " + actorRef.GetDisplayName() + " is invisible, assuming either bugged or part of mod, ruins immersion though", 3) ; this one might be needed for stealth after all
+    return true
+  elseif MCM.bGhostDialogueToggle == false && actorRef.IsGhost()
+    debugmsg("invalid: " + actorRef.GetDisplayName() + " is a ghost, and ghost encounters are turned OFF", 3) ; this one might be needed for stealth after all
+    return true
+
+  endif
+  
   return false
 endFunction
 
@@ -523,17 +538,18 @@ bool function isActorRefIneligable(actor actorRef, bool includeSlaveTraders = fa
     return true
   endif
   
-  float arousal_modifier = (1 + ((PlayerMon.isNight() as int) * (MCM.fNightReqArousalModifier - 1)) )
+  ;float arousal_modifier = (1 + ((PlayerMon.isNight() as int) * (MCM.fNightReqArousalModifier - 1)) ) ; bugged: night arousal is backwards
+  float arousal_modifier = 1 + ((PlayerMon.isNight() as int) * (MCM.fNightReqArousalModifier - 1)) 
   if !MCM.bArousalFunctionWorkaround
     int arousal = actorRef.GetFactionRank(Mods.sexlabArousedFaction)
-    if arousal < MCM.gMinApproachArousal.GetValueInt() / arousal_modifier ;&& !isSlaver ;aroused enough?
-      debugmsg("invalid: " + actorRef.GetDisplayName() + " arousal too low (faction): " + arousal + "/" + (MCM.gMinApproachArousal.GetValueInt() / arousal_modifier) as int + " Night:" + PlayerMon.isNight(), 3)
+    if arousal < MCM.gMinApproachArousal.GetValueInt() * arousal_modifier ;&& !isSlaver ;aroused enough?
+      debugmsg("invalid: " + actorRef.GetDisplayName() + " arousal too low (faction): " + arousal + "/" + (MCM.gMinApproachArousal.GetValueInt() * arousal_modifier) as int + " Night:" + PlayerMon.isNight(), 3)
       return true
     Endif
   elseif MCM.bArousalFunctionWorkaround 
     int arousal = Aroused.GetActorArousal(actorRef) 
-    if arousal < MCM.gMinApproachArousal.GetValueInt() / arousal_modifier  
-      debugmsg("invalid: " + actorRef.GetDisplayName() + " arousal too low (function): " + arousal + "/" + (MCM.gMinApproachArousal.GetValueInt() / arousal_modifier) as int + " Night:" + PlayerMon.isNight(), 3)
+    if arousal < MCM.gMinApproachArousal.GetValueInt() * arousal_modifier  
+      debugmsg("invalid: " + actorRef.GetDisplayName() + " arousal too low (function): " + arousal + "/" + (MCM.gMinApproachArousal.GetValueInt() * arousal_modifier) as int + " Night:" + PlayerMon.isNight(), 3)
       return true  
     Endif
   endif  
@@ -590,9 +606,22 @@ bool function isActorRefIneligable(actor actorRef, bool includeSlaveTraders = fa
   elseif Mods.isSlave(actorRef) ; needs cleaning with the faction upscale
      debugmsg("invalid: " + actorRef.GetDisplayName() + " is a slave", 3)
     return true
+  elseif Mods.lbsFaction && actorRef.IsInFaction(Mods.lbsFaction)
+    debugmsg("invalid: " + actorRef.GetDisplayName() + " is a member of laura's bondage shop", 3)
+    return true
+  
   ;elseif (PlayerMon.enslavedLevel > 1 || Mods.enslavedSD) && actorRef.IsInFaction(Mods.immersiveWenchGeneralFaction)
   ;  debugmsg("invalid: " + actorRef.GetDisplayName() + " is in immersive wench faction and already enslaved", 3) 
   ;  return true
+  endif
+  
+  if actorRef.GetActorValue("Invisibility") > 0
+    debugmsg("invalid: " + actorRef.GetDisplayName() + " is invisible, assuming either bugged or part of mod, ruins immersion though", 3) ; this one might be needed for stealth after all
+    return true
+  elseif MCM.bGhostDialogueToggle == false && actorRef.IsGhost()
+    debugmsg("invalid: " + actorRef.GetDisplayName() + " is a ghost, and ghost encounters are turned OFF", 3) ; this one might be needed for stealth after all
+    return true
+
   endif
   
   ; last because it might be kinda expensive

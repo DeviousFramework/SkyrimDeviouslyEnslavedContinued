@@ -13,6 +13,9 @@ if PlayerMon.follower_enjoys_dom >= 10
 else
   PlayerMon.ItemScript.removeDDs(removerActor = akSpeaker)
 endif
+
+PlayerMon.setFollowerGameState(False)
+
 ;END CODE
 EndFunction
 ;END FRAGMENT

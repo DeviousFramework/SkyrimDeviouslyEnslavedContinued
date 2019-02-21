@@ -9,7 +9,7 @@ Actor akSpeaker = akSpeakerRef as Actor
 ; Look a free fuck slave service me
 crdePlayerMonitorScript monitorScript = GetOwningQuest() as crdePlayerMonitorScript
 monitorScript.forceGreetSex = 0
-; why was this being reset?
+monitorScript.refreshHasFollowers()
 ;monitorScript.timeoutEnslaveGameTime = Utility.GetCurrentGameTime() + monitorScript.MCM.fEventTimeout
 ;END CODE
 EndFunction

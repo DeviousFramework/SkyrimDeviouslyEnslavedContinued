@@ -14,6 +14,8 @@ else
   PlayerMon.ItemScript.removeDDs(removerActor = akSpeaker)
 endif
 
+PlayerMon.setFollowerGameState(False)
+
 ;END CODE
 EndFunction
 ;END FRAGMENT

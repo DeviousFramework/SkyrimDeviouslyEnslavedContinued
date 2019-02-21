@@ -31,12 +31,13 @@ zadLibs         Property libs Auto
 SexLabFramework Property SexLab Auto
 
 import GlobalVariable
-;crds_SubmissionScript    Property submissionQuest Auto
-crdePlayerMonitorScript   Property PlayMonScript Auto
-crdeMCMScript             Property MCM Auto
-crdeDistantEnslaveScript  Property DistantEnslaveScript  Auto
-crdeSlaverunScript        Property SlaverunScript       Auto
-crdeLolaScript            Property LolaScript Auto
+;crds_SubmissionScript      Property submissionQuest Auto
+crdePlayerMonitorScript    Property PlayMonScript Auto
+crdeMCMScript              Property MCM Auto
+crdeDistantEnslaveScript   Property DistantEnslaveScript  Auto
+crdeSlaverunScript         Property SlaverunScript       Auto
+crdeLolaScript             Property LolaScript Auto
+crdedeviousframeworkscript Property DFWScript Auto
 
 ;state
 bool Property finishedCheckingMods Auto Conditional
@@ -91,6 +92,7 @@ bool Property modLoadedDeviousRegulations auto Conditional
 bool Property modLoadedTITD auto Conditional
 
 bool Property modLoadedSlaveTrainer auto Conditional
+bool Property modLoadedDeviousFramework auto Conditional
 
 ;modLoadedSLUTS modLoadedDeviousCidhna modLoadedCursedLoot modLoadedSlaverunR modLoadedIsleofMara
 ;bool Property modLoadedSexlabSolutions auto Conditional
@@ -111,6 +113,8 @@ int Property iEnslavedLevel auto ; 0 = free, 1 = enslaved/free use, 2 = enslaved
 Actor Property player Auto
 
 race[] Property pointedValidRaces Auto
+armor[] Property pointedVulnerableArmors Auto
+int[] Property pointedVulnerableArmorsValues Auto
 
 ; our training plug
 Armor Property crdeTrainingPlug Auto
@@ -153,7 +157,7 @@ Quest Property dcurDamselQuest Auto
 Quest Property dcurBondageQuest Auto
 Keyword Property dcurDollCollarKeyword Auto
 
-;5.0 DCL stuff 
+;5.0+ DCL stuff 
 GlobalVariable Property dcurMisogynyDetect Auto
 GlobalVariable Property dcurMisogynyCooldown Auto
 Armor property dcurHeavyGag auto
@@ -167,6 +171,7 @@ Cell Property dcurLeonHouse Auto ; we need his house to teleport to
 FormList Property dcur_removableBlockedItems Auto
 armor Property dcurBaloonHoodBlk auto
 armor Property dcurBaloonHoodPink Auto
+Keyword Property dcurBoundGirl Auto
 
 ; sd+
 Keyword Property sdEnslaveKeyword Auto
@@ -439,6 +444,7 @@ Quest   Property TITDQuest Auto
 Faction Property TITDSlaveFaction Auto
 
 Quest Property dfwFramework Auto
+;MagicEffect Property dfwLeashMEF Auto
 
 Quest Property huntedHouseQuest Auto
 
@@ -468,6 +474,8 @@ armor Property DD4PonyGagBlackHarn Auto ;
 armor Property DD4PonyGagRedHarn Auto ;
 armor Property DD4PonyGagWhiteHarn Auto ;
 armor Property DD4PonyTailPlug Auto ;0602EA47 
+armor Property DD4FettersBlack Auto ;
+armor Property DD4FettersSilver Auto ;
 
 bool Property bRefreshModDetect Auto
 Perk Property crdeContainerPerk Auto
@@ -480,12 +488,17 @@ keyword property slaEroticKeyword auto
 quest property wwbEscapeQuest auto
 cell property wwbWhiterunBrothel auto
 
+faction property lbsFaction auto ; laura's bondage shop
+quest   property lbsWhatSheDesrvesQuest auto
+
 keyword property LocTypeJail auto
 
 Event OnInit()
   Debug.Trace("[CRDE] Mods::init() ...")
   dhlpSuspendStatus = false
   pointedValidRaces = new race[10]
+  pointedVulnerableArmors = new Armor[16]
+  pointedVulnerableArmorsValues = new Int[16]
   RegisterForModEvent("dhlp-Suspend", "OnSuspend")
   RegisterForModEvent("dhlp-Resume", "OnResume")
   RegisterForModEvent("crderesetmods", "remoteResetCalled")
@@ -519,18 +532,6 @@ Event Maintenance()
   updateForms() ; needs to happen first, otherwise MCM is stuck waiting for Mods.
   checkStatuses()
 
-  ; for a few versions, we'll just reapply the perk every update
-  ;  why? because the perk doesn't auto refresh when a newer version of code is installed
-  ;  so the parameters don't get re-init
-  ;int i = ( MCM.bFollowerDialogueToggle.GetValueInt() == 1) as int
-  ;if player.HasPerk(crdeContainerPerk)
-  ;  player.removePerk(crdeContainerPerk)
-  ;endif
-  ;;Debug.Trace("[CRDE] Mods::Maintenance, after perk, time: " + (Utility.GetCurrentRealTime() - time)) most time was before this,
-  ;if  i == 1 ; we want the perk to be re-added
-  ;  player.addPerk(crdeContainerPerk)
-  ;endif
-  ;;Debug.Trace("[CRDE] Mods::Maintenance, starting updateForms, time: " + (Utility.GetCurrentRealTime() - time))
 EndEvent
 
 Event remoteResetCalled(string eventName, string strArg, float numArg, Form sender)
@@ -552,11 +553,11 @@ Event OnResume(string eventName, string strArg, float numArg, Form sender)
 EndEvent
 
 function dhlpSuspend()
-  dhlpSuspendStatus = true
+  ;dhlpSuspendStatus = true
   SendModEvent("dhlp-Suspend")
 endFunction
 function dhlpResume()
-  dhlpSuspendStatus = false
+  ;dhlpSuspendStatus = false
   SendModEvent("dhlp-Resume")
 endFunction
 
@@ -640,7 +641,7 @@ function updateForms()
     dcurHeavyCollar         = Game.GetFormFromFile(0x080A44A6, "Deviously Cursed Loot.esp") as Armor
     dcurBaloonHoodBlk       = Game.GetFormFromFile(0x080B0754, "Deviously Cursed Loot.esp") as Armor
     dcurBaloonHoodPink      = Game.GetFormFromFile(0x080B1222, "Deviously Cursed Loot.esp") as Armor
-    ;dcurRubberHood          = Game.GetFormFromFile(0x080B0754, "Deviously Cursed Loot.esp") as Armor) ;wait where did it go
+    dcurBoundGirl           = Game.GetFormFromFile(0x070BA432, "Deviously Cursed Loot.esp") as Keyword
 
   else
     Debug.Trace("[CRDE] Cursed loot is not installed")
@@ -785,6 +786,7 @@ function updateForms()
     hydraSlaverFaction        = Game.GetFormFromFile(0x0000B670, "hydra_slavegirls.esp") as Faction
     hydraSlaverFactionCaravan = Game.GetFormFromFile(0x9A072F71, "hydra_slavegirls.esp") as Faction
     hydraSlaveFaction         = Game.GetFormFromFile(0x0000B671, "hydra_slavegirls.esp") as Faction
+
   endif
 
   ; slave factions are deprecated in newer versions
@@ -1076,6 +1078,10 @@ function updateForms()
   dflowQuest = Quest.GetQuest("_DFlow") ; devious followers
   
   dfwFramework = Quest.GetQuest("_dfwDeviousFramework")
+  ;if dfwFramework 
+  ;  dfwLeashMEF = Game.GetFormFromFile(0x08005E26, "DeviousFramework.esm") as MagicEffect
+  ;endif
+  
   modLoadedDD4 = libs.GetVersion() >= 8.0
   if modLoadedDD4
     DD4HoodBlackEbonite   = Game.GetFormFromFile(0x0603D2D7, "Devious Devices - Expansion.esm") as Armor
@@ -1096,6 +1102,9 @@ function updateForms()
     DD4PonyGagWhiteHarn   = Game.GetFormFromFile(0x0703BD1B, "Devious Devices - Expansion.esm") as armor
     DD4PonyTailPlug       = Game.GetFormFromFile(0x0602EA47, "Devious Devices - Expansion.esm") as armor
     ;DD4CatsuitArmsBlack       = Game.GetFormFromFile(0x, "Devious Devices - Expansion.esm") as armor
+    DD4FettersBlack       = Game.GetFormFromFile(0x0603D2E8, "Devious Devices - Expansion.esm") as armor
+    DD4FettersSilver      = Game.GetFormFromFile(0x0603D2EB, "Devious Devices - Expansion.esm") as armor
+
   endif
 
   if isModActive("SexyBanditCaptives.esp")
@@ -1115,6 +1124,12 @@ function updateForms()
     wwbWhiterunBrothel = Game.GetFormFromFile(0x0D00CFD3, "WhiterunBrothel.esp") as cell
   endif
   
+  lbsWhatSheDesrvesQuest = Quest.GetQuest("Laura_WhatSheDeservesQuest")
+  if lbsWhatSheDesrvesQuest
+    lbsFaction = Game.GetFormFromFile(0x07021957 , "Laura's Bondage Shop.esp") as Faction
+  endif
+  
+  modLoadedDeviousFramework = Quest.GetQuest("_dfwDeviousFramework") != NONE
   
   Debug.Trace("[CRDE] ******** ignore any errors between these two messages FINISH ********", 1)
   finishedCheckingMods = true
@@ -1188,7 +1203,7 @@ function clearHelpless()
   endif
 endFunction
 
-; this is for NPCs, for player use isplayerenslaved
+; this is for NPCs, for player use isplayerenslaved()
 ; this is for factions and keywords, items are checked at isWearingSlave**
 bool function isSlave(actor actorRef)
  
@@ -1259,7 +1274,12 @@ bool function isSlave(actor actorRef)
     debugmsg("debug: " + actorRef.GetDisplayName() + " is a IOM slave", 3)
     return true
   endif
+  if modLoadedCursedLoot && actorRef.HasKeyword(dcurBoundGirl)
+    debugmsg("debug: " + actorRef.GetDisplayName() + " is a dcur Bound Girl, invalid for attack", 3)
+    return true
 
+  endif
+  
   return false
 endFunction
 
@@ -1276,7 +1296,7 @@ bool function isSlaveTrader(actor actorRef)
   if     actorRef.isInFaction(zazFactionSlaver)
     debugmsg("attacker is slaver: zbfFactionSlaver", 3)
     return true
-  elseif modLoadedHydra && (actorRef.isInFaction(hydraSlaverFaction) || actorRef.isInFaction(hydraSlaverFactionCaravan)) && !actorRef.isInFaction(hydraSlaveFaction)
+  elseif modLoadedHydra && (actorRef.isInFaction(hydraSlaverFaction) || actorRef.isInFaction(hydraSlaverFactionCaravan)) ;&& !actorRef.isInFaction(hydraSlaveFaction)
     debugmsg("attacker is slaver: hydra slaver faction", 3)
     return true
   elseif modLoadedSlaverun  && actorRef.isInFaction(slaverunSlaverFaction)
@@ -1297,7 +1317,8 @@ bool function isSlaveTrader(actor actorRef)
 endFunction
 
 
-; is player busy with mod, also determined here often
+; is player busy with mod, 
+; this gets called frequently, once per attack attempt cycle, which can mean 30-100 per hour
 int function isPlayerEnslaved()
 
   bool      isEnslaved    = false
@@ -1518,7 +1539,6 @@ int function isPlayerEnslaved()
     endif
   endif
   
-  
   if modLoadedMariaEden == true
     if(player.IsInFaction(MariaEdensSlaveFaction))
       if(meSlaveOnAStroll.isRunning() && meSlaveOnAStroll.GetStage() != 0)
@@ -1609,6 +1629,12 @@ int function isPlayerEnslaved()
       return iEnslavedLevel
     endif
   endIf
+  
+  if dfwFramework && GetDFWMaster() != NONE
+    debugmsg("enslaved: player is slave according to DFW, busy 3", 3)
+    setEnslavedLevel(3) 
+    return iEnslavedLevel
+  endif
   
   if player.WornHasKeyword(libs.zad_BlockGeneric) ; most common stopgap
     if !MCM.bEnslaveLockoutDCUR && isBlockFromDCURItemsOnly()
@@ -1746,8 +1772,14 @@ int function isPlayerEnslaved()
   ;if iEnslavedLevel > 0
   ;  debugmsg("enslaved: default return " + iEnslavedLevel, 2)
   ;endif
+  
+  if lbsWhatSheDesrvesQuest != None && lbsWhatSheDesrvesQuest.isRunning() && lbsWhatSheDesrvesQuest.GetStage() >= 40
+    debugmsg("enslaved: in jail (laura's bondage shop) 3", 3)
+    setEnslavedLevel(3)
+  endif
+  
   return iEnslavedLevel
-endFunction
+endFunction ; end isPlayerEnslaved()
 
 
 ; deprecate: this function no longer has a use, just adding to the stack load, slowdown
@@ -1883,13 +1915,14 @@ function arrestPlayer(int bounty = 0)
   ; if they don't have that mod, do nothing for now
 endFunction
 
+; adds a new race to our list of valid races to look up later
 function addPointedValidRace(race r)
   if pointedValidRaces.length < 1
     pointedValidRaces = new race[10]
   endif
 
   int index = 0 ; this function should be used so infrequently that I think the CPU loss by not saving index is unimportant
-  while pointedValidRaces[index] != None && index != pointedValidRaces.length
+  while pointedValidRaces[index] != None && index < pointedValidRaces.length
     index += 1
   endWhile
   
@@ -1900,6 +1933,141 @@ function addPointedValidRace(race r)
   endif
   
 endFunction
+
+; adds a new armor to our list of unique armors to look up later
+function addPointedVulnerableArmor()
+  ; just in case
+  if pointedVulnerableArmors.length < 16 || pointedVulnerableArmorsValues.length < 16
+    pointedVulnerableArmors       = new Armor[16]
+    pointedVulnerableArmorsValues = new Int[16]
+  endif
+  
+  ; find a free slot
+  int index = 0 
+  while pointedVulnerableArmors[index] != None && index < pointedVulnerableArmors.length
+    index += 1
+  endWhile
+  
+  if index >= pointedVulnerableArmors.length ; we reached the end and found nothing
+    debugmsg("There is no more space for unique armors",5)
+    return
+  else
+    
+    
+  armor[] current_armor = new armor[32]
+  
+  int i = 0 ; slot mask base 2 exp
+  int current_armor_index = 0
+  armor tmp = none
+  while i < 32
+    ;current_armor[i] = player.GetWornForm(Math.pow(2, i) as int) as armor
+    tmp = player.GetWornForm(Math.pow(2, i) as int) as armor
+    if tmp 
+    current_armor[current_armor_index] = tmp
+    current_armor_index += 1
+    endif
+    i += 1
+  endwhile
+  ;debugmsg("armor worn by player: " + current_armor)
+  
+  UIListMenu menu = UIExtensions.GetMenu("UIListMenu", true) as UIListMenu
+  i = 0
+  while i < current_armor_index
+    ;if current_armor[i] == NONE
+    ;  menu.AddEntryItem("<empty>")
+    ;else
+      menu.AddEntryItem(current_armor[i].GetName())
+    ;endif
+    i += 1
+  endwhile
+  menu.AddEntryItem(" ** cancel **")
+  menu.OpenMenu()
+  int armor_result = UIExtensions.GetmenuResultInt("UIListMenu")
+
+  if armor_result == 32 ||  armor_result <= -1; cancel was chosen
+    debugmsg("cancel chosen, leaving")
+    return
+  endif
+  
+  ; ask user for level
+  menu = UIExtensions.GetMenu("UIListMenu", true) as UIListMenu
+  menu.AddEntryItem("Vulnerability 1")
+  menu.AddEntryItem("Vulnerability 2")
+  menu.AddEntryItem("Vulnerability 3")
+  menu.AddEntryItem("Vulnerability 4")
+  menu.AddEntryItem("** cancel **")
+  menu.OpenMenu()
+  int level_result = UIExtensions.GetmenuResultInt("UIListMenu")
+
+
+  if level_result == 4 ||  level_result <= -1; cancel was chosen
+    debugmsg("cancel chosen, leaving")
+    return
+  endif
+  level_result += 1
+  
+  pointedVulnerableArmors[index] = current_armor[armor_result]
+  pointedVulnerableArmorsValues[index] = level_result
+  debugmsg("pointedVulnerableArmors:" + current_armor[armor_result])
+  debugmsg("pointedVulnerableArmorsValues:" + level_result)
+
+  PlayMonScript.PlayerScript.equipmentChanged = true ; reset so our new vuln will get checked
+  
+  endif
+endFunction
+
+; brings up menu to select an armor in the list and remove it, then re-sorts list so there aren't gaps
+function removePointedVulnerableArmor()
+  
+  UIListMenu menu = UIExtensions.GetMenu("UIListMenu", true) as UIListMenu
+  int i = 0     ; how far we've traversed the saved pointed list
+  while i < pointedVulnerableArmors.length
+    if pointedVulnerableArmors[i] != NONE
+      menu.AddEntryItem(pointedVulnerableArmors[i].GetName())
+    else
+      i += 100
+    endif
+    i += 1
+  endwhile
+  menu.AddEntryItem(" ** cancel **")
+  menu.OpenMenu()
+  int armor_result = UIExtensions.GetmenuResultInt("UIListMenu")
+  if armor_result == pointedVulnerableArmors.length || armor_result <= -1
+    debugmsg("armor remove canceled")
+    return
+  endif
+
+  pointedVulnerableArmors[armor_result]       = None
+  pointedVulnerableArmorsValues[armor_result] = 0
+
+  PlayMonScript.PlayerScript.equipmentChanged = true ; reset so our new vuln will get checked
+
+  armor tmp
+  while armor_result < pointedVulnerableArmors.length
+    tmp = pointedVulnerableArmors[armor_result+1]
+    if tmp ; we still need to shuffle one more
+      pointedVulnerableArmors[armor_result] = tmp
+      pointedVulnerableArmorsValues[armor_result+1]
+    else ; we've reached the end
+      armor_result = 5000
+    endif
+    armor_result += 1
+  endWhile
+endfunction
+
+
+string[] function getUniqueVulnerableArmorNames()
+  string[] names = new String[16] ; of course papyrus won't accept arrray.length here... its not like its an intepreted language or anything
+  int i = 0
+  int len = pointedVulnerableArmors.length
+  while i < len
+    names[i] = pointedVulnerableArmors[i].GetName()
+  endWhile
+  
+  return names
+endFunction
+
+
 
 Event CDxDispositionUpdate(float newValue)
   ; xxxx
@@ -1914,6 +2082,7 @@ Event CDxDispositionUpdate(float newValue)
   PlayMonScript.adjustPerceptionPlayerDom( a, diff )
 
 endEvent
+
 
 bool function isTiedUpCDFollower( actor actorRef)
 
@@ -1952,6 +2121,24 @@ function sendPlayerToCDShop()
   ; weird, I've never actually moved the player before without a target object...
   ;player.moveto(cdMain)
   Debug.CenterOnCell(cdMainShop)
+endFunction
+
+bool function GetDFWPlayerBusy()
+  if modLoadedDeviousFramework  && DFWScript
+    return DFWScript.GetDFWPlayerBusy()
+  elseif ! DFWScript
+    debugmsg("DFW script is missing but the mod is installed")
+  endif
+  return false 
+endFunction
+
+actor function GetDFWMaster()
+  if modLoadedDeviousFramework  && DFWScript
+    return DFWScript.GetDFWMaster()
+  elseif ! DFWScript
+    debugmsg("DFW script is missing but the mod is installed")
+  endif
+  return None 
 endFunction
 
 

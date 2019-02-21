@@ -18,6 +18,9 @@ else
   PlayerMon.ItemScript.equipFollowerAndPlayerItems(akSpeaker, forceGag = true )
 endif
 
+PlayerMon.setFollowerGameState(True)
+
+
 ;END CODE
 EndFunction
 ;END FRAGMENT

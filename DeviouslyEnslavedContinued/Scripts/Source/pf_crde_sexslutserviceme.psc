@@ -6,8 +6,10 @@ Scriptname pf_crde_sexslutserviceme Extends TopicInfo Hidden
 Function Fragment_0(ObjectReference akSpeakerRef)
 Actor akSpeaker = akSpeakerRef as Actor
 ;BEGIN CODE
+; text: Slut! service me
 crdePlayerMonitorScript monitorScript = GetOwningQuest() as crdePlayerMonitorScript
 monitorScript.forceGreetSex = 0
+monitorScript.refreshHasFollowers()
 ;monitorScript.timeoutEnslaveGameTime = Utility.GetCurrentGameTime() + monitorScript.MCM.fEventTimeout
 ;END CODE
 EndFunction

@@ -2,6 +2,8 @@
 ;NEXT FRAGMENT INDEX 1
 Scriptname pf_crde_followeryesmasterlikes Extends TopicInfo Hidden
 
+; I think this broke, and I replaced it
+
 ;BEGIN FRAGMENT Fragment_0
 Function Fragment_0(ObjectReference akSpeakerRef)
 Actor akSpeaker = akSpeakerRef as Actor

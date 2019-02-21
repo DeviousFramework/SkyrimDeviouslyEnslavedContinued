@@ -184,10 +184,14 @@ endFunction
 
 function removeDDbyKWD(actor actorRef, keyword keywordRef)
   armor dd    = libs.GetWornDevice(actorRef, keywordRef)
-  armor rndrd = libs.GetRenderedDevice(dd)
-  libs.removeDevice(actorRef, dd, rndrd, keywordRef)
-  if dd != None && dd.haskeyword(libs.zad_DeviousBelt)
-    previousBelt = dd
+  if ! dd 
+    PlayerMon.debugmsg("ERROR: Cannot get item from keyword from DD", 4)
+  else
+    armor rndrd = libs.GetRenderedDevice(dd)
+    libs.removeDevice(actorRef, dd, rndrd, keywordRef)
+    if dd != None && dd.haskeyword(libs.zad_DeviousBelt)
+      previousBelt = dd
+    endif
   endif
 endFunction
 
@@ -904,18 +908,50 @@ endFunction
 
 armor function getRandomAnkleChains()
   armor chains = None
-  if Mods.modLoadedCursedLoot 
-    if Mods.dcurAnkleChains == None
-      PlayerMon.debugmsg("Err: Cursed loot chains are no loaded, but cursed loot is, re-cycle mod detection",5)
-      chains = Mods.zazLegCuffs
-    endif
-    chains = Mods.dcurAnkleChains
-  elseif Mods.zazLegCuffs != None
-    chains = Mods.zazLegCuffs
-  else
-    PlayerMon.debugmsg("Err: No chains to put on the player, reset mods or report to support thread",5)
+  int weightZazChains             = 5  * ( Mods.zazLegCuffs != None && ! Mods.dcurAnkleChains && !Mods.modLoadedDD4) as int
+  int weightDCUR                  = 10 * ( Mods.dcurAnkleChains != None ) as int
+  int weightDD4Black              = 5  * ( Mods.modLoadedDD4 ) as int
+  int weightDD4Silver             = 5  * ( Mods.modLoadedDD4 ) as int
+  
+  int weightTotal = weightZazChains + weightDCUR + weightDD4Black + weightDD4Silver 
+  if weightTotal == 0
+    PlayerMon.debugmsg("equipPlayerMon.randomDD: weight is zero, equipping nothing", 4)
+    return None
+  endif  
+  int roll = Utility.RandomInt(1, weightTotal)
+  bool removed = false
+  ;PlayerMon.debugmsg("equipPlayerMon.randomDD: rolled " + roll, 2)
+  PlayerMon.debugmsg("zaz/DCUR/DD4Black/DD4Silver(" \
+                     + weightZazChains + "/" + weightDCUR + "/" + weightDD4Black  + "/" + weightDD4Silver \
+                     +") roll/total:(" + roll + "/" + weightTotal + ")", 2)
+
+  armor collar
+  if (roll == 0)
+    PlayerMon.debugmsg("equipPlayerMon.randomDD: nothing to equip?")
+    return collar
+  elseif roll <= weightZazChains
+    return Mods.zazLegCuffs
+  elseif roll <= weightZazChains + weightDCUR
+    return Mods.dcurAnkleChains
+  elseif roll <= weightZazChains + weightDCUR + weightDD4Black 
+    return Mods.DD4FettersBlack
+  elseif roll <= weightZazChains + weightDCUR + weightDD4Black + weightDD4Silver
+    return Mods.DD4FettersSilver
   endif
-  return chains
+  
+  ;if Mods.modLoadedCursedLoot 
+  ;  if Mods.dcurAnkleChains == None
+  ;    PlayerMon.debugmsg("Err: Cursed loot chains are no loaded, but cursed loot is, re-cycle mod detection",5)
+  ;    chains = Mods.zazLegCuffs
+  ;  else
+  ;    chains = Mods.dcurAnkleChains
+  ;  endif
+  ;elseif Mods.zazLegCuffs != None
+  ;  chains = Mods.zazLegCuffs
+  ;else
+  ;  PlayerMon.debugmsg("Err: No chains to put on the player, reset mods or report to support thread",5)
+  ;endif
+  ;return None
 endFunction
 
 ; TODO finish this, can't find the model in creation kit
@@ -1122,8 +1158,8 @@ armor[] function getRandomBeltAndStuff(actor actorRef, bool punishment = false, 
   ; if punish is not set, punish belts should have a 1/4th chance of happening
   ; what was I thinking: / ((1 * (punishment as int)) + 1)
   ; eventually, I want this to include DD4 belts, gold/silver ect
-  int newPadded   = MCM.iWeightBeltPadded  * ((!punishment) as int * 4)
-  int newIron     = MCM.iWeightBeltIron    * ((!punishment) as int * 4)
+  int newPadded   = MCM.iWeightBeltPadded  * 1 + ((!punishment) as int * 2)
+  int newIron     = MCM.iWeightBeltIron    * 1 + ((!punishment) as int * 2)
   int newImperial = MCM.iWeightBeltRegulationsImperial   * (Mods.modLoadedDeviousRegulations as int) * (punishment as int)
   int newSCloak   = MCM.iWeightBeltRegulationsStormCloak * (Mods.modLoadedDeviousRegulations as int) * (punishment as int)
   int newShame    = MCM.iWeightBeltShame                 * (Mods.modLoadedCursedLoot as int) * (punishment as int)

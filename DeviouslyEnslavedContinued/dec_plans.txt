@@ -1,8 +1,9 @@
-; verstort 3/2018
+; verstort 2/2019
 ; this is more notes at this point than just plans
+;  keep in mind: the only part that gets modified frequently is the todo section
 
 
-known bugs:
+known bugs: (these are long term bugs, attempted to fix and failed, or dont care enough to fix)
   player's inventory is not checked at the start of a fresh load
     
   Containers searched keeps going up regardless of if you have a follower
@@ -13,6 +14,8 @@ known bugs:
 
   NPC is walking away after attack, again, instead of animating... why?
     bad animation in dd4, we need to update this
+    actually, getworndevice(fuzzy) was so slow it was 99% of the delay for sex, sex now starts so fast this is no longer an issue
+    
 
 
 Debug report form:
@@ -55,13 +58,10 @@ Debug report form:
   -^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v-
   
   new items:
-    ;elbow binders
     pony gag, 1/2 of 5
       modify new pony suit, includes gag, tailplug among other things
     rubber cat suit is now in DDi4, small conselation though if its going to be a soft dependency
     hobble dress for follower interaction?
-    ;hood needs updated
-    ;yoke too, blindfold
     regular non-harness gags
     
     round 2:
@@ -92,7 +92,19 @@ Debug report form:
     
     player "Tie me up!" "you want more??"
     
+  ;we should consider speeding up the item detection by checking specific slots instead of WornHasKeyword
+    !!! WAR has been declared on fuzzymatch !!!
+    item detection on player:
+    old double function:
+      naked: old: 0.217995 new: 0.089005
+      3 items: old: 1.261993  new: 0.085999
+      almost everything: old: 16.864990  new: 0.145020
+      huge difference, and that's with debug spouting out of the second one
+    this could be a huge benefit for NPC searching too
+      oh no, we do looooots of wornhaskeyword in item rolling
 
+    
+    
   --- $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$ --- 
 
       CHECK before next major release: 
@@ -106,15 +118,26 @@ Debug report form:
 
 Notes:
   
-  reason for save cleaning in 13.13.13:
-    device keywords were swapped around, they will be out of order for users of old saves
-  
+  Dialogue brainstorm:
   - follower dialogue for asking for unlock
       does the unlock dialogue work and make sense for most items, with context being either they put them on the player or they did not
       
       missing dialogue for already gagged, ask for sex get belt?
       missing variety for gagged talking to follower
-      
+  follower approaches player with item, only two "what did you find" possibilities, and only two "Mnn?" possibilities. need way more variety here
+    - need with gagged:
+      ; have: do you want more items added? with player sub
+      ; need really dom follower version of adding more items
+      ; can use with more dom version of follower not being added
+      ; need version with follower that is not dom
+      ; need version with sub follower putting it on themselves <- think we might have this one already
+      ; need player showing they want it and optional dialogue to go with it
+  + Follower: "actually... I wanted to be tied up instead" dialogue option if sub
+  +   Can we add an animation for follower doing something with their hands until they are done (adding items to player)?
+  + "do you want to be bound in the pillory for awhile, sure thing honey"
+    could be a bit boring... need to figure out how to make NPCs talk without dialogue
+  + what about "Oh deary, is nobody using you? lets find you some ugly fucker"
+
   
   can we detect what items the player is wearing that the follower put on them?
    - outcomes: 
@@ -138,48 +161,152 @@ Notes:
   also add unique collars to post sex, meaning single item detection
   finish straitjacket and the other item we wanted
   
-&&&&&&&&&&&&&&&&&
+&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+&&&&&&&&&&&&&&&&& (todo list starts here) &&&&&&&&&&&&&&&&&
+&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
 
-  intimidation skill
-  ;user found bug where devious followers esnalvement was a greyed out option
-  
-  DD double belt animation
-  DD animation for tight dress organsm?
-  DF: mod won't remove harness before sex, broken animations because of DD animation filter
-  
-  
-  ; user wants morality bypass for arousal
-  ;user wants intimidation timer
-  ;  need to set it in some spots
-  ;    until night for intimidation, 1 day for belt, 6 hours for master, 6 hours for rest?
-  user wants weapon spooking timer
-  ;user discovered that dialogue points at vulnerability instead of playerVulnerability
-    can't use grep on a binary without losing multi-line detection, which is needed
-    use vim instead, search actually works
-  ;user was attacked through bars in prison
-    loctypejail
-  ;collar double adding ontop of collar not detecting harness and not removing? at least the collar test doesn't catch that a new collar is possible
-  maybe add some color sliders
-  
-  
-  for now, lets make it so that item are never swapped if the player has a blocking keyword on their person
-  collars are never swapped if the player is wearing a harness... huh
+  ;changed key detect before 
+  ;changed key detect after
+  ;DCUR is broken on new version on old save, stack dump with >100 clock tick scripts
+    - actually, it was chain beasts, all the DEC scripts dumped were during that fight, makes sense, DCUR checks heavy for what item is what at remove time
+  ;item being re-added was blocked by the no-after affects keyword being on, non-tested
+  ;bound girls still attack player
 
-  make it so that horny follower is likely to unlock the player for sex
-    remove and replace belt seems broken, even broke the armbinder (might have been a beta issue though)
+    
+    
+ **** Major bug: Chastity is broken ****
+
+  Can we check if aninations exist BEFORE we allow for an attack?
+    for some reason, DCUR's new dollmaster quest doesn't count as chastity
+    did we set our logic to assume they would unlock but forget to unlock? we cannot do that if in a cannot-remove situation
+    
+    if we want an approach, we find an NPC, 
+      if player is blocked, attacker has the req key to remove items, temp remove items and sex appraoch
+     ?if player is blocked, and player is blockingkeyword, stop, unless you want to make crazy key/dcur thing
+      if player is blocked, attacker does NOT have key, but is slaver, temp remove items and sex approach   
+      if player is blocked, attacker does NOT have key, and we don't want them to add one, we need to roll animations NOW to check if it would just drop out
+    holy hell this was a bigger bug than I realized
+    ;also theres a bug in checkchastity that needs fixing in log
+    ;I don't think our belt removal code on sex approach can handle harnesses
+    So... is busy isn't resetting the approach in reality, I'm guessing because it breaks dialogue while we're in dialogue...
+    ;still to do: stop attack on full chast if no key
+      chast key wasn't enough for one guy to unlock player wearing chast harness???
+    ;Ideally I would fix the old chast removal in pre-sex then reuse the friendly belt option
+    ;  we still need to know if we want to add items in post sex, but we need to know if its friendly or not
+  ;maybe slavers should always have keys?
+    they should always be able to remove now, good enough, needs testing though
+  **** end bug ****    
+
+  DCUR slut suit is not vulnerable...?
+    I mean we can set it to naked but shouldn't it count without user manually selecting it?
+  + idea:
+    user can specify vulnerability for specific items
+    ;we need to know if we can get the slots for an ARMOR in papyrus, then we can check per slot
+    ;add and remove buttons, add searches known armors
+  + maybe search inventory too
+    we can get the slot mask for the item, which is perfect, we can search with that.
+      hang on we need a way to save an armor to a file so we can identify it, ID isn't enough
+    how did we store races...?
+      ... we didn't, damn
+    known error: if you uninstall a mod an armor will NULL out, but our code won't expect it
+      currently we lose with mods anyway
+    for some fucking reason checking the array length < 10 is always true, even when its 16 in the debug
+      seriously what is this bug 
+      DEBUGGER WOULD BE NICE
+    ;move unique location in debug
+    ;remove function needs a device update too    
   
   
-  if player has had sex with the npc before, different enslave dialogue
-  make a dialogue for "combat plug" and belt
+  what does whore collar do?
+  Weird bug: sex approach, NPC walks up to player but says in the open, then walks away nothing happens after that until next approach
+  * Item rolled a harness, player wearing a collar, got an error and nothing instead of a swap
+    ? collars are never swapped if the player is wearing a harness... huh
+  more debugging in remove item functions, if you get those errors then you probably have bigger problems, don't let them be silent
+  we COULD move UIExtensions to a soft requirement if we move the scripting to a separate quest... would that annoy more users?
+  extra mod: change skirt slot so it doesn't clash
+    requires nifscope... 
+  ; fixed a bug where "yes, master/mistress" wouldn't count as a belt and replace scene
+  ;bug: DEC wouldn't reset sexFromDEC if belt replace was turned on
+  ;bug: followers wouldn't get frustration relief unless DEC called sex and player took part
+ * all of sex needs to be retested, I made too many changes
+  ;* test glance at follower dialogue is sometimes absent
+    ;Follower approached the player for sex while in a city, surrounded by NPCs
+    follower search was inverted, would always stop early
+  ;belt bug: if punishment belt is set, game equips nothing if no punishment belt...?
+  the player was talking to another NPC, at least followers should know better
+
+  for some reason DD no longer has gag sound effects... ??
+    DD is broken in testing save, damn it, don't forget double save load, and add belt too
+  Follower can put on items on the player after sex
+    if they do, the game doesn't start, and there is no dialogue to ask them to remove what they put on
+  we should stop DCUR bound girls from ever using the player, as they were previous victims
+  Leon's quest is missing in the latest dcur
+    might have been fixed in .5, 
+
+
+  Weird case, not sure I can replicate:
+    Player is gagged, game is active, follower approaches and we get player->follower gag dialogue instead of approach dialogue
+
+  Game release did not remove collar or belt: 
+    	Line 9315: [01/14/2019 - 10:59:21PM] [CRDE] found: keyword [Keyword <zad_DeviousBelt (0A003330)>] at 9
+  	Line 9316: [01/14/2019 - 10:59:21PM] [CRDE] found: keyword [Keyword <zad_DeviousGag (0A007EB8)>] at 11
+    looks like it saw them, same items on slave1
+ Line 5492: [01/17/2019 - 01:38:20PM] Cannot open store for class "pf_crde_followeryesmasterlikes", missing file?
+	Line 5493: [01/17/2019 - 01:38:20PM] ERROR: Unable to bind script pf_crde_followeryesmasterlikes to topic info A503CC7A on <NULL quest> because their base types do not match
+  
+  laura:Do you think you can get the bodyguard to shut up now and then?
+  
+  when belt is put back on, it should also make a restraints sound
+  how the heck do I remove standard SL animations I hate? surely some people have hit the limit and removed them?
+  Lieto footjob 1 and 2 are female dom on male with vaginal in both cases, cannot happen in attack, cannot happen if belted
+  Arrok missionary should be removed
+
+  Caged followers < did we integrate this?
+
+  + attackers % chance for "I am not a slave" should probably not be up to the game anymore, we should have tighter control there
+  
+  
+  integrate with Devious mindbreak?
+    ;is broken, frustration goes up to max and never lowers. stuck at 0 magicka regen
+    unfortunately, this is really best suited for dialogue adjustment, which I'm not inclined to get in to
+    IE, player is so frustrated they cannot say no, is so sex craved can only say yes
+  devious lore? haven't tried it yet
+  
+  + Sub slave, that doesn't get enough attention from player, should start putting items on themselves when horny
+  + player approaches follower for sex, follower requires certain items be worn during sex angrim inflence
+    need follower is not interested, at all
+
+  ?+ set min time in player game, make it extendable in 13-60 minute increments
+  ? piercing weight starts at zero
+  ? plugs are none, huh?
+
+  detect cuffs for vulnerable?
+    need single levels for both
+
+  
+  * follower approach ignores that there are enemies nearby that may not approach the player but would get in the way of follower dialogue
+    player doesn't want follower to approach the player while sneaking/weapon drawn
+    this is harder to fix than I thought... 
+
+  if the game wasn't started, talk to follower "what is it" and they do nothing from there.
+    
+  + intimidation skill
+  
+  
+  + user wants weapon spooking timer
+  + maybe add some color sliders
+  + fix bug where follower forgets item if they get interupted
+
+  
+  
+  + if player has had sex with the npc before, different enslave dialogue
+    make a dialogue for "combat plug" and belt ? huh? what is this?
   
   user wants follower dom/sub tendencies to account for sex positions; yeah that's gonna happen
   
   naked dungeons has code that can detect when entering dungeons, assuming it would also have code for detecting when the dungeon is over then
     might not be enough, we want to know when the dungeon is CLEARED too
   user wants privacy item approach and sex approach overrides, great
-  set min time in player game, make it extendable in 13-60 minute increments
-  player approaches follower for sex, follower requires certain items be worn during sex angrim inflence
-    need follower is not interested, at all
   
   belt re-equip after a sex does not work, or maybe serana wasn't dom enough?
   slaverun specific dialogue? "not going to unlock your belt here, too many weird people"?
@@ -191,49 +318,19 @@ Notes:
   follower approach attempt function needs to be rewritten to make more sense
     if we're going to search through the follower list twice anyway, lets search for BOTH first, then chekc our options
   keep better track of which followers are best for attacking player
-  make sure the new dialogue detects that the mod is turned off, and detects that the follower dialogue is off
   make follower negate work for all attackers too
-  ask for more animations
-  can we refresh mods and playermon on update so we have less save cleaning req
   
-  piercing weight starts at zero
-  plugs are none, huh?
+>>>>>>>>>> old: >>>>>>>>>>  
   
-  ; changed the mods reset no longer resets follower list
-  ; moved some minor MCM around
   check to make sure DEC can really detect the new prison overhaul
-  follower approaches player with item, only two "what did you find" possibilities, and only two "Mnn?" possibilities. need way more variety here
-    - need with gagged:
-      ; have: do you want more items added? with player sub
-      ; need really dom follower version of adding more items
-      ; can use with more dom version of follower not being added
-      ; need version with follower that is not dom
-      ; need version with sub follower putting it on themselves <- think we might have this one already
-      ; need player showing they want it and optional dialogue to go with it
       
-  ;now that we have batch compiling, consider removing doPlayerSexFull
-  ;follower attack cooldown is broken, always on, never works, geez how could this happen?
-     might have actually been fine, bu tnot I have it set backwards, needs to be tested
-  ;the dialogue where player approaches follower tied up, ignores possiblity that player is gagged no wonder I haven't seen it forawhile
-  ; gagged player, item approach, missing "what did you have in mind"
-    still missing version where follower puts items on themselves instead
-  ;"you'd better be naked in 3 seconds" < need either higher frustration and medium dom, or high dom
   
-  ; bug where you NEED a blocking keyword for removedds to work
-  disabled NPCs can try to attack the player, maybe not a big bug
-    I mean they won't actually attack us they are disabled
-    Serana, even though she counts as follower for follower stuff, does not count for enslavement protection
   long rewrite: we keep old array of follower found items, then add items if they are needed, faster.
   "I found a better <item> for you" alternative at item approach for dom/sub relationship
   if follower puts items on player as punishment for hitting them, keep a cooldown and don't allow follower to remove items until then
     need some dom or annoyed dialogue
   
-  ;armbinder dialogue needs to be finished
-    maybe blindfold version, piercings? blindfold? I just KNOW someone will ask for hoods again...
   should we make belt an armbinder requirement? or maybe really sub first
-  Can we add an animation for follower doing something with their hands until they are done?
-  what about "Oh deary, is nobody using you? lets find you some ugly fucker"
-  "do you want to be bound in the pillory for awhile, sure thing honey"
   ;move keys from player to follower if you ask to be tied up?
   ; the player->follower dialogue overrides the follower->player dialogue
   ;item removal is not working. Non-gag release does nothing at all, and the rest 'tries' to remove items but they are still equipped state wise
@@ -242,8 +339,6 @@ Notes:
   sex, while tied up, never leads to release from items, even for the one that is dialogue to be that way
   
   single item plugs chance
-  detect cuffs for vulnerable?
-    need single levels for both
   fix your struggle animations
     can we get gag detection working for PAHE dialogue? ; you mean override his dialogue with our own? we can't make a tree that big
     home: "you stop, sex with me" ignores belt
@@ -252,39 +347,14 @@ Notes:
     ; close enough, we can detect invenory and carry, but not compare, so just inventory >= 300 for now
     needs testing
   for follower puts extra items on you, we need special added pop up dialogue
-  reduce some MCM items to lower values
-    hoods to zero, some gags to lower
-
-	Line 416: [02/17/2018 - 08:35:25AM] ERROR: Unable to bind script crdeplayerscript to  (00000014) because their base types do not match
-  ^ huh?
-   # calling this a fluke for now, or a result of non-saveclean
-  
-  ;make sure the "protect your butt" dialogue can detect belted PC, just got it twice in a row
-  ;bug: player can be "wearingBelt" but its not a belt, and we ask "does the folower have a key" and DD says "this isn't a belt"
 
   
-  ;we should consider speeding up the item detection by checking specific slots instead of WornHasKeyword
-    ;war has been declared on fuzzymatch
-    item detection on player:
-    old double function:
-      naked: old: 0.217995 new: 0.089005
-      3 items: old: 1.261993  new: 0.085999
-      almost everything: old: 16.864990  new: 0.145020
-      huge difference, and that's with debug spouting out of the second one
-    this could be a huge benefit for NPC searching too
-      oh no, we do looooots of wornhaskeyword in item rolling
-    
-  two gag rolls? got with "you should try on" -> hey! -> ?
-  lets add the sexy bandit keyword to keywords to look for to idenfify slaves including player
-
   add MCM modifier for approach chance for when the player is alone with the attacker
    maybe remove some dialogue or add some too
   if sleeping NPCs can attack player, we need to fix this but leave sleeping NPC can attack player as option
   
   need to tell the difference between the follower having added items and the player getting items otherwise
   user thinks "Oh right, you are still tied up... oh well, only one end needs to be open, right" leads to no belt re-adding, which 
-  user wants new pony suit finished 
-  fix bug where follower forgets item if they get interupted
   
   change follower found items so that special collars cannot be equipped through glib follower comments, only through experimental
   player asking to be tied up should increase reputation
@@ -341,7 +411,6 @@ Notes:
     -- what the hell this should be working
 
    
-old:   
   container check cell is NULL when we're out in the overworld... crap
   double reset is still in effect, damn it.
   boots slider
@@ -1078,13 +1147,28 @@ player is approached by friendly NPC, because NPC has noticed player likes it ((
   
 **************************************
   
-  
-  
-bleed out events:
-IdleForceDefaultState
-BleedOutStart <- locks movement
-BleedOutStop
+Someone translated DEC into chinese and posted on 9damao.com:
+DEC's mod description was translated Eng->CN->Eng by google so I could read it
+and some amazing results:
 
+ Why does this Ministry of Defense have a training plug? 
+ ---------
+ Why should I use this instead of the cursed stolen goods?
+   Please feel free to use the cursed idiot. ... . The cursed loot also does not allow men to play.
+ ---------
+How do I save clean -> How can I save it?
+* Conduct a difficult fight
+ ---------
+If you have any additional ideas from the SD Master, I only have a few requirements: the National People's Congress must be found in an area with at least one bed
+  At present, there are very few hostesses and civilians on the list. (this was women and civilians, hostess???)
+----
+ Obviously, slavery was originally intended to allow the world to react to players while they were wearing slave gear and other DD/ZAPBondage gear. (thats an interesting philosphy)
+  If players are found wearing such equipment, they may be approached by people in the sky  
+----
+ There are 5 levels of player vulnerabilities (0-4) as follows
+2: Wear the following clothing naked: horse, collar, perforation, semi-naked
+  
+  
 (69)(69)(69)(69)(69)(69)(69)(69)(69)(69)(69)(69)(69)(69)(69)(69)(69)(69)(69)(69)(69)(69)(69)(69)
 
   Recompile boatloads of shit:
@@ -1321,4 +1405,20 @@ stack:
 bad animations:
 gag and full belt: A: Mitos Hugging Behind tags:["FeetCum", "Dirty", "Laying", "Reverse", "Footjob", "Feet", "Fetish", "Penis", "Straight", "sex", "Mitos", "FM", "MF", ""]
 
+[02/14/2019 - 11:43:10PM] ERROR: Unable to call GetNumItems - no native object bound to the script object, or object is of incorrect type
+stack:
+	[<NULL form> (FF000C8F)].ObjectReference.GetNumItems() - "<native>" Line ?
+	[ (AA043322)].PRKF_crdeContainerPerk_08043322.Fragment_2() - "PRKF_crdeContainerPerk_08043322.psc" Line 15
+[02/14/2019 - 11:43:10PM] ERROR: Unable to call GetCurrentStageID - no native object bound to the script object, or object is of incorrect type
+stack:
+	[<NULL form> (9707A009)].dcur_leonslavery_questscript.GetCurrentStageID() - "<native>" Line ?
+	[<NULL form> (9707A009)].dcur_leonslavery_questscript.GetStage() - "Quest.psc" Line 64
+	[alias alias_player_as on quest dcur_aliases (9705FA38)].dcur_leonslavery_PlayerRef.OnItemAdded() - "dcur_leonslavery_PlayerRef.psc" Line 8
+[02/14/2019 - 11:43:10PM] warning: Assigning None to a non-object variable named "::temp0"
+stack:
+	[ (AA043322)].PRKF_crdeContainerPerk_08043322.Fragment_2() - "PRKF_crdeContainerPerk_08043322.psc" Line 15
+[02/14/2019 - 11:43:10PM] warning: Assigning None to a non-object variable named "::temp6"
+stack:
+	[<NULL form> (9707A009)].dcur_leonslavery_questscript.GetStage() - "Quest.psc" Line 64
+	[alias alias_player_as on quest dcur_aliases (9705FA38)].dcur_leonslavery_PlayerRef.OnItemAdded() - "dcur_leonslavery_PlayerRef.psc" Line 8
 
